@@ -7,8 +7,14 @@ import { MESSAGES } from '~/constants/message'
 
 type UserDocument = {
   _id?: unknown
-  name: string
+  fullName: string
   email: string
+  phoneNumber: string
+  identifyNumber: string
+  gender: 'male' | 'female'
+  age: number
+  address: string
+  dateOfBirth: string
   passwordHash: string
   createdAt: Date
   updatedAt: Date
@@ -43,18 +49,75 @@ const getJwtSecret = (): string => {
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, email, password } = req.body as { name: string; email: string; password: string }
+    const { 
+      fullName, 
+      email, 
+      phoneNumber, 
+      identifyNumber, 
+      gender, 
+      age, 
+      address, 
+      dateOfBirth, 
+      password 
+    } = req.body as {
+      fullName: string
+      email: string
+      phoneNumber: string
+      identifyNumber: string
+      gender: 'male' | 'female'
+      age: number
+      address: string
+      dateOfBirth: string
+      password: string
+    }
+    
     const users = getCollection<UserDocument>(USERS_COLLECTION)
-    const existing = await users.findOne({ email })
-    if (existing) {
+    
+    const existingEmail = await users.findOne({ email })
+    if (existingEmail) {
       throw new HttpError(409, MESSAGES.EMAIL_EXISTS)
     }
+    
+    const existingPhone = await users.findOne({ phoneNumber })
+    if (existingPhone) {
+      throw new HttpError(409, MESSAGES.PHONE_EXISTS)
+    }
+    
+    const existingIdentify = await users.findOne({ identifyNumber })
+    if (existingIdentify) {
+      throw new HttpError(409, MESSAGES.IDENTIFY_NUMBER_EXISTS)
+    }
+    
     const passwordHash = await bcrypt.hash(password, 10)
     const now = new Date()
-    const insert = await users.insertOne({ name, email, passwordHash, createdAt: now, updatedAt: now })
+    
+    const insert = await users.insertOne({ 
+      fullName, 
+      email, 
+      phoneNumber, 
+      identifyNumber: identifyNumber,
+      gender, 
+      age, 
+      address, 
+      dateOfBirth, 
+      passwordHash, 
+      createdAt: now, 
+      updatedAt: now 
+    })
+    
     return res.status(201).json({
       message: MESSAGES.REGISTER_SUCCESS,
-      data: { id: insert.insertedId, name, email },
+      data: { 
+        id: insert.insertedId, 
+        fullName, 
+        email, 
+        phoneNumber, 
+        identifyNumber, 
+        gender, 
+        age, 
+        address, 
+        dateOfBirth 
+      },
     })
   } catch (err) {
     next(err)

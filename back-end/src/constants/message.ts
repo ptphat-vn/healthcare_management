@@ -11,5 +11,13 @@ export const MESSAGES = {
   EMAIL_NOT_FOUND: 'Email không tồn tại trong hệ thống',
   INVALID_RESET_TOKEN: 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn',
   PASSWORD_RESET_EMAIL_SENT: 'Email đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn',
-  SESSION_CLEARED: 'Phiên đăng nhập đã được xóa thành công'
+  SESSION_CLEARED: 'Phiên đăng nhập đã được xóa thành công',
+  INVALID_EMAIL_FORMAT: 'Email không đúng định dạng',
+  INVALID_PHONE_FORMAT: 'Số điện thoại không đúng định dạng',
+  INVALID_IDENTIFY_NUMBER: 'Số CMND/CCCD không hợp lệ',
+  INVALID_GENDER: 'Giới tính phải là nam hoặc nữ',
+  INVALID_AGE: 'Tuổi phải là số dương',
+  INVALID_DATE_OF_BIRTH: 'Ngày sinh phải đúng định dạng MM/DD/YYYY',
+  PHONE_EXISTS: 'Số điện thoại đã tồn tại',
+  IDENTIFY_NUMBER_EXISTS: 'Số CMND/CCCD đã tồn tại'
 } as const
