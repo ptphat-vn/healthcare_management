@@ -29,6 +29,11 @@ const resetPasswordSchema = z.object({
   newPassword: z.string().min(8),
 })
 
+export const changePasswordSchema = z.object({
+  oldPassword: z.string().min(8),
+  newPassword: z.string().min(8),
+})
+
 export const validateRegister = (req: Request, _res: Response, next: NextFunction) => {
   const parse = registerSchema.safeParse(req.body)
   if (!parse.success) {
@@ -55,6 +60,14 @@ export const validateForgotPassword = (req: Request, _res: Response, next: NextF
 
 export const validateResetPassword = (req: Request, _res: Response, next: NextFunction) => {
   const parse = resetPasswordSchema.safeParse(req.body)
+  if (!parse.success) {
+    return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
+  }
+  next()
+}
+
+export const validateChangePassword = (req: Request, _res: Response, next: NextFunction) => {
+  const parse = changePasswordSchema.safeParse(req.body)
   if (!parse.success) {
     return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
   }
