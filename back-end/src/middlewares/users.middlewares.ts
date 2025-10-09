@@ -34,10 +34,15 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8),
 })
 
-export const validateRegister = (req: Request, _res: Response, next: NextFunction) => {
+export const validateRegister = (req: Request, res: Response, next: NextFunction) => {
   const parse = registerSchema.safeParse(req.body)
   if (!parse.success) {
-    return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
+    const fieldErrors: Record<string, string> = {}
+    for (const issue of parse.error.issues) {
+      const path = issue.path.join('.') || 'form'
+      if (!fieldErrors[path]) fieldErrors[path] = issue.message
+    }
+    return res.status(422).json({ message: MESSAGES.VALIDATION_ERROR, errors: fieldErrors })
   }
   next()
 }

@@ -66,6 +66,89 @@ export const registerController = async (req: Request, res: Response, next: Next
       updatedAt: now
     })
 
+    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    await eventLogs.insertOne({
+      userId: insert.insertedId,
+      action: 'USER_CREATED',
+      details: 'User account created',
+      timestamp: now
+    })
+
+    return res.status(201).json({
+      message: MESSAGES.REGISTER_SUCCESS,
+      data: {
+        id: insert.insertedId,
+        fullName,
+        email,
+        phoneNumber,
+        identifyNumber,
+        gender,
+        age,
+        address,
+        dateOfBirth
+      }
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const createUserController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { fullName, email, phoneNumber, identifyNumber, gender, age, address, dateOfBirth, password } = req.body as {
+      fullName: string
+      email: string
+      phoneNumber: string
+      identifyNumber: string
+      gender: 'male' | 'female'
+      age: number
+      address: string
+      dateOfBirth: string
+      password: string
+    }
+
+    const users = getCollection<UserDocument>(USERS_COLLECTION)
+
+    const existingEmail = await users.findOne({ email })
+    if (existingEmail) {
+      throw new HttpError(409, MESSAGES.EMAIL_EXISTS)
+    }
+
+    const existingPhone = await users.findOne({ phoneNumber })
+    if (existingPhone) {
+      throw new HttpError(409, MESSAGES.PHONE_EXISTS)
+    }
+
+    const existingIdentify = await users.findOne({ identifyNumber })
+    if (existingIdentify) {
+      throw new HttpError(409, MESSAGES.IDENTIFY_NUMBER_EXISTS)
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10)
+    const now = new Date()
+
+    const insert = await users.insertOne({
+      fullName,
+      email,
+      phoneNumber,
+      identifyNumber: identifyNumber,
+      gender,
+      age,
+      address,
+      dateOfBirth,
+      passwordHash,
+      createdAt: now,
+      updatedAt: now
+    })
+
+    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    await eventLogs.insertOne({
+      userId: insert.insertedId,
+      action: 'USER_CREATED',
+      details: 'User account created',
+      timestamp: now
+    })
+
     return res.status(201).json({
       message: MESSAGES.REGISTER_SUCCESS,
       data: {
