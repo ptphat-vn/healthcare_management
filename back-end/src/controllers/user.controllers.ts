@@ -176,8 +176,14 @@ export const loginController = async (req: Request, res: Response, next: NextFun
     if (!user) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
     const ok = await bcrypt.compare(password, user.passwordHash)
     if (!ok) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
-    const token = jwt.sign({ sub: String(user._id), email: user.email }, getJwtSecret(), { expiresIn: '7d' })
-    return res.status(200).json({ message: MESSAGES.LOGIN_SUCCESS, data: { token } })
+    
+    const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '15m' })
+    const refreshToken = jwt.sign({ sub: String(user._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
+    
+    return res.status(200).json({ 
+      message: MESSAGES.LOGIN_SUCCESS, 
+      data: { accessToken, refreshToken } 
+    })
   } catch (err) {
     next(err)
   }
@@ -286,6 +292,37 @@ export const changePasswordController = async (req: Request, res: Response, next
     const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
     await eventLogs.insertOne({ userId, action: 'PASSWORD_CHANGED', details: 'User changed password', timestamp: new Date() })
     return res.status(200).json({ message: 'Password changed successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const refreshTokenController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { refreshToken } = req.body as { refreshToken: string }
+    
+    const payload = jwt.verify(refreshToken, getJwtSecret()) as { sub: string; type: string }
+    if (payload.type !== 'refresh') {
+      throw new HttpError(401, 'Invalid refresh token')
+    }
+    
+    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    let userObjectId: any
+    try {
+      userObjectId = new (require('mongodb').ObjectId)(payload.sub)
+    } catch {
+      throw new HttpError(401, 'Invalid token')
+    }
+    
+    const user = await users.findOne({ _id: userObjectId })
+    if (!user) throw new HttpError(401, 'User not found')
+    
+    const newAccessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '15m' })
+    
+    return res.status(200).json({
+      message: 'Token refreshed successfully',
+      data: { accessToken: newAccessToken }
+    })
   } catch (err) {
     next(err)
   }
