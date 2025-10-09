@@ -79,3 +79,15 @@ export const validateChangePassword = (req: Request, _res: Response, next: NextF
   next()
 }
 
+const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1),
+})
+
+export const validateRefreshToken = (req: Request, _res: Response, next: NextFunction) => {
+  const parse = refreshTokenSchema.safeParse(req.body)
+  if (!parse.success) {
+    return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
+  }
+  next()
+}
+

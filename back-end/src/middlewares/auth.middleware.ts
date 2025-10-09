@@ -18,7 +18,10 @@ export const authMiddleware = async (req: Request, _res: Response, next: NextFun
       throw new HttpError(401, 'Unauthorized')
     }
     const token = header.substring(7)
-    const payload = jwt.verify(token, getJwtSecret()) as { sub: string; email: string }
+    const payload = jwt.verify(token, getJwtSecret()) as { sub: string; email: string; type: string }
+    if (payload.type !== 'access') {
+      throw new HttpError(401, 'Invalid token type')
+    }
     let userObjectId: ObjectId
     try {
       userObjectId = new ObjectId(payload.sub)
