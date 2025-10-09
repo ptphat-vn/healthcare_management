@@ -177,7 +177,7 @@ export const loginController = async (req: Request, res: Response, next: NextFun
     const ok = await bcrypt.compare(password, user.passwordHash)
     if (!ok) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
     
-    const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '39m' })
+    const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
     const refreshToken = jwt.sign({ sub: String(user._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
     
     return res.status(200).json({ 
@@ -317,7 +317,7 @@ export const refreshTokenController = async (req: Request, res: Response, next: 
     const user = await users.findOne({ _id: userObjectId })
     if (!user) throw new HttpError(401, 'User not found')
     
-    const newAccessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '39m' })
+    const newAccessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
     
     return res.status(200).json({
       message: 'Token refreshed successfully',
