@@ -187,3 +187,23 @@ export const resetPasswordController = async (req: Request, res: Response, next:
     next(err)
   }
 }
+
+export const changePasswordController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { oldPassword, newPassword } = req.body as { oldPassword: string; newPassword: string }
+    if (oldPassword === newPassword) throw new HttpError(400, 'New password must be different from old password')
+    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const userId = (req as any).authUserId
+    const user = await users.findOne({ _id: userId })
+    if (!user) throw new HttpError(401, 'Unauthorized')
+    const ok = await bcrypt.compare(oldPassword, user.passwordHash)
+    if (!ok) throw new HttpError(400, 'Old password is incorrect')
+    const newHash = await bcrypt.hash(newPassword, 10)
+    await users.updateOne({ _id: userId }, { $set: { passwordHash: newHash, updatedAt: new Date() } })
+    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    await eventLogs.insertOne({ userId, action: 'PASSWORD_CHANGED', details: 'User changed password', timestamp: new Date() })
+    return res.status(200).json({ message: 'Password changed successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
