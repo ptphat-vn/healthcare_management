@@ -23,7 +23,7 @@ app.get('/', (_req, res) => {
   res.send('ok')
 })
 
-app.use('/api/users', userRouter)
+app.use('/api', userRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err instanceof HttpError) {

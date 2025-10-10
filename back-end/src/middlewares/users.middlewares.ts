@@ -15,6 +15,20 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
 })
 
+export const updateUserSchema = z.object({
+  fullName: z.string().min(1).optional(),
+  dateOfBirth: z.string().regex(/^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/).optional(),
+  age: z.number().int().min(1).max(120).optional(),
+  gender: z.enum(['male', 'female']).optional(),
+  address: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  phoneNumber: z.string().regex(/^[0-9]{10,11}$/).optional(),
+})
+
+export const statusSchema = z.object({
+  status: z.union([z.literal(0), z.literal(1), z.literal(2)])
+})
+
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -85,6 +99,29 @@ const refreshTokenSchema = z.object({
 
 export const validateRefreshToken = (req: Request, _res: Response, next: NextFunction) => {
   const parse = refreshTokenSchema.safeParse(req.body)
+  if (!parse.success) {
+    return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
+  }
+  next()
+}
+
+export const validateUpdateUser = (req: Request, res: Response, next: NextFunction) => {
+  const parse = updateUserSchema.safeParse(req.body)
+  if (!parse.success || Object.keys(req.body || {}).length === 0) {
+    const fieldErrors: Record<string, string> = {}
+    if (!parse.success) {
+      for (const issue of parse.error.issues) {
+        const path = issue.path.join('.') || 'form'
+        if (!fieldErrors[path]) fieldErrors[path] = issue.message
+      }
+    }
+    return res.status(422).json({ message: MESSAGES.VALIDATION_ERROR, errors: fieldErrors })
+  }
+  next()
+}
+
+export const validateStatusChange = (req: Request, _res: Response, next: NextFunction) => {
+  const parse = statusSchema.safeParse(req.body)
   if (!parse.success) {
     return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
   }
