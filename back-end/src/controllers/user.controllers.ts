@@ -272,8 +272,13 @@ export const resetPasswordController = async (req: Request, res: Response, next:
       timestamp: new Date()
     })
 
-    return res.status(200).json({
-      message: MESSAGES.RESET_PASSWORD_SUCCESS
+    const updatedUser = await users.findOne({ _id: resetRecord.userId as any })
+    const accessToken = jwt.sign({ sub: String(updatedUser?._id), email: updatedUser?.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
+    const refreshToken = jwt.sign({ sub: String(updatedUser?._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
+
+    return res.status(200).json({ 
+      message: MESSAGES.RESET_PASSWORD_SUCCESS,
+      data: { accessToken, refreshToken }
     })
   } catch (err) {
     next(err)
@@ -294,7 +299,11 @@ export const changePasswordController = async (req: Request, res: Response, next
     await users.updateOne({ _id: userId }, { $set: { passwordHash: newHash, updatedAt: new Date() } })
     const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
     await eventLogs.insertOne({ userId, action: 'PASSWORD_CHANGED', details: 'User changed password', timestamp: new Date() })
-    return res.status(200).json({ message: 'Password changed successfully' })
+
+    const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
+    const refreshToken = jwt.sign({ sub: String(user._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
+
+    return res.status(200).json({ message: 'Password changed successfully', data: { accessToken, refreshToken } })
   } catch (err) {
     next(err)
   }
