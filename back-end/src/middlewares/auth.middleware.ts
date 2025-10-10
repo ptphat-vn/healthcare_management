@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { HttpError } from '~/models/Error'
 import { getCollection } from '~/services/database.services'
-import { UserDocument } from '~/interfaces/UserDocument'
+import { UserDocument } from '~/types/user.type'
 import { ObjectId } from 'mongodb'
 
 const getJwtSecret = (): string => {

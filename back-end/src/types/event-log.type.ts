@@ -5,5 +5,3 @@ export interface EventLogDocument {
   details: string
   timestamp: Date
 }
-
-

@@ -9,7 +9,7 @@ export interface UserDocument {
   address: string
   dateOfBirth: string
   passwordHash: string
+  role: 'admin' | 'manager' | 'user' | 'service' | 'consultant'
   createdAt: Date
   updatedAt: Date
 }
-

@@ -6,5 +6,3 @@ export interface PasswordResetDocument {
   createdAt: Date
   used: boolean
 }
-
-

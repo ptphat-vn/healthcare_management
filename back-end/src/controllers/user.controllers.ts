@@ -4,9 +4,9 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { HttpError } from '~/models/Error'
 import { MESSAGES } from '~/constants/message'
-import { UserDocument } from '~/interfaces/UserDocument'
-import { PasswordResetDocument } from '~/interfaces/PasswordResetDocument'
-import { EventLogDocument } from '~/interfaces/EventLogDocument'
+import { UserDocument } from '~/types/user.type'
+import { PasswordResetDocument } from '~/types/password-reset.type'
+import { EventLogDocument } from '~/types/event-log.type'
 
 const USERS_COLLECTION = 'users'
 const PASSWORD_RESET_COLLECTION = 'password_resets'
@@ -62,6 +62,7 @@ export const registerController = async (req: Request, res: Response, next: Next
       address,
       dateOfBirth,
       passwordHash,
+      role: 'user',
       createdAt: now,
       updatedAt: now
     })
@@ -85,7 +86,8 @@ export const registerController = async (req: Request, res: Response, next: Next
         gender,
         age,
         address,
-        dateOfBirth
+        dateOfBirth,
+        role: 'user'
       }
     })
   } catch (err) {
@@ -137,6 +139,7 @@ export const createUserController = async (req: Request, res: Response, next: Ne
       address,
       dateOfBirth,
       passwordHash,
+      role: 'user',
       createdAt: now,
       updatedAt: now
     })

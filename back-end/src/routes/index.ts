@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import dotenv from 'dotenv'
 import userRouter from './user.routes'
 import { connectDatabase } from '~/services/database.services'
@@ -7,6 +8,15 @@ import { HttpError } from '~/models/Error'
 dotenv.config()
 
 const app = express()
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173 || http://localhost:5174',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}))
+
 app.use(express.json())
 
 app.get('/', (_req, res) => {
