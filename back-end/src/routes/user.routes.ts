@@ -5,13 +5,13 @@ import { authMiddleware } from '~/middlewares/auth.middleware'
 
 const userRouter = Router()
 
-userRouter.post('/auth-regis', validateRegister, registerController)
-userRouter.post('/create-user', validateRegister, createUserController)
-userRouter.post('/auth-login', validateLogin, loginController)
-userRouter.post('/logout', logoutController)
-userRouter.post('/forgot-password', validateForgotPassword, forgotPasswordController)
-userRouter.post('/reset-password', validateResetPassword, resetPasswordController)
-userRouter.post('/change-password', authMiddleware, validateChangePassword, changePasswordController)
-userRouter.post('/refresh-token', validateRefreshToken, refreshTokenController)
+userRouter.post('/auth/register', validateRegister, registerController)
+userRouter.post('/auth/login', validateLogin, loginController)
+userRouter.post('/auth/logout', logoutController)
+userRouter.post('/admin/create-user', validateRegister, createUserController)
+userRouter.post('/auth/forgot-password', validateForgotPassword, forgotPasswordController)
+userRouter.post('/auth/reset-password', validateResetPassword, resetPasswordController)
+userRouter.post('/auth/change-password', authMiddleware, validateChangePassword, changePasswordController)
+userRouter.post('/auth/refresh-token', validateRefreshToken, refreshTokenController)
 
 export default userRouter
