@@ -7,6 +7,7 @@ import { MESSAGES } from '~/constants/message'
 import { UserDocument } from '~/types/user.type'
 import { PasswordResetDocument } from '~/types/password-reset.type'
 import { EventLogDocument } from '~/types/event-log.type'
+import { ObjectId, ModifyResult } from 'mongodb'
 
 const USERS_COLLECTION = 'users'
 const PASSWORD_RESET_COLLECTION = 'password_resets'
@@ -63,6 +64,7 @@ export const registerController = async (req: Request, res: Response, next: Next
       dateOfBirth,
       passwordHash,
       role: 'user',
+      status: 1,
       createdAt: now,
       updatedAt: now
     })
@@ -140,6 +142,7 @@ export const createUserController = async (req: Request, res: Response, next: Ne
       dateOfBirth,
       passwordHash,
       role: 'user',
+      status: 1,
       createdAt: now,
       updatedAt: now
     })
@@ -335,6 +338,99 @@ export const refreshTokenController = async (req: Request, res: Response, next: 
       message: 'Token refreshed successfully',
       data: { accessToken: newAccessToken }
     })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const updateUserController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params as { id: string }
+    let userObjectId: ObjectId
+    try {
+      userObjectId = new ObjectId(id)
+    } catch {
+      throw new HttpError(400, 'Invalid user id')
+    }
+
+    const allowedFields = ['fullName', 'dateOfBirth', 'age', 'gender', 'address', 'email', 'phoneNumber'] as const
+    const updatePayload: Record<string, unknown> = {}
+    for (const key of allowedFields) {
+      if (key in req.body) updatePayload[key] = (req.body as any)[key]
+    }
+    if (Object.keys(updatePayload).length === 0) {
+      throw new HttpError(422, MESSAGES.VALIDATION_ERROR)
+    }
+
+    const users = getCollection<UserDocument>(USERS_COLLECTION)
+
+    if (updatePayload.email) {
+      const dupEmail = await users.findOne({ email: updatePayload.email, _id: { $ne: userObjectId } as any })
+      if (dupEmail) throw new HttpError(409, MESSAGES.EMAIL_EXISTS)
+    }
+    if (updatePayload.phoneNumber) {
+      const dupPhone = await users.findOne({ phoneNumber: updatePayload.phoneNumber, _id: { $ne: userObjectId } as any })
+      if (dupPhone) throw new HttpError(409, MESSAGES.PHONE_EXISTS)
+    }
+
+    const now = new Date()
+    const result = await users.findOneAndUpdate(
+      { _id: userObjectId } as any,
+      { $set: { ...updatePayload, updatedAt: now } },
+      { returnDocument: 'after' }
+    )
+
+    const updated: any = (result as any)?.value ?? result
+    if (!updated) throw new HttpError(404, 'User not found')
+
+    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    await eventLogs.insertOne({
+      userId: updated._id as any,
+      action: 'USER_UPDATED',
+      details: 'User information updated',
+      timestamp: now
+    })
+
+    const { passwordHash, ...safe } = updated as any
+    return res.status(200).json({ message: 'User updated successfully', data: safe })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const updateUserStatusController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params as { id: string }
+    const { status } = req.body as { status: 0 | 1 | 2 }
+    let userObjectId: ObjectId
+    try {
+      userObjectId = new ObjectId(id)
+    } catch {
+      throw new HttpError(400, 'Invalid user id')
+    }
+
+    const users = getCollection<UserDocument>(USERS_COLLECTION)
+
+    const result = await users.findOneAndUpdate(
+      { _id: userObjectId } as any,
+      { $set: { status, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    )
+
+    const updated: any = (result as any)?.value ?? result
+    if (!updated) throw new HttpError(404, 'User not found')
+
+    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    const actionMap: Record<0 | 1 | 2, string> = { 0: 'USER_INACTIVE', 1: 'USER_ACTIVE', 2: 'USER_LOCKED' }
+    await eventLogs.insertOne({
+      userId: updated._id as any,
+      action: actionMap[status],
+      details: `User status set to ${status}`,
+      timestamp: new Date()
+    })
+
+    const { passwordHash, ...safe } = updated as any
+    return res.status(200).json({ message: 'User status updated', data: safe })
   } catch (err) {
     next(err)
   }

@@ -10,6 +10,7 @@ export interface UserDocument {
   dateOfBirth: string
   passwordHash: string
   role: 'admin' | 'manager' | 'user' | 'service' | 'consultant'
+  status?: 0 | 1 | 2
   createdAt: Date
   updatedAt: Date
 }
