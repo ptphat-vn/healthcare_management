@@ -62,6 +62,7 @@ export const registerController = async (req: Request, res: Response, next: Next
       address,
       dateOfBirth,
       passwordHash,
+      role: 'user',
       createdAt: now,
       updatedAt: now
     })
@@ -85,7 +86,8 @@ export const registerController = async (req: Request, res: Response, next: Next
         gender,
         age,
         address,
-        dateOfBirth
+        dateOfBirth,
+        role: 'user'
       }
     })
   } catch (err) {
@@ -137,6 +139,7 @@ export const createUserController = async (req: Request, res: Response, next: Ne
       address,
       dateOfBirth,
       passwordHash,
+      role: 'user',
       createdAt: now,
       updatedAt: now
     })
