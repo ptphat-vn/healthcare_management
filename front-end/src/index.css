@@ -5,17 +5,10 @@
 
 @layer component {
   .auth-wrapper {
-    position: absolute;
+    position: relative;
     width: 100%;
     height: 100%;
-    z-index: -1;
-    background-color: rgb(250, 251, 252);
-    background-image: url(https://id-frontend.prod-east.frontend.public.atl-paas.net/assets/trello-left.4f52d13c.svg),
-      url(https://id-frontend.prod-east.frontend.public.atl-paas.net/assets/trello-right.e6e102c7.svg);
-    background-repeat: no-repeat, no-repeat;
-    background-attachment: fixed, fixed;
-    background-size: 368px, 368px;
-    background-position: left bottom, right bottom;
+    z-index: 0;
   }
 }
 
@@ -130,7 +123,20 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
+  }
+  #root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
   }
 }

@@ -5,13 +5,15 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import PublicRouter from "./PublicRouter";
 import MainLayout from "@/components/layouts/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
+import RegisterPage from "@/pages/auth/RegisterPage";
+
+
 
 function RootRedirect() {
   const { isAuthenticated } = useAuth();
   if (isAuthenticated) return <Navigate to={"/app/boards"} />;
   if (!isAuthenticated) return <Navigate to={"/auth/login"} />;
 }
-
 export const router = createBrowserRouter([
   { path: "/", element: <RootRedirect /> },
 
@@ -22,11 +24,11 @@ export const router = createBrowserRouter([
       {
         element: <PublicRouter />,
         children: [
-          {
-            path: "register",
-            element: "Regisiter",
-          },
+      
           { path: "login", element: <LoginPage /> },
+          {
+            path: "register", element: <RegisterPage />,
+          },
         ],
       },
     ],
@@ -42,3 +44,4 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+
