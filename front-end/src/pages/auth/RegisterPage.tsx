@@ -5,15 +5,17 @@ import Bg_register from "../../assets/images/Bg_register.png";
 export default function RegisterPage() {
   return (
     <div
-      className="relative flex min-h-screen"
+      className="relative flex min-h-screen w-full"
       style={{
         backgroundImage: `url(${bg_authen2})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
+        margin: 0,
+        padding: 0,
       }}
     >
-      <div className="flex flex-1 items-center justify-center px-4 lg:px-0">
-        <div className="bg-white rounded-xl shadow-md p-6 max-w-md w-full lg:ml-24">
+      <div className="flex flex-1 items-center justify-center px-8 relative z-10">
+        <div className="bg-white rounded-xl shadow-md p-6 max-w-md w-full relative z-20">
           <div className="flex flex-col items-center space-y-1 mb-3">
             <div className="flex items-center gap-1">
               <svg width={50} height={50} viewBox="0 0 60 60" fill="none">
@@ -36,6 +38,7 @@ export default function RegisterPage() {
           src={Bg_register}
           className="absolute right-0 top-0 h-full w-[850px] object-cover z-0"
           alt="background"
+          style={{ pointerEvents: 'none' }}
         />
         <div className="relative z-10 flex items-center gap-4 mr-8 justify-end">
           <svg width={56} height={56} viewBox="0 0 56 56" fill="none">
