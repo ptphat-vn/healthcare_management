@@ -1,0 +1,23 @@
+export const MESSAGES = {
+  REGISTER_SUCCESS: 'Đăng ký thành công',
+  LOGIN_SUCCESS: 'Đăng nhập thành công',
+  LOGOUT_SUCCESS: 'Đăng xuất thành công',
+  EMAIL_EXISTS: 'Email đã tồn tại',
+  INVALID_CREDENTIALS: 'Thông tin đăng nhập không hợp lệ',
+  UNAUTHORIZED: 'Không có quyền truy cập',
+  VALIDATION_ERROR: 'Dữ liệu không hợp lệ',
+  FORGOT_PASSWORD_SUCCESS: 'Email đặt lại mật khẩu đã được gửi',
+  RESET_PASSWORD_SUCCESS: 'Mật khẩu đã được đặt lại thành công',
+  EMAIL_NOT_FOUND: 'Email không tồn tại trong hệ thống',
+  INVALID_RESET_TOKEN: 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn',
+  PASSWORD_RESET_EMAIL_SENT: 'Email đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn',
+  SESSION_CLEARED: 'Phiên đăng nhập đã được xóa thành công',
+  INVALID_EMAIL_FORMAT: 'Email không đúng định dạng',
+  INVALID_PHONE_FORMAT: 'Số điện thoại không đúng định dạng',
+  INVALID_IDENTIFY_NUMBER: 'Số CMND/CCCD không hợp lệ',
+  INVALID_GENDER: 'Giới tính phải là nam hoặc nữ',
+  INVALID_AGE: 'Tuổi phải là số dương',
+  INVALID_DATE_OF_BIRTH: 'Ngày sinh phải đúng định dạng MM/DD/YYYY',
+  PHONE_EXISTS: 'Số điện thoại đã tồn tại',
+  IDENTIFY_NUMBER_EXISTS: 'Số CMND/CCCD đã tồn tại'
+} as const
