@@ -1,11 +1,12 @@
+import { AnimatePresence } from "framer-motion";
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 export default function AuthLayout() {
+  const location = useLocation();
   return (
-    <div className="auth-wrapper w-full h-full">
-      <Outlet />
-      {/* ở đây để hiển thị các lỗi */}
-    </div>
+    <AnimatePresence mode="wait">
+      <Outlet key={location.pathname} />
+    </AnimatePresence>
   );
 }

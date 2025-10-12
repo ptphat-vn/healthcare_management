@@ -1,10 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch } from "react-redux";
-import {
-  registerSchema,
-  type registerFormData,
-} from "@/schemas/authSchema";
+import { registerSchema, type registerFormData } from "@/schemas/authSchema";
 import { useForm } from "react-hook-form";
 import { useRegisterMutation } from "@/services/baseApi";
 import { setAuth } from "@/stores/authSlice";
@@ -112,12 +109,14 @@ export default function RegisterForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full"
         >
           {isLoading ? "Registering..." : "Register"}
         </button>
         {errors.root?.message && (
-          <span className="text-xs text-red-500 break-words">{errors.root?.message}</span>
+          <span className="text-xs text-red-500 break-words">
+            {errors.root?.message}
+          </span>
         )}
       </form>
       <p className="mt-3 text-center text-sm text-gray-600">
@@ -133,5 +132,3 @@ export default function RegisterForm() {
     </div>
   );
 }
-
-
