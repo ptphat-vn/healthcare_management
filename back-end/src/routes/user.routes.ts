@@ -18,7 +18,7 @@ userRouter.post('/auth/refresh-token', validateRefreshToken, refreshTokenControl
 userRouter.put('/admin/users/:id', authMiddleware, validateUpdateUser, updateUserController)
 userRouter.patch('/admin/users/:id/status', authMiddleware, validateStatusChange, updateUserStatusController)
 
-userRouter.get('/userlist', getAllUsers)
-userRouter.get('/detail/:id', getUserDetail)
+userRouter.get('/user/all', getAllUsers)
+userRouter.get('/user/:id', getUserDetail)
 
 export default userRouter
