@@ -8,7 +8,7 @@ import {
   validateRefreshToken,
   validateUpdateUser,
   validateStatusChange
-} from '~/middlewares/user.validation'
+} from '~/validations/user.validation'
 import {
   loginController,
   logoutController,
