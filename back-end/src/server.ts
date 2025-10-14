@@ -1,6 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import userRouter from './routes/user.routes'
+import authRouter from './routes/auth.routes'
 import { HttpError } from '~/models/error'
 import { corsMiddleware } from '~/configs/cors.config'
 import { connectMongo } from '~/configs/mongodb.config'
@@ -18,6 +19,7 @@ app.get('/', (_req, res) => {
   res.send('ok')
 })
 
+app.use('/api', authRouter)
 app.use('/api', userRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
