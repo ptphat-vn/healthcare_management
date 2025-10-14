@@ -1,6 +1,6 @@
 import express from 'express'
 import dotenv from 'dotenv'
-import userRouter from './user.routes'
+import userRouter from './routes/user.routes'
 import { HttpError } from '~/models/error'
 import { corsMiddleware } from '~/configs/cors.config'
 import { connectMongo } from '~/configs/mongodb.config'
