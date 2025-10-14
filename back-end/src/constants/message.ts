@@ -19,5 +19,9 @@ export const MESSAGES = {
   INVALID_AGE: 'Tuổi phải là số dương',
   INVALID_DATE_OF_BIRTH: 'Ngày sinh phải đúng định dạng MM/DD/YYYY',
   PHONE_EXISTS: 'Số điện thoại đã tồn tại',
-  IDENTIFY_NUMBER_EXISTS: 'Số CMND/CCCD đã tồn tại'
+  IDENTIFY_NUMBER_EXISTS: 'Số CMND/CCCD đã tồn tại',
+  GET_USERS_SUCCESS: 'Lấy danh sách người dùng thành công',
+  USERS_NOT_FOUND: 'Không tìm thấy người dùng nào',
+  GET_USER_DETAIL_SUCCESS: 'Lấy thông tin người dùng thành công',
+  USER_NOT_FOUND: 'Không tìm thấy người dùng'
 } as const

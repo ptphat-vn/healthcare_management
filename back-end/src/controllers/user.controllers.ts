@@ -435,3 +435,38 @@ export const updateUserStatusController = async (req: Request, res: Response, ne
     next(err)
   }
 }
+
+export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const allUsers = await users.find().toArray()
+    if (!allUsers || allUsers.length === 0) {
+      return res.status(404).json({ message: MESSAGES.USERS_NOT_FOUND })
+    }
+    const usersWithoutPassword = allUsers.map(({ passwordHash, ...rest }) => rest)
+    return res.status(200).json({
+      message: MESSAGES.GET_USERS_SUCCESS,
+      data: usersWithoutPassword
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const getUserDetail = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const userId = req.params.id
+    const user = await users.findOne({ _id: new ObjectId(userId) })
+    if (!user) {
+      return res.status(404).json({ message: MESSAGES.USER_NOT_FOUND })
+    }
+    const { passwordHash, ...userWithoutPassword } = user
+    return res.status(200).json({
+      message: MESSAGES.GET_USER_DETAIL_SUCCESS,
+      data: userWithoutPassword
+    })
+  } catch (err) {
+    next(err)
+  }
+}
