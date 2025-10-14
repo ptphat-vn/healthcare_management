@@ -8,7 +8,7 @@ import {
   validateRefreshToken,
   validateUpdateUser,
   validateStatusChange
-} from '~/middlewares/users.middlewares'
+} from '~/middlewares/user.validation'
 import {
   loginController,
   logoutController,
@@ -23,7 +23,7 @@ import {
   getAllUsers,
   getUserDetail,
   profileUserController
-} from '~/controllers/user.controllers'
+} from '~/controllers/user.controller'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 
 const userRouter = Router()

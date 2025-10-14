@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { z } from 'zod'
-import { HttpError } from '~/models/Error'
+import { HttpError } from '~/models/error'
 import { MESSAGES } from '~/constants/message'
 
 const isValidDate = (s: string): boolean => {

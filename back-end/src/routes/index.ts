@@ -2,8 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import userRouter from './user.routes'
-import { connectDatabase } from '~/services/database.services'
-import { HttpError } from '~/models/Error'
+import { connectDatabase } from '~/services/database.service'
+import { HttpError } from '~/models/error'
 
 dotenv.config()
 
