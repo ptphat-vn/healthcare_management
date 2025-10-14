@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { HttpError } from '~/models/error'
+import { HttpError } from '~/models/error.model'
 import { getUsersCollection, type UserDocument } from '~/models/user.model'
 import { ObjectId } from 'mongodb'
 

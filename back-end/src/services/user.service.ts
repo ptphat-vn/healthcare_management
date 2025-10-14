@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb'
-import { HttpError } from '~/models/error'
-import { MESSAGES } from '~/constants/message'
+import { HttpError } from '~/models/error.model'
+import { MESSAGES } from '~/constants/message.constant'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 

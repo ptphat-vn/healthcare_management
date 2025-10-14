@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { HttpError } from '~/models/error'
-import { MESSAGES } from '~/constants/message'
+import { HttpError } from '~/models/error.model'
+import { MESSAGES } from '~/constants/message.constant'
 import * as userService from '~/services/user.service'
 
 export const updateUserController = async (req: Request, res: Response, next: NextFunction) => {
