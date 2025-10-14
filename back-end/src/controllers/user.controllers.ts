@@ -77,7 +77,7 @@ export const registerController = async (req: Request, res: Response, next: Next
       timestamp: now
     })
 
-    return res.status(201).json({
+    return res.status(200).json({
       message: MESSAGES.REGISTER_SUCCESS,
       data: {
         id: insert.insertedId,
@@ -182,13 +182,15 @@ export const loginController = async (req: Request, res: Response, next: NextFun
     if (!user) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
     const ok = await bcrypt.compare(password, user.passwordHash)
     if (!ok) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
-    
-    const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
+
+    const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), {
+      expiresIn: '30m'
+    })
     const refreshToken = jwt.sign({ sub: String(user._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
-    
-    return res.status(200).json({ 
-      message: MESSAGES.LOGIN_SUCCESS, 
-      data: { accessToken, refreshToken } 
+
+    return res.status(200).json({
+      message: MESSAGES.LOGIN_SUCCESS,
+      data: { accessToken, refreshToken }
     })
   } catch (err) {
     next(err)
@@ -276,10 +278,16 @@ export const resetPasswordController = async (req: Request, res: Response, next:
     })
 
     const updatedUser = await users.findOne({ _id: resetRecord.userId as any })
-    const accessToken = jwt.sign({ sub: String(updatedUser?._id), email: updatedUser?.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
-    const refreshToken = jwt.sign({ sub: String(updatedUser?._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
+    const accessToken = jwt.sign(
+      { sub: String(updatedUser?._id), email: updatedUser?.email, type: 'access' },
+      getJwtSecret(),
+      { expiresIn: '30m' }
+    )
+    const refreshToken = jwt.sign({ sub: String(updatedUser?._id), type: 'refresh' }, getJwtSecret(), {
+      expiresIn: '7d'
+    })
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       message: MESSAGES.RESET_PASSWORD_SUCCESS,
       data: { accessToken, refreshToken }
     })
@@ -301,9 +309,16 @@ export const changePasswordController = async (req: Request, res: Response, next
     const newHash = await bcrypt.hash(newPassword, 10)
     await users.updateOne({ _id: userId }, { $set: { passwordHash: newHash, updatedAt: new Date() } })
     const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
-    await eventLogs.insertOne({ userId, action: 'PASSWORD_CHANGED', details: 'User changed password', timestamp: new Date() })
+    await eventLogs.insertOne({
+      userId,
+      action: 'PASSWORD_CHANGED',
+      details: 'User changed password',
+      timestamp: new Date()
+    })
 
-    const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
+    const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), {
+      expiresIn: '30m'
+    })
     const refreshToken = jwt.sign({ sub: String(user._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
 
     return res.status(200).json({ message: 'Password changed successfully', data: { accessToken, refreshToken } })
@@ -315,12 +330,12 @@ export const changePasswordController = async (req: Request, res: Response, next
 export const refreshTokenController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body as { refreshToken: string }
-    
+
     const payload = jwt.verify(refreshToken, getJwtSecret()) as { sub: string; type: string }
     if (payload.type !== 'refresh') {
       throw new HttpError(401, 'Invalid refresh token')
     }
-    
+
     const users = getCollection<UserDocument>(USERS_COLLECTION)
     let userObjectId: any
     try {
@@ -328,12 +343,14 @@ export const refreshTokenController = async (req: Request, res: Response, next: 
     } catch {
       throw new HttpError(401, 'Invalid token')
     }
-    
+
     const user = await users.findOne({ _id: userObjectId })
     if (!user) throw new HttpError(401, 'User not found')
-    
-    const newAccessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
-    
+
+    const newAccessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), {
+      expiresIn: '30m'
+    })
+
     return res.status(200).json({
       message: 'Token refreshed successfully',
       data: { accessToken: newAccessToken }
@@ -369,7 +386,10 @@ export const updateUserController = async (req: Request, res: Response, next: Ne
       if (dupEmail) throw new HttpError(409, MESSAGES.EMAIL_EXISTS)
     }
     if (updatePayload.phoneNumber) {
-      const dupPhone = await users.findOne({ phoneNumber: updatePayload.phoneNumber, _id: { $ne: userObjectId } as any })
+      const dupPhone = await users.findOne({
+        phoneNumber: updatePayload.phoneNumber,
+        _id: { $ne: userObjectId } as any
+      })
       if (dupPhone) throw new HttpError(409, MESSAGES.PHONE_EXISTS)
     }
 
@@ -468,5 +488,36 @@ export const getUserDetail = async (req: Request, res: Response, next: NextFunct
     })
   } catch (err) {
     next(err)
+  }
+}
+
+export const profileUserController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authUserId = (req as any).authUserId
+    if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
+
+    const users = getCollection<UserDocument>(USERS_COLLECTION)
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(authUserId)) {
+      throw new HttpError(400, 'Invalid user ID format')
+    }
+
+    const queryId = new ObjectId(authUserId)
+    const user = await users.findOne({ _id: queryId } as any)
+
+    if (!user) {
+      return res.status(404).json({ message: MESSAGES.USER_NOT_FOUND })
+    }
+
+    // Loại bỏ password
+    const { passwordHash, ...userSafe } = user as any
+
+    return res.status(200).json({
+      message: MESSAGES.GET_USER_DETAIL_SUCCESS,
+      data: userSafe
+    })
+  } catch (error) {
+    next(error)
   }
 }

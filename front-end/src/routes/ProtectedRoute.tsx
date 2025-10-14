@@ -1,21 +1,33 @@
 import { useAuth } from "@/hooks/useAuth";
 import { setUserProfile } from "@/stores/authSlice";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useDispatch } from "react-redux";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
-export default function ProtectedRoute() {
+interface ProtectedRouteProps {
+  allowedRoles?: string[];
+  children: ReactNode;
+}
+
+export default function ProtectedRoute({
+  allowedRoles,
+  children,
+}: ProtectedRouteProps) {
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useAuth();
-  console.log(isAuthenticated);
+
   useEffect(() => {
     if (user) {
-      // nếu user đó tồn tại thì gọi dispatch ra lưu vào trong store
       dispatch(setUserProfile(user));
     }
   }, [user]);
 
-  if (!isAuthenticated) return <Navigate to={"/auth/login"} />;
+  if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
 
-  return <Outlet />;
+  const role = user?.data?.role;
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
 }

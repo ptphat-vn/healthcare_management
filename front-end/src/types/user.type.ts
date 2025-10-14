@@ -4,11 +4,13 @@ export interface User {
   email: string;
   phoneNumber: string;
   identifyNumber: string;
-  gender: string;
+  gender: GenderUser;
   dateOfBirth: string;
   role: RoleUser;
   status: number;
   createdAt: string;
   updatedAt: string;
 }
-export type RoleUser = "USER" | "ADMIN" | "MANAGER" | "CONSULTANT" | "SERVICE";
+export type RoleUser = "user" | "admin" | "manager" | "consultant" | "service";
+
+export type GenderUser = "male" | "female";

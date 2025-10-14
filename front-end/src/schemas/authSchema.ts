@@ -1,42 +1,39 @@
 import * as z from "zod";
 
 export const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email không được bỏ trống")
-    .email("Email không hợp lệ"),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
   password: z
     .string()
-    .min(1, "Password không được bỏ trống")
-    .min(6, "Password tối thiểu phải có 6 kí tự"),
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
 });
 
 export const registerSchema = z
   .object({
-    fullName: z.string().min(1, "Họ tên không được để trống"),
-    email: z.string().email("Email không đúng định dạng"),
+    fullname: z.string().min(1, "Full name is required"),
+    email: z.string().email("Invalid email address"),
     phoneNumber: z
       .string()
-      .regex(/^[0-9]{10,11}$/, "Số điện thoại phải có 10-11 chữ số"),
-    identifyNumber: z
+      .regex(/^[0-9]{10,11}$/, "Phone number must be 10-11 digits"),
+    identityNumber: z
       .string()
-      .regex(/^[0-9]{9,12}$/, "Số CMND/CCCD phải có 9-12 chữ số"),
+      .regex(/^[0-9]{9,12}$/, "Identification number must be 9-12 digits"),
     gender: z.enum(["male", "female"], {
-      message: "Giới tính phải là nam hoặc nữ",
+      message: "Gender must be 'male' or 'female'",
     }),
     dateOfBirth: z
       .string()
       .regex(
         /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
-        "Ngày sinh phải đúng định dạng YYYY-MM-DD"
+        "Date of birth must be in YYYY-MM-DD format"
       ),
-    password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z
       .string()
-      .min(8, "Xác nhận mật khẩu phải có ít nhất 8 ký tự"),
+      .min(8, "Confirm password must be at least 8 characters"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Mật khẩu xác nhận không khớp",
+    message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 export type loginFormData = z.infer<typeof loginSchema>;

@@ -14,7 +14,7 @@ export default function Header() {
 
   return (
     <header className="bg-white text-gray-900 border-gray-200 sticky top-0 z-50">
-      <div className="flex items-center justify-around h-14 px-4">
+      <div className="flex items-center justify-between h-14 px-4">
         <Link
           to={"/"}
           className="flex items-center space-x-3"

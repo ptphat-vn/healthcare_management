@@ -30,10 +30,11 @@ export default function RegisterForm() {
         setAuth({
           accessToken: result.data.accessToken,
           refreshToken: result.data.refreshToken,
+          user: result.data.user,
         })
       );
       toast.success(result?.message || "Đăng ký thành công");
-      navigate("/home");
+      navigate("/");
     } catch (error) {
       const err = error as { data?: { message?: string } };
       toast.error(err.data?.message || "Đăng ký thất bại, vui lòng thử lại");
@@ -44,10 +45,10 @@ export default function RegisterForm() {
     <div className="flex flex-col gap-1">
       <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
         <Input
-          {...register("fullName")}
+          {...register("fullname")}
           label="Full name"
           required
-          error={errors.fullName?.message}
+          error={errors.fullname?.message}
           placeholder="Nguyen Van A"
         />
         <Input
@@ -67,10 +68,10 @@ export default function RegisterForm() {
             placeholder="0123456789"
           />
           <Input
-            {...register("identifyNumber")}
+            {...register("identityNumber")}
             label="Identify Number"
             required
-            error={errors.identifyNumber?.message}
+            error={errors.identityNumber?.message}
             placeholder="012345678901"
           />
         </div>

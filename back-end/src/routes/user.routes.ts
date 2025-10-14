@@ -1,6 +1,29 @@
 import { Router } from 'express'
-import { validateLogin, validateRegister, validateForgotPassword, validateResetPassword, validateChangePassword, validateRefreshToken, validateUpdateUser, validateStatusChange } from '~/middlewares/users.middlewares'
-import { loginController, logoutController, registerController, forgotPasswordController, resetPasswordController, changePasswordController, createUserController, refreshTokenController, updateUserController, updateUserStatusController, getAllUsers, getUserDetail } from '~/controllers/user.controllers'
+import {
+  validateLogin,
+  validateRegister,
+  validateForgotPassword,
+  validateResetPassword,
+  validateChangePassword,
+  validateRefreshToken,
+  validateUpdateUser,
+  validateStatusChange
+} from '~/middlewares/users.middlewares'
+import {
+  loginController,
+  logoutController,
+  registerController,
+  forgotPasswordController,
+  resetPasswordController,
+  changePasswordController,
+  createUserController,
+  refreshTokenController,
+  updateUserController,
+  updateUserStatusController,
+  getAllUsers,
+  getUserDetail,
+  profileUserController
+} from '~/controllers/user.controllers'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 
 const userRouter = Router()
@@ -13,7 +36,7 @@ userRouter.post('/auth/forgot-password', validateForgotPassword, forgotPasswordC
 userRouter.post('/auth/reset-password', validateResetPassword, resetPasswordController)
 userRouter.post('/auth/change-password', authMiddleware, validateChangePassword, changePasswordController)
 userRouter.post('/auth/refresh-token', validateRefreshToken, refreshTokenController)
-
+userRouter.get('/auth/me', authMiddleware, profileUserController)
 // user management (admin namespace to match existing style)
 userRouter.put('/admin/users/:id', authMiddleware, validateUpdateUser, updateUserController)
 userRouter.patch('/admin/users/:id/status', authMiddleware, validateStatusChange, updateUserStatusController)
