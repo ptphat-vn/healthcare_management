@@ -45,10 +45,10 @@ export default function RegisterForm() {
     <div className="flex flex-col gap-1">
       <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
         <Input
-          {...register("fullname")}
+          {...register("fullName")}
           label="Full name"
           required
-          error={errors.fullname?.message}
+          error={errors.fullName?.message}
           placeholder="Nguyen Van A"
         />
         <Input
@@ -68,13 +68,19 @@ export default function RegisterForm() {
             placeholder="0123456789"
           />
           <Input
-            {...register("identityNumber")}
+            {...register("identifyNumber")}
             label="Identify Number"
             required
-            error={errors.identityNumber?.message}
+            error={errors.identifyNumber?.message}
             placeholder="012345678901"
           />
         </div>
+        <Input
+          {...register("address")}
+          label="Address"
+          error={errors.address?.message}
+          placeholder="123 Test Street"
+        />
         <div className="grid grid-cols-2 gap-2">
           <Input
             {...register("dateOfBirth")}

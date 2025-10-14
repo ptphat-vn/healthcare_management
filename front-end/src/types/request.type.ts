@@ -6,11 +6,12 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  fullname: string;
+  fullName: string;
   email: string;
   phoneNumber: string;
-  identityNumber: string;
+  identifyNumber: string;
   gender: GenderUser;
+  address?: string;
   dateOfBirth: string;
   password: string;
 }

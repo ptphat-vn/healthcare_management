@@ -10,14 +10,15 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    fullname: z.string().min(1, "Full name is required"),
+    fullName: z.string().min(1, "Full name is required"),
     email: z.string().email("Invalid email address"),
     phoneNumber: z
       .string()
       .regex(/^[0-9]{10,11}$/, "Phone number must be 10-11 digits"),
-    identityNumber: z
+    identifyNumber: z
       .string()
       .regex(/^[0-9]{9,12}$/, "Identification number must be 9-12 digits"),
+    address: z.string().optional(),
     gender: z.enum(["male", "female"], {
       message: "Gender must be 'male' or 'female'",
     }),
