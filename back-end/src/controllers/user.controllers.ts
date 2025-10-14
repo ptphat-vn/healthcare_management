@@ -21,13 +21,12 @@ const getJwtSecret = (): string => {
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { fullName, email, phoneNumber, identifyNumber, gender, age, address, dateOfBirth, password } = req.body as {
+    const { fullName, email, phoneNumber, identifyNumber, gender, address, dateOfBirth, password } = req.body as {
       fullName: string
       email: string
       phoneNumber: string
       identifyNumber: string
       gender: 'male' | 'female'
-      age: number
       address: string
       dateOfBirth: string
       password: string
@@ -59,7 +58,6 @@ export const registerController = async (req: Request, res: Response, next: Next
       phoneNumber,
       identifyNumber: identifyNumber,
       gender,
-      age,
       address,
       dateOfBirth,
       passwordHash,
@@ -86,7 +84,6 @@ export const registerController = async (req: Request, res: Response, next: Next
         phoneNumber,
         identifyNumber,
         gender,
-        age,
         address,
         dateOfBirth,
         role: 'user'
@@ -99,13 +96,12 @@ export const registerController = async (req: Request, res: Response, next: Next
 
 export const createUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { fullName, email, phoneNumber, identifyNumber, gender, age, address, dateOfBirth, password } = req.body as {
+    const { fullName, email, phoneNumber, identifyNumber, gender, address, dateOfBirth, password } = req.body as {
       fullName: string
       email: string
       phoneNumber: string
       identifyNumber: string
       gender: 'male' | 'female'
-      age: number
       address: string
       dateOfBirth: string
       password: string
@@ -137,7 +133,6 @@ export const createUserController = async (req: Request, res: Response, next: Ne
       phoneNumber,
       identifyNumber: identifyNumber,
       gender,
-      age,
       address,
       dateOfBirth,
       passwordHash,
@@ -164,7 +159,6 @@ export const createUserController = async (req: Request, res: Response, next: Ne
         phoneNumber,
         identifyNumber,
         gender,
-        age,
         address,
         dateOfBirth
       }

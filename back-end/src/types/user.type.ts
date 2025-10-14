@@ -5,7 +5,6 @@ export interface UserDocument {
   phoneNumber: string
   identifyNumber: string
   gender: 'male' | 'female'
-  age: number
   address: string
   dateOfBirth: string
   passwordHash: string
