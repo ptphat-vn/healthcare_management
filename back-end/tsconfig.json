@@ -16,5 +16,5 @@
     "require": ["tsconfig-paths/register"]
   },
   "files": ["type.d.ts"],
-  "include": ["src/**/*", "type.d.ts", "index.ts"]
+  "include": ["src/**/*", "type.d.ts", "src/routes/index.ts"]
 }

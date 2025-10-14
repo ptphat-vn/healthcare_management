@@ -1,7 +1,13 @@
 import { NextFunction, Request, Response } from 'express'
 import { z } from 'zod'
-import { HttpError } from '~/models/Error'
-import { MESSAGES } from '~/constants/message'
+import { HttpError } from '~/models/error.model'
+import { MESSAGES } from '~/constants/message.constant'
+
+const isValidDate = (s: string): boolean => {
+  const ymd = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
+  const mdy = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/
+  return ymd.test(s) || mdy.test(s)
+}
 
 const registerSchema = z.object({
   fullName: z.string().min(1, 'Họ tên không được để trống'),
@@ -9,16 +15,14 @@ const registerSchema = z.object({
   phoneNumber: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
   identifyNumber: z.string().regex(/^[0-9]{9,12}$/, 'Số CMND/CCCD phải có 9-12 chữ số'),
   gender: z.enum(['male', 'female'], { message: 'Giới tính phải là nam hoặc nữ' }),
-  age: z.number().int().min(1, 'Tuổi phải lớn hơn 0').max(120, 'Tuổi không hợp lệ'),
-  address: z.string().min(1, 'Địa chỉ không được để trống'),
-  dateOfBirth: z.string().regex(/^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/, 'Ngày sinh phải đúng định dạng MM/DD/YYYY'),
+  address: z.string().min(1).optional(),
+  dateOfBirth: z.string().refine(isValidDate, 'Ngày sinh phải đúng định dạng MM/DD/YYYY hoặc YYYY-MM-DD'),
   password: z.string().min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
 })
 
 export const updateUserSchema = z.object({
   fullName: z.string().min(1).optional(),
-  dateOfBirth: z.string().regex(/^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/).optional(),
-  age: z.number().int().min(1).max(120).optional(),
+  dateOfBirth: z.string().refine(isValidDate).optional(),
   gender: z.enum(['male', 'female']).optional(),
   address: z.string().min(1).optional(),
   email: z.string().email().optional(),
