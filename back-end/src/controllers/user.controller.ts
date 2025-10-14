@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { getCollection } from '~/services/database.service'
+import { getDb } from '~/configs/mongodb.config'
+import type { Collection } from 'mongodb'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { HttpError } from '~/models/error'
@@ -32,7 +33,7 @@ export const registerController = async (req: Request, res: Response, next: Next
       password: string
     }
 
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
 
     const existingEmail = await users.findOne({ email })
     if (existingEmail) {
@@ -67,7 +68,7 @@ export const registerController = async (req: Request, res: Response, next: Next
       updatedAt: now
     })
 
-    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    const eventLogs: Collection<EventLogDocument> = getDb().collection(EVENT_LOGS_COLLECTION)
     await eventLogs.insertOne({
       userId: insert.insertedId,
       action: 'USER_CREATED',
@@ -107,7 +108,7 @@ export const createUserController = async (req: Request, res: Response, next: Ne
       password: string
     }
 
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
 
     const existingEmail = await users.findOne({ email })
     if (existingEmail) {
@@ -142,7 +143,7 @@ export const createUserController = async (req: Request, res: Response, next: Ne
       updatedAt: now
     })
 
-    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    const eventLogs: Collection<EventLogDocument> = getDb().collection(EVENT_LOGS_COLLECTION)
     await eventLogs.insertOne({
       userId: insert.insertedId,
       action: 'USER_CREATED',
@@ -171,7 +172,7 @@ export const createUserController = async (req: Request, res: Response, next: Ne
 export const loginController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body as { email: string; password: string }
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
     const user = await users.findOne({ email })
     if (!user) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
     const ok = await bcrypt.compare(password, user.passwordHash)
@@ -207,14 +208,14 @@ export const logoutController = async (req: Request, res: Response, next: NextFu
 export const forgotPasswordController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email } = req.body as { email: string }
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
     const user = await users.findOne({ email })
 
     if (!user) {
       throw new HttpError(404, MESSAGES.EMAIL_NOT_FOUND)
     }
 
-    const resetTokens = getCollection<PasswordResetDocument>(PASSWORD_RESET_COLLECTION)
+    const resetTokens: Collection<PasswordResetDocument> = getDb().collection(PASSWORD_RESET_COLLECTION)
     await resetTokens.deleteMany({ userId: user._id, used: false })
 
     const token = jwt.sign({ userId: user._id, type: 'password_reset' }, getJwtSecret(), { expiresIn: '1h' })
@@ -241,14 +242,14 @@ export const resetPasswordController = async (req: Request, res: Response, next:
   try {
     const { token, newPassword } = req.body as { token: string; newPassword: string }
 
-    const resetTokens = getCollection<PasswordResetDocument>(PASSWORD_RESET_COLLECTION)
+    const resetTokens: Collection<PasswordResetDocument> = getDb().collection(PASSWORD_RESET_COLLECTION)
     const resetRecord = await resetTokens.findOne({ token, used: false })
 
     if (!resetRecord || resetRecord.expiresAt < new Date()) {
       throw new HttpError(400, MESSAGES.INVALID_RESET_TOKEN)
     }
 
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
     const newPasswordHash = await bcrypt.hash(newPassword, 10)
 
     await users.updateOne(
@@ -263,7 +264,7 @@ export const resetPasswordController = async (req: Request, res: Response, next:
 
     await resetTokens.updateOne({ _id: resetRecord._id }, { $set: { used: true } })
 
-    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    const eventLogs: Collection<EventLogDocument> = getDb().collection(EVENT_LOGS_COLLECTION)
     await eventLogs.insertOne({
       userId: resetRecord.userId,
       action: 'PASSWORD_RESET',
@@ -294,7 +295,7 @@ export const changePasswordController = async (req: Request, res: Response, next
   try {
     const { oldPassword, newPassword } = req.body as { oldPassword: string; newPassword: string }
     if (oldPassword === newPassword) throw new HttpError(400, 'New password must be different from old password')
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
     const userId = (req as any).authUserId
     const user = await users.findOne({ _id: userId })
     if (!user) throw new HttpError(401, 'Unauthorized')
@@ -302,7 +303,7 @@ export const changePasswordController = async (req: Request, res: Response, next
     if (!ok) throw new HttpError(400, 'Old password is incorrect')
     const newHash = await bcrypt.hash(newPassword, 10)
     await users.updateOne({ _id: userId }, { $set: { passwordHash: newHash, updatedAt: new Date() } })
-    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    const eventLogs: Collection<EventLogDocument> = getDb().collection(EVENT_LOGS_COLLECTION)
     await eventLogs.insertOne({
       userId,
       action: 'PASSWORD_CHANGED',
@@ -330,7 +331,7 @@ export const refreshTokenController = async (req: Request, res: Response, next: 
       throw new HttpError(401, 'Invalid refresh token')
     }
 
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
     let userObjectId: any
     try {
       userObjectId = new (require('mongodb').ObjectId)(payload.sub)
@@ -373,7 +374,7 @@ export const updateUserController = async (req: Request, res: Response, next: Ne
       throw new HttpError(422, MESSAGES.VALIDATION_ERROR)
     }
 
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
 
     if (updatePayload.email) {
       const dupEmail = await users.findOne({ email: updatePayload.email, _id: { $ne: userObjectId } as any })
@@ -397,7 +398,7 @@ export const updateUserController = async (req: Request, res: Response, next: Ne
     const updated: any = (result as any)?.value ?? result
     if (!updated) throw new HttpError(404, 'User not found')
 
-    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    const eventLogs: Collection<EventLogDocument> = getDb().collection(EVENT_LOGS_COLLECTION)
     await eventLogs.insertOne({
       userId: updated._id as any,
       action: 'USER_UPDATED',
@@ -423,7 +424,7 @@ export const updateUserStatusController = async (req: Request, res: Response, ne
       throw new HttpError(400, 'Invalid user id')
     }
 
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
 
     const result = await users.findOneAndUpdate(
       { _id: userObjectId } as any,
@@ -434,7 +435,7 @@ export const updateUserStatusController = async (req: Request, res: Response, ne
     const updated: any = (result as any)?.value ?? result
     if (!updated) throw new HttpError(404, 'User not found')
 
-    const eventLogs = getCollection<EventLogDocument>(EVENT_LOGS_COLLECTION)
+    const eventLogs: Collection<EventLogDocument> = getDb().collection(EVENT_LOGS_COLLECTION)
     const actionMap: Record<0 | 1 | 2, string> = { 0: 'USER_INACTIVE', 1: 'USER_ACTIVE', 2: 'USER_LOCKED' }
     await eventLogs.insertOne({
       userId: updated._id as any,
@@ -452,7 +453,7 @@ export const updateUserStatusController = async (req: Request, res: Response, ne
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
     const allUsers = await users.find().toArray()
     if (!allUsers || allUsers.length === 0) {
       return res.status(404).json({ message: MESSAGES.USERS_NOT_FOUND })
@@ -469,7 +470,7 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
 
 export const getUserDetail = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
     const userId = req.params.id
     const user = await users.findOne({ _id: new ObjectId(userId) })
     if (!user) {
@@ -490,7 +491,7 @@ export const profileUserController = async (req: Request, res: Response, next: N
     const authUserId = (req as any).authUserId
     if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
 
-    const users = getCollection<UserDocument>(USERS_COLLECTION)
+    const users: Collection<UserDocument> = getDb().collection(USERS_COLLECTION)
 
     // Validate ObjectId
     if (!ObjectId.isValid(authUserId)) {
