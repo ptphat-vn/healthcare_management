@@ -112,6 +112,12 @@ export const baseApi = createApi({
         method: "POST",
       }),
     }),
+    getAllUser: builder.query<APIResponse<User[]>, void>({
+      query: () => ({
+        url: "/user/all",
+        method: "GET",
+      }),
+    }),
   }),
 });
 export const {

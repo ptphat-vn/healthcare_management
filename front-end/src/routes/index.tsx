@@ -9,8 +9,8 @@ import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashBoard from "@/pages/user/UserDashBoard";
+import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
 
-// ✅ RootRedirect – điều hướng về đúng dashboard theo role
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
   const role = user?.data.role;
@@ -48,7 +48,10 @@ export const router = createBrowserRouter([
         <MainLayout />
       </ProtectedRoute>
     ),
-    children: [{ path: "dashboard", element: <AdminDashboard /> }],
+    children: [
+      { path: "dashboard", element: <AdminDashboard /> },
+      { path: "user-management", element: <UserManagementPage /> },
+    ],
   },
 
   // USER ROUTE

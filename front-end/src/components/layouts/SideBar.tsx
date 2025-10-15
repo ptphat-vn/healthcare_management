@@ -24,7 +24,11 @@ export default function SideBar() {
   > = {
     admin: [
       { label: "Dashboard", to: "/admin/dashboard", icon: <LayoutDashboard /> },
-      { label: "Users Management", to: "/admin/users", icon: <UserCog /> },
+      {
+        label: "Users Management",
+        to: "/admin/user-management",
+        icon: <UserCog />,
+      },
       { label: "Role Management", to: "/admin/roles", icon: <ShieldUser /> },
       {
         label: "Medical Records Management",
