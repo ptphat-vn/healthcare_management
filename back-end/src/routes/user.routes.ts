@@ -7,9 +7,10 @@ import {
   validateChangePassword,
   validateRefreshToken,
   validateUpdateUser,
-  validateStatusChange
+  validateStatusChange,
+  validateSearchUsers
 } from '~/validations/user.validation'
-import { updateUserController, updateUserStatusController, getAllUsers, getUserDetail } from '~/controllers/user.controller'
+import { updateUserController, updateUserStatusController, getAllUsers, getUserDetail, searchUsersController } from '~/controllers/user.controller'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 
 const userRouter = Router()
@@ -18,6 +19,7 @@ userRouter.put('/admin/users/:id', authMiddleware, validateUpdateUser, updateUse
 userRouter.patch('/admin/users/:id/status', authMiddleware, validateStatusChange, updateUserStatusController)
 
 userRouter.get('/user/all', getAllUsers)
+userRouter.get('/user/search', validateSearchUsers, searchUsersController)
 userRouter.get('/user/:id', getUserDetail)
 
 export default userRouter

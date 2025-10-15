@@ -46,3 +46,24 @@ export const getUserDetail = async (req: Request, res: Response, next: NextFunct
     next(err)
   }
 }
+
+export const searchUsersController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const searchParams = {
+      search: req.query.search as string,
+      role: req.query.role as string,
+      status: req.query.status ? parseInt(req.query.status as string) : undefined,
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : 10
+    }
+    
+    const data = await userService.searchUsers(searchParams)
+    return res.status(200).json({ 
+      message: 'Search users successful', 
+      data: data.users,
+      pagination: data.pagination
+    })
+  } catch (err) {
+    next(err)
+  }
+}

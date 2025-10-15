@@ -132,3 +132,20 @@ export const validateStatusChange = (req: Request, _res: Response, next: NextFun
   next()
 }
 
+// Search users validation
+const searchUsersSchema = z.object({
+  search: z.string().min(1).optional(),
+  role: z.enum(['admin', 'manager', 'user', 'service', 'consultant']).optional(),
+  status: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+  page: z.string().regex(/^\d+$/).transform(Number).optional(),
+  limit: z.string().regex(/^\d+$/).transform(Number).optional(),
+})
+
+export const validateSearchUsers = (req: Request, _res: Response, next: NextFunction) => {
+  const parse = searchUsersSchema.safeParse(req.query)
+  if (!parse.success) {
+    return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
+  }
+  next()
+}
+
