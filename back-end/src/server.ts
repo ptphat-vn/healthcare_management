@@ -6,6 +6,7 @@ import { HttpError } from '~/models/error.model'
 import { corsMiddleware } from '~/configs/cors.config'
 import { connectMongo } from '~/configs/mongodb.config'
 import { env } from '~/configs/environment.config'
+import { swaggerDocument, swaggerUi } from '~/configs/swagger.config'
 
 dotenv.config()
 
@@ -16,8 +17,27 @@ app.use(corsMiddleware())
 app.use(express.json())
 
 app.get('/', (_req, res) => {
-  res.send('ok')
+  res.json({ 
+    message: 'Healthcare Management API', 
+    version: '1.0.0',
+    docs: '/api-docs',
+    status: 'running'
+  })
 })
+
+// Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Healthcare Management API',
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    docExpansion: 'none',
+    filter: true,
+    showExtensions: true,
+    showCommonExtensions: true,
+  }
+}))
 
 app.use('/api', authRouter)
 app.use('/api', userRouter)

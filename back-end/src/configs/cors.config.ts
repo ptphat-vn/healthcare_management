@@ -5,7 +5,10 @@ export const corsMiddleware = () =>
   cors({
     origin: (origin, callback) => {
       const allowed = getAllowedOrigins()
-      if (!origin) return callback(null, true)
+      // Allow Swagger UI from localhost
+      if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {
+        return callback(null, true)
+      }
       if (allowed.length === 0 || allowed.includes(origin)) return callback(null, true)
       return callback(new Error('Not allowed by CORS'))
     },
