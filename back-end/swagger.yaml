@@ -8,10 +8,7 @@ info:
     
     ## Authentication
     Most endpoints require authentication using JWT tokens. Include the token in the Authorization header:
-    ```
-    Authorization: Bearer <your-token>
-    ```
-    
+   
     ## User Roles
     - `admin`: Full system access
     - `manager`: Management access
@@ -24,8 +21,6 @@ info:
     - `1`: Active
     - `2`: Locked
   version: 1.0.0
-  contact:
-    email: support@healthcare.com
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
