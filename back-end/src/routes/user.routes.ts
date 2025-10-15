@@ -1,20 +1,7 @@
 import { Router } from 'express'
-import { validateUpdateUser, validateStatusChange } from '~/validations/user.validation'
-import {
-<<<<<<< back-end/src/routes/user.routes.ts
-  validateLogin,
-  validateUpdateUser,
-  validateStatusChange,
-  validateSearchUsers
-} from '~/validations/user.validation'
+import { validateUpdateUser, validateStatusChange, validateSearchUsers } from '~/validations/user.validation'
+
 import { updateUserController, updateUserStatusController, getAllUsers, getUserDetail, searchUsersController } from '~/controllers/user.controller'
-=======
-  updateUserController,
-  updateUserStatusController,
-  getAllUsers,
-  getUserDetail
-} from '~/controllers/user.controller'
->>>>>>> back-end/src/routes/user.routes.ts
 import { authMiddleware } from '~/middlewares/auth.middleware'
 
 const userRouter = Router()
