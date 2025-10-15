@@ -675,7 +675,6 @@ paths:
         '404':
           description: No users found
 
-
   /user/search:
     get:
       tags:
@@ -757,8 +756,6 @@ paths:
         '422':
           description: Validation error
 
-=======
->>>>>>> back-end/swagger.yaml
   /user/{id}:
     get:
       tags:
