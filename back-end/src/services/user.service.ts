@@ -80,4 +80,64 @@ export async function getUserDetail(id: string) {
   return safe
 }
 
+export async function searchUsers(searchParams: {
+  search?: string
+  role?: string
+  status?: number
+  page?: number
+  limit?: number
+}) {
+  const users = getUsersCollection()
+  
+  // Build filter query
+  const filter: any = {}
+  
+  // Search by email or fullName
+  if (searchParams.search) {
+    filter.$or = [
+      { email: { $regex: searchParams.search, $options: 'i' } },
+      { fullName: { $regex: searchParams.search, $options: 'i' } }
+    ]
+  }
+  
+  // Filter by role
+  if (searchParams.role) {
+    filter.role = searchParams.role
+  }
+  
+  // Filter by status
+  if (searchParams.status !== undefined) {
+    filter.status = searchParams.status
+  }
+  
+  // Pagination
+  const page = searchParams.page || 1
+  const limit = searchParams.limit || 10
+  const skip = (page - 1) * limit
+  
+  // Get total count for pagination
+  const totalCount = await users.countDocuments(filter)
+  
+  // Get users with pagination
+  const allUsers = await users
+    .find(filter)
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 })
+    .toArray()
+  
+  // Remove password hash from results
+  const safeUsers = allUsers.map(({ passwordHash, ...rest }) => rest)
+  
+  return {
+    users: safeUsers,
+    pagination: {
+      page,
+      limit,
+      total: totalCount,
+      pages: Math.ceil(totalCount / limit)
+    }
+  }
+}
+
  
