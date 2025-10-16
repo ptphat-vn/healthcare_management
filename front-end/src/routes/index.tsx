@@ -10,16 +10,20 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashBoard from "@/pages/user/UserDashBoard";
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
+import { useMemo } from "react";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
   const role = user?.data.roleCode;
 
-  if (isAuthenticated && role) {
-    return <Navigate to={`/${role}/dashboard`} replace />;
-  }
+  const redirectTo = useMemo(() => {
+    if (isAuthenticated && user?.data?.roleCode) {
+      return `/${user.data.roleCode}/dashboard`;
+    }
+    return "/auth/login";
+  }, [isAuthenticated, user?.data?.roleCode]);
 
-  return <Navigate to="/auth/login" replace />;
+  return <Navigate to={redirectTo} replace />;
 }
 
 export const router = createBrowserRouter([

@@ -1,5 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
-import { type ReactNode } from "react";
+import { setUserProfile } from "@/stores/authSlice";
+import { useEffect, type ReactNode } from "react";
+import { useDispatch } from "react-redux";
 import { Navigate } from "react-router-dom";
 
 interface ProtectedRouteProps {
@@ -12,7 +14,12 @@ export default function ProtectedRoute({
   children,
 }: ProtectedRouteProps) {
   const { isAuthenticated, user } = useAuth();
-
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (user) {
+      dispatch(setUserProfile(user));
+    }
+  }, [user, dispatch]);
 
   if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
 
