@@ -6,6 +6,7 @@ export interface User {
   identifyNumber: string;
   gender: GenderUser;
   dateOfBirth: string;
+  address?: string;
   role: RoleUser;
   status: number;
   createdAt: string;

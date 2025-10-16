@@ -50,7 +50,7 @@ export function EditUserForm({
         identifyNumber: defaultValues.identifyNumber,
         gender: defaultValues.gender === "male" ? "Male" : "Female",
         dateOfBirth: defaultValues.dateOfBirth,
-        address: "", // Default empty since User type doesn't have address
+        address: defaultValues.address || "",
       });
     }
   }, [defaultValues, reset]);
@@ -101,6 +101,7 @@ export function EditUserForm({
                     {...field}
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(date) => field.onChange(date ? date.format('YYYY-MM-DD') : '')}
+                    enableAccessibleFieldDOMStructure={false}
                     slots={{
                       textField: TextField,
                     }}
