@@ -7,11 +7,13 @@ export interface User {
   gender: GenderUser;
   dateOfBirth: string;
   address?: string;
-  role: RoleUser;
+  roleId?: string;
+  roleCode?: RoleUser;
+  roleName?: string;
   status: number;
   createdAt: string;
   updatedAt: string;
 }
-export type RoleUser = "user" | "admin" | "manager" | "consultant" | "service";
+export type RoleUser = "user" | "admin" | "manager" | "consultant" | "service" | "lab_user";
 
 export type GenderUser = "male" | "female";

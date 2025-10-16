@@ -5,7 +5,7 @@ export default function PublicRouter() {
   const { isAuthenticated, user } = useAuth();
 
   if (isAuthenticated) {
-    const role = user?.data?.role || "user";
+    const role = user?.data?.roleCode || "user";
     return <Navigate to={`/${role}/dashboard`} replace />;
   }
 

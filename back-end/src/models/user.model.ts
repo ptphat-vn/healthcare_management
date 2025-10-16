@@ -13,7 +13,7 @@ export interface UserDocument {
   address: string
   dateOfBirth: string
   passwordHash: string
-  role: 'admin' | 'manager' | 'user' | 'service' | 'consultant'
+  roleId: ObjectId
   status?: 0 | 1 | 2
   createdAt: Date
   updatedAt: Date
