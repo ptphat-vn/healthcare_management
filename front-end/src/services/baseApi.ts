@@ -14,7 +14,7 @@ import type {
   ErrorResponse,
   RefreshTokenResponse,
 } from "@/types/response.type";
-import type { LoginRequest, RegisterRequest, CreateUserRequest } from "@/types/request.type";
+import type { LoginRequest, RegisterRequest, CreateUserRequest, UpdateUserRequest } from "@/types/request.type";
 import type { User } from "@/types/user.type";
 
 const baseQuery = fetchBaseQuery({
@@ -127,6 +127,14 @@ export const baseApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    updateUser: builder.mutation<APIResponse<User>, { id: string } & UpdateUserRequest>({
+      query: ({ id, ...userData }) => ({
+        url: `/admin/update-user/${id}`,
+        method: "PUT",
+        body: userData,
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 export const {
@@ -136,4 +144,5 @@ export const {
   useLogoutMutation,
   useGetAllUserQuery,
   useCreateUserMutation,
+  useUpdateUserMutation,
 } = baseApi;

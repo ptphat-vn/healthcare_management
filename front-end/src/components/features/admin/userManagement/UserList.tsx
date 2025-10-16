@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Table,
   TableHeader,
@@ -15,41 +15,49 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, UserMinus } from "lucide-react";
-
-type User = {
-  id: string;
-  fullName: string;
-  dateOfBirth: string; // ISO date
-  sex: "Male" | "Female" | "Other";
-  phone: string;
-  email: string;
-};
+import EditUserModal from "./EditUserModal";
+import { type User } from "@/types/user.type";
 
 const initialUsers: User[] = [
   {
     id: "1",
     fullName: "Nguyễn Văn A",
     dateOfBirth: "1990-05-12",
-    sex: "Male",
-    phone: "0909123456",
+    gender: "male",
+    phoneNumber: "0909123456",
     email: "a.nguyen@example.com",
+    identifyNumber: "123456789",
+    role: "user",
+    status: 1,
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
   },
   {
     id: "2",
     fullName: "Trần Thị B",
     dateOfBirth: "1995-11-02",
-    sex: "Female",
-    phone: "0912345678",
+    gender: "female",
+    phoneNumber: "0912345678",
     email: "b.tran@example.com",
+    identifyNumber: "987654321",
+    role: "user",
+    status: 1,
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
   },
 ];
 
 export default function UserList() {
   const [users, setUsers] = useState<User[]>(initialUsers);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const handleEdit = (id: string) => {
-    // mở modal hoặc chuyển route để edit
-    console.log("Edit user", id);
+    const user = users.find(u => u.id === id);
+    if (user) {
+      setSelectedUser(user);
+      setEditModalOpen(true);
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -88,8 +96,8 @@ export default function UserList() {
             <TableRow key={user.id}>
               <TableCell>{user.fullName}</TableCell>
               <TableCell>{formatDate(user.dateOfBirth)}</TableCell>
-              <TableCell>{user.sex}</TableCell>
-              <TableCell>{user.phone}</TableCell>
+              <TableCell>{user.gender === "male" ? "Male" : "Female"}</TableCell>
+              <TableCell>{user.phoneNumber}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
@@ -115,6 +123,12 @@ export default function UserList() {
           ))}
         </TableBody>
       </Table>
+      
+      <EditUserModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        user={selectedUser}
+      />
     </div>
   );
 }
