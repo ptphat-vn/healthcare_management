@@ -20,12 +20,12 @@ export default function ProtectedRoute({
     if (user) {
       dispatch(setUserProfile(user));
     }
-  }, [user]);
+  }, [user, dispatch]);
 
   if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
 
   const role = user?.data?.role;
-  if (allowedRoles && !allowedRoles.includes(role)) {
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
     return <Navigate to="/" replace />;
   }
 

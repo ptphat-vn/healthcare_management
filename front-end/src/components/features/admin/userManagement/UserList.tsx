@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableHeader,
@@ -15,6 +15,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import type { GenderUser, RoleUser, User } from "@/types/user.type";
+import EditUserModal from "@/components/features/admin/userManagement/EditUserModal";
 // import { User, GenderUser, RoleUser } from "@/types/user.type";
 
 const API_BASE =
@@ -32,6 +34,7 @@ function normalizeUser(doc: any): User {
     identifyNumber: doc.identifyNumber || "",
     gender: (doc.gender || "male") as GenderUser,
     dateOfBirth: doc.dateOfBirth || new Date().toISOString(),
+    address: doc.address || "",
     role: (doc.role || "user") as RoleUser,
     status: typeof doc.status === "number" ? doc.status : 0,
     createdAt: doc.createdAt || new Date().toISOString(),
@@ -43,6 +46,8 @@ export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   // Fetch users từ API
   useEffect(() => {
@@ -109,9 +114,10 @@ export default function UserList() {
   };
 
   const handleEdit = (user: User) => {
-    // TODO: Mở modal/form edit
+    // Mở modal edit với user được chọn
     console.log("Edit user:", user);
-    alert(`Chức năng edit user: ${user.fullName}\nID: ${user.id}`);
+    setSelectedUser(user);
+    setEditModalOpen(true);
   };
 
   const handleDelete = async (user: User) => {
@@ -272,6 +278,13 @@ export default function UserList() {
           dùng
         </div>
       )}
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        user={selectedUser}
+      />
     </div>
   );
 }

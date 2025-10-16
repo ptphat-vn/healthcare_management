@@ -15,3 +15,24 @@ export interface RegisterRequest {
   dateOfBirth: string;
   password: string;
 }
+
+export interface CreateUserRequest {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  identifyNumber: string;
+  gender: GenderUser;
+  address?: string;
+  dateOfBirth: string;
+  password: string;
+}
+
+export interface UpdateUserRequest {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  identifyNumber: string;
+  gender: GenderUser;
+  address?: string;
+  dateOfBirth: string;
+}
