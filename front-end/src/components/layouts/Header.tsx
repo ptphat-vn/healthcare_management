@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import {
   DropdownMenu,
@@ -60,7 +59,7 @@ export default function Header() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem className="cursor-pointer">
                 <Link to={"/app/profile"}>
-                  {user?.data.role.toUpperCase()} ACCOUNT
+                  {(user?.data.roleName || user?.data.roleCode || "User").toString().toUpperCase()} ACCOUNT
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

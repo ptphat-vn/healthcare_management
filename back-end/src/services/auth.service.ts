@@ -164,7 +164,13 @@ export async function getProfile(userId: string | ObjectId) {
   const user = await users.findOne({ _id: targetId } as any)
   if (!user) throw new HttpError(404, MESSAGES.USER_NOT_FOUND)
   const { passwordHash, ...safe } = user as any
-  return safe
+  try {
+    const roles = (await import('~/models/role.model')).getRolesCollection()
+    const role = user.roleId ? await roles.findOne({ _id: user.roleId } as any) : null
+    return { ...safe, roleCode: role?.code, roleName: role?.name }
+  } catch {
+    return { ...safe }
+  }
 }
 
  

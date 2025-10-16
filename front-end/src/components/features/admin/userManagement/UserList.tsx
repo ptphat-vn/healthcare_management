@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import type { GenderUser, RoleUser, User } from "@/types/user.type";
+import type { GenderUser, User } from "@/types/user.type";
 import EditUserModal from "@/components/features/admin/userManagement/EditUserModal";
 // import { User, GenderUser, RoleUser } from "@/types/user.type";
 
@@ -35,7 +35,9 @@ function normalizeUser(doc: any): User {
     gender: (doc.gender || "male") as GenderUser,
     dateOfBirth: doc.dateOfBirth || new Date().toISOString(),
     address: doc.address || "",
-    role: (doc.role || "user") as RoleUser,
+    roleId: doc.roleId || undefined,
+    roleCode: doc.roleCode || doc.role || undefined,
+    roleName: doc.roleName || undefined,
     status: typeof doc.status === "number" ? doc.status : 0,
     createdAt: doc.createdAt || new Date().toISOString(),
     updatedAt: doc.updatedAt || new Date().toISOString(),
@@ -102,15 +104,18 @@ export default function UserList() {
     return gender === "male" ? "Nam" : "Nữ";
   };
 
-  const formatRole = (role: RoleUser) => {
-    const roleMap: Record<RoleUser, string> = {
+  const getDisplayRole = (u: User) => {
+    if (u.roleName) return u.roleName;
+    const code = (u.roleCode || "user").toLowerCase();
+    const map: Record<string, string> = {
       user: "Người dùng",
       admin: "Quản trị viên",
       manager: "Quản lý",
       consultant: "Tư vấn viên",
       service: "Dịch vụ",
+      lab_user: "Nhân viên xét nghiệm",
     };
-    return roleMap[role] || role;
+    return map[code] || code;
   };
 
   const handleEdit = (user: User) => {
@@ -217,7 +222,7 @@ export default function UserList() {
                   <TableCell>{formatDate(user.dateOfBirth)}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {formatRole(user.role)}
+                      {getDisplayRole(user)}
                     </span>
                   </TableCell>
                   <TableCell>

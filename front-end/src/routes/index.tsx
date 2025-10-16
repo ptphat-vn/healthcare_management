@@ -13,7 +13,7 @@ import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage"
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
-  const role = user?.data.role;
+  const role = user?.data.roleCode;
 
   if (isAuthenticated && role) {
     return <Navigate to={`/${role}/dashboard`} replace />;
