@@ -135,7 +135,7 @@ export const validateStatusChange = (req: Request, _res: Response, next: NextFun
 // Search users validation
 const searchUsersSchema = z.object({
   search: z.string().min(1).optional(),
-  role: z.enum(['admin', 'manager', 'user', 'service', 'consultant']).optional(),
+  role: z.string().optional(),
   status: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
   page: z.string().regex(/^\d+$/).transform(Number).optional(),
   limit: z.string().regex(/^\d+$/).transform(Number).optional(),

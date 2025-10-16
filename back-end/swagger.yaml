@@ -35,8 +35,172 @@ tags:
     description: User CRUD operations and management
   - name: Profile
     description: User profile operations
+  - name: Roles
+    description: Role management (create, update, list)
 
 paths:
+  /roles:
+    get:
+      tags:
+        - Roles
+      summary: List roles
+      description: Get a paginated list of roles
+      operationId: listRoles
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [name, code, createdAt]
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, -1]
+            example: 1
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Roles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Get roles successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Role'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      totalPages:
+                        type: integer
+
+    post:
+      tags:
+        - Roles
+      summary: Create role
+      description: Create a new role
+      operationId: createRole
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - code
+              properties:
+                name:
+                  type: string
+                  example: "Laboratory Manager"
+                code:
+                  type: string
+                  example: "manager"
+                description:
+                  type: string
+                privileges:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Role created successfully"
+                  data:
+                    $ref: '#/components/schemas/Role'
+        '409':
+          description: Role code already exists
+        '422':
+          description: Validation error
+
+  /roles/{id}:
+    put:
+      tags:
+        - Roles
+      summary: Update role
+      description: Update a role by id
+      operationId: updateRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                privileges:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Role updated successfully"
+                  data:
+                    $ref: '#/components/schemas/Role'
+        '404':
+          description: Role not found
+        '422':
+          description: Validation error
   # Authentication endpoints
   /auth/register:
     post:
@@ -691,7 +855,6 @@ paths:
           description: Filter by user role
           schema:
             type: string
-            enum: [admin, manager, user, service, consultant]
             example: "user"
         - name: status
           in: query
@@ -883,10 +1046,9 @@ components:
           type: string
           format: date
           example: "1990-01-01"
-        role:
+        roleId:
           type: string
-          enum: [admin, manager, user, service, consultant]
-          example: "user"
+          example: "507f1f77bcf86cd799439099"
         status:
           type: integer
           enum: [0, 1, 2]
@@ -895,6 +1057,35 @@ components:
             1 - Active
             2 - Locked
           example: 1
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00.000Z"
+
+    Role:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439022"
+        name:
+          type: string
+          example: "Administrator"
+        code:
+          type: string
+          example: "admin"
+        description:
+          type: string
+          example: "Access all features"
+        privileges:
+          type: array
+          items:
+            type: string
+          example: ["read_only"]
         createdAt:
           type: string
           format: date-time
