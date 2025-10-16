@@ -1,3 +1,5 @@
+
+
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -17,7 +19,7 @@ import {
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import type { GenderUser, User } from "@/types/user.type";
 import EditUserModal from "@/components/features/admin/userManagement/EditUserModal";
-// import { User, GenderUser, RoleUser } from "@/types/user.type";
+import DeleteUserModal from "@/components/features/admin/userManagement/DeleteUserModal";
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
@@ -49,6 +51,7 @@ export default function UserList() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   // Fetch users từ API
@@ -101,49 +104,72 @@ export default function UserList() {
   };
 
   const formatGender = (gender: GenderUser) => {
-    return gender === "male" ? "Nam" : "Nữ";
+    return gender === "male" ? "Male" : "Female";
   };
 
   const getDisplayRole = (u: User) => {
     if (u.roleName) return u.roleName;
     const code = (u.roleCode || "user").toLowerCase();
     const map: Record<string, string> = {
-      user: "Người dùng",
-      admin: "Quản trị viên",
-      manager: "Quản lý",
-      consultant: "Tư vấn viên",
-      service: "Dịch vụ",
-      lab_user: "Nhân viên xét nghiệm",
+      user: "User",
+      admin: "Admin",
+      manager: "Manager",
+      consultant: "Consultant",
+      service: "Service",
+      lab_user: "Lab-user",
     };
     return map[code] || code;
   };
 
   const handleEdit = (user: User) => {
-    // Mở modal edit với user được chọn
     console.log("Edit user:", user);
     setSelectedUser(user);
     setEditModalOpen(true);
   };
 
-  const handleDelete = async (user: User) => {
-    if (!confirm(`Xác nhận xóa người dùng "${user.fullName}"?`)) return;
+  const handleDelete = (user: User) => {
+    console.log("Open delete modal for user:", user);
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedUser) return;
 
     try {
-      // Note: Backend chưa có route DELETE, cần thêm vào
-      console.log("Delete user:", user.id);
-      alert("Chức năng xóa chưa được triển khai trên backend");
+      console.log("🗑️ Deleting user:", selectedUser.id);
+      
+      // TODO: Mock API delete - Backend chưa có route DELETE
+      // Khi backend có API, uncomment code dưới:
+      /*
+      const response = await fetch(`${API_BASE}/admin/users/${selectedUser.id}`, {
+        method: "DELETE",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+      });
 
-      // Khi có API DELETE:
-      // const response = await fetch(`${API_BASE}/users/${user.id}`, {
-      //   method: "DELETE",
-      //   headers: { "Content-Type": "application/json" }
-      // });
-      // if (response.ok) {
-      //   setUsers((prev) => prev.filter((u) => u.id !== user.id));
-      // }
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Xóa thất bại");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete user");
+      }
+
+      const result = await response.json();
+      console.log("✅ API Response:", result);
+      */
+
+      // Mock delete: Xóa user khỏi state
+      setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
+      
+      // Đóng modal và reset selected user
+      setDeleteModalOpen(false);
+      setSelectedUser(null);
+      
+      console.log("✅ User deleted successfully (mock)");
+    } catch (err: any) {
+      console.error("❌ Delete failed:", err);
+      alert(`Xóa thất bại: ${err.message}`);
     }
   };
 
@@ -258,14 +284,14 @@ export default function UserList() {
                           className="cursor-pointer"
                         >
                           <Edit className="mr-2 h-4 w-4" />
-                          Chỉnh sửa
+                          Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(user)}
                           className="cursor-pointer text-red-600 focus:text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -279,8 +305,7 @@ export default function UserList() {
 
       {users.length > 0 && (
         <div className="mt-4 text-sm text-gray-600">
-          Tổng số: <span className="font-semibold">{users.length}</span> người
-          dùng
+          Total: <span className="font-semibold">{users.length}</span> users
         </div>
       )}
 
@@ -289,6 +314,14 @@ export default function UserList() {
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         user={selectedUser}
+      />
+
+      {/* Delete User Modal */}
+      <DeleteUserModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        user={selectedUser}
+        onConfirm={handleDeleteConfirm}
       />
     </div>
   );
