@@ -16,7 +16,10 @@ interface AddUserModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export default function AddUserModal({ open, onOpenChange }: AddUserModalProps) {
+export default function AddUserModal({
+  open,
+  onOpenChange,
+}: AddUserModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [createUser] = useCreateUserMutation();
 
@@ -24,7 +27,6 @@ export default function AddUserModal({ open, onOpenChange }: AddUserModalProps) 
     try {
       setIsLoading(true);
 
-      // Chuyển đổi dữ liệu từ form sang format API
       const requestData: CreateUserRequest = {
         fullName: data.fullName,
         email: data.email,
@@ -39,13 +41,15 @@ export default function AddUserModal({ open, onOpenChange }: AddUserModalProps) 
       console.log("Creating new user:", requestData);
 
       const result = await createUser(requestData).unwrap();
-      
+
       toast.success(result?.message || "Tạo người dùng thành công");
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating user:", error);
       const err = error as { data?: { message?: string } };
-      toast.error(err.data?.message || "Tạo người dùng thất bại, vui lòng thử lại");
+      toast.error(
+        err.data?.message || "Tạo người dùng thất bại, vui lòng thử lại"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +65,7 @@ export default function AddUserModal({ open, onOpenChange }: AddUserModalProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">New User</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Add New User</DialogTitle>
         </DialogHeader>
 
         {open && (

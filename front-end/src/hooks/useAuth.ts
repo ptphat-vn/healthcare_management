@@ -18,6 +18,7 @@ export function useAuth() {
       toast.success(result.data?.message);
     } catch (error) {
       toast.error("Đăng xuất thất bại");
+      console.log(error);
     } finally {
       dispatch(logout());
     }
