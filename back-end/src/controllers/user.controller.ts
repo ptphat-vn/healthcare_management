@@ -67,3 +67,24 @@ export const searchUsersController = async (req: Request, res: Response, next: N
     next(err)
   }
 }
+
+export const updateUserProfileController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authUserId = (req as any).authUserId
+    if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
+    
+    const allowedFields = ['fullName', 'dateOfBirth', 'age', 'gender', 'address', 'email', 'phoneNumber'] as const
+    const updatePayload: Record<string, unknown> = {}
+    for (const key of allowedFields) {
+      if (key in req.body) updatePayload[key] = (req.body as any)[key]
+    }
+    if (Object.keys(updatePayload).length === 0) {
+      throw new HttpError(422, MESSAGES.VALIDATION_ERROR)
+    }
+    
+    const data = await userService.updateUser(authUserId.toString(), updatePayload)
+    return res.status(200).json({ message: 'Profile updated successfully', data })
+  } catch (err) {
+    next(err)
+  }
+}
