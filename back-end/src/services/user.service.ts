@@ -140,4 +140,40 @@ export async function searchUsers(searchParams: {
   }
 }
 
+export async function deleteUserRole(id: string) {
+  let userObjectId: ObjectId
+  try {
+    userObjectId = new ObjectId(id)
+  } catch {
+    throw new HttpError(400, "Invalid user id")
+  }
+
+  const users = getUsersCollection()
+// Check user exists
+  const user = await users.findOne({_id: userObjectId})
+  if (!user) throw new HttpError(404, MESSAGES.USER_NOT_FOUND)
+
+// Update role user to null
+  const now = new Date() 
+  const result = await users.findOneAndUpdate(
+    { _id: userObjectId },
+    { $unset: { role: 1 }, $set: { updatedAt: now } },
+    { returnDocument: 'after' }
+  )
+  // Check user updated
+  const updated: any = (result as any)?.value ?? result
+  if (!updated) throw new HttpError(404, 'User not found')
+
+  // Event log
+  const eventLogs = getEventLogsCollection()
+  await eventLogs.insertOne({
+    userId: updated._id,
+    action: 'USER_ROLE_DELETED',
+    details: 'User role deleted',
+    timestamp: now
+  })
+
+  const { passwordHash, ...safe } = updated
+  return safe
+}
  

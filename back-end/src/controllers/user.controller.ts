@@ -88,3 +88,12 @@ export const updateUserProfileController = async (req: Request, res: Response, n
     next(err)
   }
 }
+
+export const deleteUserRoleController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = await userService.deleteUserRole((req.params as { id: string }).id)
+    return res.status(200).json({ message: 'User role deleted successfully', data })
+  } catch (err) {
+    next(err)
+  }
+}

@@ -149,3 +149,11 @@ export const validateSearchUsers = (req: Request, _res: Response, next: NextFunc
   next()
 }
 
+export const validateDeleteUserRole = (req: Request, _res: Response, next: NextFunction) => {
+  const { id} = req.params
+    if (!id) {
+      return next(new HttpError(400, MESSAGES.USER_ID_REQUIRED))
+    }
+    next()
+}
+
