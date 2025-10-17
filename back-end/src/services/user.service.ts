@@ -65,6 +65,53 @@ export async function updateUserStatus(id: string, status: 0 | 1 | 2) {
   const { passwordHash, ...safe } = updated as any
   return safe
 }
+export async function deleteUser(id: string) {
+  let userObjectId: ObjectId
+  try {
+    userObjectId = new ObjectId(id)
+  } catch {
+    throw new HttpError(400, 'Invalid user id')
+  }
+
+  const users = getUsersCollection()
+  const result = await users.findOneAndUpdate(
+    { _id: userObjectId } as any,
+    { $set: { status: 0, updatedAt: new Date() } },
+    { returnDocument: 'after' }
+  )
+  const updated: any = (result as any)?.value ?? result
+  if (!updated) throw new HttpError(404, 'User not found')
+
+  const eventLogs = getEventLogsCollection()
+  await eventLogs.insertOne({ userId: updated._id as any, action: 'USER_INACTIVE', details: 'User soft-deleted (status=0)', timestamp: new Date() })
+
+  const { passwordHash, ...safe } = updated as any
+  return safe
+}
+
+export async function blockUser(id: string) {
+  let userObjectId: ObjectId
+  try {
+    userObjectId = new ObjectId(id)
+  } catch {
+    throw new HttpError(400, 'Invalid user id')
+  }
+
+  const users = getUsersCollection()
+  const result = await users.findOneAndUpdate(
+    { _id: userObjectId } as any,
+    { $set: { status: 2, updatedAt: new Date() } },
+    { returnDocument: 'after' }
+  )
+  const updated: any = (result as any)?.value ?? result
+  if (!updated) throw new HttpError(404, 'User not found')
+
+  const eventLogs = getEventLogsCollection()
+  await eventLogs.insertOne({ userId: updated._id as any, action: 'USER_LOCKED', details: 'User blocked (status=2)', timestamp: new Date() })
+
+  const { passwordHash, ...safe } = updated as any
+  return safe
+}
 
 export async function listUsers() {
   const users = getUsersCollection()

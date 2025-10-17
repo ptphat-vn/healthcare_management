@@ -29,6 +29,24 @@ export const updateUserStatusController = async (req: Request, res: Response, ne
   }
 }
 
+export const deleteUserController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = await userService.deleteUser((req.params as { id: string }).id)
+    return res.status(200).json({ message: 'User deleted (status=0)', data })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const blockUserController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = await userService.blockUser((req.params as { id: string }).id)
+    return res.status(200).json({ message: 'User blocked (status=2)', data })
+  } catch (err) {
+    next(err)
+  }
+}
+
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await userService.listUsers()
