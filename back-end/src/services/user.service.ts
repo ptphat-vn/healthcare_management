@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getUsersCollection } from '~/models/user.model'
+import { getRolesCollection } from '~/models/role.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 
 export async function updateUser(id: string, updatePayload: Record<string, unknown>) {
@@ -67,9 +68,20 @@ export async function updateUserStatus(id: string, status: 0 | 1 | 2) {
 
 export async function listUsers() {
   const users = getUsersCollection()
+  const roles = getRolesCollection()
   const allUsers = await users.find().toArray()
   if (!allUsers || allUsers.length === 0) throw new HttpError(404, MESSAGES.USERS_NOT_FOUND)
-  return allUsers.map(({ passwordHash, ...rest }) => rest)
+  const roleIds = Array.from(new Set(allUsers.map(u => u.roleId).filter(Boolean))) as any[]
+  const roleDocs = roleIds.length ? await roles.find({ _id: { $in: roleIds } } as any).toArray() : []
+  const idToRole = new Map<string, { code?: string; name?: string }>()
+  for (const r of roleDocs as any[]) {
+    idToRole.set(String(r._id), { code: r.code, name: r.name })
+  }
+  return allUsers.map((u: any) => {
+    const { passwordHash, ...rest } = u
+    const roleMeta = u.roleId ? idToRole.get(String(u.roleId)) : undefined
+    return { ...rest, roleCode: roleMeta?.code, roleName: roleMeta?.name }
+  })
 }
 
 export async function getUserDetail(id: string) {

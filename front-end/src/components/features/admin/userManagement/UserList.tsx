@@ -15,134 +15,81 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import type { GenderUser, RoleUser, User } from "@/types/user.type";
+import type { GenderUser, User } from "@/types/user.type";
 import EditUserModal from "@/components/features/admin/userManagement/EditUserModal";
-// import { User, GenderUser, RoleUser } from "@/types/user.type";
-
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
-
-/**
- * Normalize MongoDB document -> User type
- */
-function normalizeUser(doc: any): User {
-  return {
-    id: doc._id || doc.id,
-    fullName: doc.fullName || "",
-    email: doc.email || "",
-    phoneNumber: doc.phoneNumber || "",
-    identifyNumber: doc.identifyNumber || "",
-    gender: (doc.gender || "male") as GenderUser,
-    dateOfBirth: doc.dateOfBirth || new Date().toISOString(),
-    address: doc.address || "",
-    role: (doc.role || "user") as RoleUser,
-    status: typeof doc.status === "number" ? doc.status : 0,
-    createdAt: doc.createdAt || new Date().toISOString(),
-    updatedAt: doc.updatedAt || new Date().toISOString(),
-  };
-}
+import DeleteUserModal from "@/components/features/admin/userManagement/DeleteUserModal";
+import { useGetAllUserQuery } from "@/services/baseApi";
+import { formatDate } from "@/utils/formatDate";
 
 export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  // Fetch users từ API
+  const {
+    data: userList,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetAllUserQuery();
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        console.log("🔍 Fetching users from:", `${API_BASE}/user/all`);
-
-        const response = await fetch(`${API_BASE}/user/all`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        console.log("📥 Response status:", response.status);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log("✅ Data received:", result);
-
-        const normalized = (result.data || []).map(normalizeUser);
-        setUsers(normalized);
-      } catch (err: any) {
-        console.error("❌ Failed to fetch users:", err);
-        setError(err.message || "Không thể tải danh sách người dùng");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  const formatDate = (iso: string) => {
-    try {
-      return new Date(iso).toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    } catch {
-      return iso;
+    if (userList?.data) {
+      setUsers(userList.data);
     }
-  };
+  }, [userList]);
 
   const formatGender = (gender: GenderUser) => {
-    return gender === "male" ? "Nam" : "Nữ";
+    return gender === "male" ? "Male" : "Female";
   };
 
-  const formatRole = (role: RoleUser) => {
-    const roleMap: Record<RoleUser, string> = {
-      user: "Người dùng",
-      admin: "Quản trị viên",
-      manager: "Quản lý",
-      consultant: "Tư vấn viên",
-      service: "Dịch vụ",
+  const getDisplayRole = (u: User) => {
+    if (u.roleName) return u.roleName;
+    const code = (u.roleCode || "user").toLowerCase();
+    const map: Record<string, string> = {
+      user: "User",
+      admin: "Admin",
+      manager: "Manager",
+      consultant: "Consultant",
+      service: "Service",
+      lab_user: "Lab-user",
     };
-    return roleMap[role] || role;
+    return map[code] || code;
   };
 
   const handleEdit = (user: User) => {
-    // Mở modal edit với user được chọn
     console.log("Edit user:", user);
     setSelectedUser(user);
     setEditModalOpen(true);
   };
 
-  const handleDelete = async (user: User) => {
-    if (!confirm(`Xác nhận xóa người dùng "${user.fullName}"?`)) return;
+  const handleDelete = (user: User) => {
+    console.log("Open delete modal for user:", user);
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedUser) return;
 
     try {
-      // Note: Backend chưa có route DELETE, cần thêm vào
-      console.log("Delete user:", user.id);
-      alert("Chức năng xóa chưa được triển khai trên backend");
+      console.log("🗑️ Deleting user:", selectedUser.id);
 
-      // Khi có API DELETE:
-      // const response = await fetch(`${API_BASE}/users/${user.id}`, {
-      //   method: "DELETE",
-      //   headers: { "Content-Type": "application/json" }
-      // });
-      // if (response.ok) {
-      //   setUsers((prev) => prev.filter((u) => u.id !== user.id));
-      // }
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Xóa thất bại");
+      setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
+
+      setDeleteModalOpen(false);
+      setSelectedUser(null);
+
+      console.log("✅ User deleted successfully (mock)");
+    } catch (err: any) {
+      console.error("❌ Delete failed:", err);
+      alert(`Xóa thất bại: ${err.message}`);
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
@@ -153,7 +100,9 @@ export default function UserList() {
     );
   }
 
-  if (error) {
+  if (isError) {
+    const errMsg =
+      error?.data.message || (error as any)?.message || "Lỗi không xác định";
     return (
       <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
         <div className="flex items-center">
@@ -170,7 +119,7 @@ export default function UserList() {
           </svg>
           <div>
             <p className="font-semibold text-red-800">Lỗi tải dữ liệu</p>
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-sm text-red-600">{errMsg}</p>
           </div>
         </div>
       </div>
@@ -217,11 +166,11 @@ export default function UserList() {
                   <TableCell>{formatDate(user.dateOfBirth)}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {formatRole(user.role)}
+                      {getDisplayRole(user)}
                     </span>
                   </TableCell>
                   <TableCell>
-                     {user.status === 0 ? (
+                    {user.status === 0 ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                         Inactive
                       </span>
@@ -233,7 +182,7 @@ export default function UserList() {
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                         Block
                       </span>
-                    ): null}
+                    ) : null}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -253,14 +202,14 @@ export default function UserList() {
                           className="cursor-pointer"
                         >
                           <Edit className="mr-2 h-4 w-4" />
-                          Chỉnh sửa
+                          Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(user)}
                           className="cursor-pointer text-red-600 focus:text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -274,8 +223,7 @@ export default function UserList() {
 
       {users.length > 0 && (
         <div className="mt-4 text-sm text-gray-600">
-          Tổng số: <span className="font-semibold">{users.length}</span> người
-          dùng
+          Total: <span className="font-semibold">{users.length}</span> users
         </div>
       )}
 
@@ -284,6 +232,14 @@ export default function UserList() {
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         user={selectedUser}
+      />
+
+      {/* Delete User Modal */}
+      <DeleteUserModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        user={selectedUser}
+        onConfirm={handleDeleteConfirm}
       />
     </div>
   );

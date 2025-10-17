@@ -12,7 +12,6 @@ export default function LoginForm() {
   const {
     register,
     handleSubmit,
-    setError,
     formState: { errors },
   } = useForm<loginFormData>({
     resolver: zodResolver(loginSchema),
@@ -33,7 +32,7 @@ export default function LoginForm() {
       );
 
       toast.success(result?.message || "Đăng nhập thành công");
-      navigate("/home");
+      navigate("/");
     } catch (error: any) {
       console.log("error login", error);
 

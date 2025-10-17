@@ -15,7 +15,7 @@ export default function SideBar() {
 
   // safe role extraction
 
-  const role = String(user?.data.role).toLowerCase();
+  const role = String(user?.data.roleCode || 'user').toLowerCase();
 
   // define menus per role
   const menus: Record<

@@ -13,9 +13,8 @@ export default function ProtectedRoute({
   allowedRoles,
   children,
 }: ProtectedRouteProps) {
-  const dispatch = useDispatch();
   const { isAuthenticated, user } = useAuth();
-
+  const dispatch = useDispatch();
   useEffect(() => {
     if (user) {
       dispatch(setUserProfile(user));
@@ -24,7 +23,7 @@ export default function ProtectedRoute({
 
   if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
 
-  const role = user?.data?.role;
+  const role = user?.data?.roleCode;
   if (allowedRoles && role && !allowedRoles.includes(role)) {
     return <Navigate to="/" replace />;
   }

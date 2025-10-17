@@ -30,7 +30,6 @@ export default function RegisterForm() {
         setAuth({
           accessToken: result.data.accessToken,
           refreshToken: result.data.refreshToken,
-          user: result.data.user,
         })
       );
       toast.success(result?.message || "Đăng ký thành công");
@@ -89,13 +88,25 @@ export default function RegisterForm() {
             required
             error={errors.dateOfBirth?.message}
           />
-          <Input
-            {...register("gender")}
-            label="Gender"
-            required
-            error={errors.gender?.message}
-            placeholder="Male/Female"
-          />
+          <div className="flex flex-col w-full">
+            <label htmlFor="gender" className="text-sm font-medium pb-1">
+              Gender <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="gender"
+              {...register("gender")}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+            {errors.gender?.message && (
+              <span className="text-xs text-red-500 mt-1">
+                {errors.gender.message}
+              </span>
+            )}
+          </div>
         </div>
         <Input
           {...register("password")}
