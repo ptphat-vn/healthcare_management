@@ -5,9 +5,10 @@ import PublicRouter from "./PublicRouter";
 import ProtectedRoute from "./ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 
+import LandingPage from "@/pages/auth/LandingPage"; 
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashBoard from "@/pages/user/UserDashBoard";
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
 
@@ -23,7 +24,8 @@ function RootRedirect() {
 }
 
 export const router = createBrowserRouter([
-  { path: "/", element: <RootRedirect /> },
+  { path: "/", element: <LandingPage /> }, // CHANGED: landing at root
+  { path: "/start", element: <RootRedirect /> }, // NEW: smart redirect
 
   // AUTH LAYOUT (login, register)
   {
@@ -64,4 +66,4 @@ export const router = createBrowserRouter([
     ),
     children: [{ path: "dashboard", element: <UserDashBoard /> }],
   },
-]);
+]); 
