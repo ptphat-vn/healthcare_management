@@ -113,22 +113,77 @@ export async function blockUser(id: string) {
   return safe
 }
 
-export async function listUsers() {
+export interface ListUsersParams {
+  search?: string
+  status?: number
+  sortBy?: 'fullName' | 'email' | 'createdAt' | 'updatedAt'
+  sortOrder?: 1 | -1
+  page?: number
+  limit?: number
+}
+
+export const listUsers = async (params: ListUsersParams) => {
   const users = getUsersCollection()
   const roles = getRolesCollection()
-  const allUsers = await users.find().toArray()
-  if (!allUsers || allUsers.length === 0) throw new HttpError(404, MESSAGES.USERS_NOT_FOUND)
-  const roleIds = Array.from(new Set(allUsers.map(u => u.roleId).filter(Boolean))) as any[]
+  
+  const page = params.page && params.page > 0 ? params.page : 1
+  const limit = params.limit && params.limit > 0 ? params.limit : 10
+  const skip = (page - 1) * limit
+  
+  // Build filter query
+  const filter: Record<string, any> = {}
+  
+  // Search by email, fullName, or phoneNumber
+  if (params.search) {
+    const q = params.search
+    filter.$or = [
+      { email: { $regex: q, $options: 'i' } },
+      { fullName: { $regex: q, $options: 'i' } },
+      { phoneNumber: { $regex: q, $options: 'i' } }
+    ]
+  }
+  
+  
+  // Filter by status
+  if (params.status !== undefined) {
+    filter.status = params.status
+  }
+  
+  // Sorting
+  const sortField = params.sortBy || 'createdAt'
+  const sortOrder = params.sortOrder || -1
+  
+  // Get users with pagination
+  const cursor = users.find(filter as any).sort({ [sortField]: sortOrder } as any).skip(skip).limit(limit)
+  const [userItems, total] = await Promise.all([
+    cursor.toArray(),
+    users.countDocuments(filter as any),
+  ])
+  
+  // Get role information for users
+  const roleIds = Array.from(new Set(userItems.map(u => u.roleId).filter(Boolean))) as any[]
   const roleDocs = roleIds.length ? await roles.find({ _id: { $in: roleIds } } as any).toArray() : []
   const idToRole = new Map<string, { code?: string; name?: string }>()
   for (const r of roleDocs as any[]) {
     idToRole.set(String(r._id), { code: r.code, name: r.name })
   }
-  return allUsers.map((u: any) => {
+  
+  // Remove password hash and add role information
+  const safeUsers = userItems.map((u: any) => {
     const { passwordHash, ...rest } = u
     const roleMeta = u.roleId ? idToRole.get(String(u.roleId)) : undefined
     return { ...rest, roleCode: roleMeta?.code, roleName: roleMeta?.name }
   })
+  
+  return {
+    users: safeUsers,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1,
+    },
+  }
 }
 
 export async function getUserDetail(id: string) {
@@ -139,64 +194,5 @@ export async function getUserDetail(id: string) {
   return safe
 }
 
-export async function searchUsers(searchParams: {
-  search?: string
-  role?: string
-  status?: number
-  page?: number
-  limit?: number
-}) {
-  const users = getUsersCollection()
-  
-  // Build filter query
-  const filter: any = {}
-  
-  // Search by email or fullName
-  if (searchParams.search) {
-    filter.$or = [
-      { email: { $regex: searchParams.search, $options: 'i' } },
-      { fullName: { $regex: searchParams.search, $options: 'i' } }
-    ]
-  }
-  
-  // Filter by role
-  if (searchParams.role) {
-    filter.role = searchParams.role
-  }
-  
-  // Filter by status
-  if (searchParams.status !== undefined) {
-    filter.status = searchParams.status
-  }
-  
-  // Pagination
-  const page = searchParams.page || 1
-  const limit = searchParams.limit || 10
-  const skip = (page - 1) * limit
-  
-  // Get total count for pagination
-  const totalCount = await users.countDocuments(filter)
-  
-  // Get users with pagination
-  const allUsers = await users
-    .find(filter)
-    .skip(skip)
-    .limit(limit)
-    .sort({ createdAt: -1 })
-    .toArray()
-  
-  // Remove password hash from results
-  const safeUsers = allUsers.map(({ passwordHash, ...rest }) => rest)
-  
-  return {
-    users: safeUsers,
-    pagination: {
-      page,
-      limit,
-      total: totalCount,
-      pages: Math.ceil(totalCount / limit)
-    }
-  }
-}
 
  
