@@ -2,18 +2,20 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import bg_authen from "../../assets/images/bg_authen.png";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import dash1 from "../../assets/images/dash1.webp";
 import dash2 from "../../assets/images/dash2.webp";
 import dash3 from "../../assets/images/dash3.jpg";
+
 export default function LandingPage() {
-  const slides = [dash1, dash2, dash3];
-  const [index, setIndex] = useState(0);
-  
+  const [currentImage, setCurrentImage] = useState(0);
+  const images = [dash1, dash2, dash3];
+
   useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), 3000);
-    return () => clearInterval(id);
-  }, [slides.length]);
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div 
@@ -55,35 +57,47 @@ export default function LandingPage() {
       <main className="flex-1">
         <section className="mx-auto max-w-6xl px-6 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
           <div className="space-y-6">
-            <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+            <h1 className="text-3xl md:text-4xl font-bold leading-tight animate-fade-in">
             The Modern Platform for Blood Test Management
             </h1>
-            <p className="text-muted-foreground text-base md:text-lg">
+            <p className="text-muted-foreground text-base md:text-lg animate-fade-in-delay">
             From sample tracking to result delivery, our platform optimizes your workflow, enhances security, and ensures data accuracy.            </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link to="/start">
                 <Button 
                 variant="default"
-                className="h-11 px-8 rounded-md border-2 border-blue-500 text-white bg-blue-500 hover:bg-blue-800 focus-visible:ring-2 focus-visible:ring-blue-400"
-                size="lg">Get Started</Button>
+                className="h-11 px-8 rounded-md border-2 border-blue-500 text-white bg-blue-500 hover:bg-blue-800 focus-visible:ring-2 focus-visible:ring-blue-400 hover:scale-105 transition-transform duration-200">
+                Get Started</Button>
               </Link>
             </div>
           </div>
-          <div className="relative">
-            <div className="aspect-[4/3] w-full rounded-1xl border border-border bg-card/80 backdrop-blur shadow-lg overflow-hidden relative">
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={index}
-                  src={slides[index]}
-                  alt="illustration"
-                  className="absolute inset-0 h-full w-full object-cover rounded-1xl"
-                  initial={{ opacity: 0, scale: 0.98, x: 20, filter: "blur(2px)" }}
-                  animate={{ opacity: 1, scale: 1, x: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, scale: 0.98, x: -20, filter: "blur(2px)" }}
-                  transition={{ duration: 0.6, ease: "easeInOut" }}
-                />
-              </AnimatePresence>
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10" />
+          <div className="flex justify-center items-center">
+            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl hover:scale-105 transition-transform duration-300">
+              <div 
+                className="flex transition-transform duration-1000 ease-in-out"
+                style={{ transform: `translateX(-${currentImage * 100}%)` }}>
+                {images.map((image, index) => (
+                  <div key={index} className="w-full flex-shrink-0">
+                    <img
+                      src={image}
+                      alt={`Dashboard ${index + 1}`}
+                      className="w-full h-auto rounded-2xl shadow-3xl hover:shadow-2xl transition-shadow duration-300"/>
+                  </div>
+                ))}
+              </div>
+
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImage(index)}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer hover:scale-125 ${
+                      index === currentImage 
+                        ? 'bg-gray-600 scale-125' 
+                        : 'bg-gray-400 hover:bg-gray-200'
+                    }`}/>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -91,4 +105,4 @@ export default function LandingPage() {
     </div>
     </div>
   );
-} 
+}

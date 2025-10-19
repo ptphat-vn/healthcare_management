@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { HttpError } from '~/models/error.model'
-import { getUsersCollection, type UserDocument } from '~/models/user.model'
+import { getUsersCollection } from '~/models/user.model'
+import { getRolesCollection } from '~/models/role.model'
 import { ObjectId } from 'mongodb'
 
 const getJwtSecret = (): string => {
@@ -31,6 +32,9 @@ export const authMiddleware = async (req: Request, _res: Response, next: NextFun
     const user = await users.findOne({ _id: userObjectId } as any)
     if (!user) throw new HttpError(401, 'Unauthorized')
     ;(req as any).authUserId = userObjectId
+    const roles = getRolesCollection()
+    const role = user.roleId ? await roles.findOne({ _id: user.roleId } as any) : null
+    ;(req as any).authUserRole = role?.code || 'user'
     next()
   } catch (_e) {
     next(new HttpError(401, 'Unauthorized'))

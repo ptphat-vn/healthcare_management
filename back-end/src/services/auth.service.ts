@@ -1,9 +1,10 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import type { ObjectId, ModifyResult } from 'mongodb'
+import type { ObjectId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getUsersCollection, type UserDocument } from '~/models/user.model'
+import { getRolesCollection } from '~/models/role.model'
 import { getPasswordResetCollection, type PasswordResetDocument } from '~/models/password-reset.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 
@@ -32,6 +33,12 @@ export async function register(payload: {
 
   const passwordHash = await bcrypt.hash(payload.password, 10)
   const now = new Date()
+  const roles = getRolesCollection()
+  let defaultRole = await roles.findOne({ code: 'user' } as any)
+  if (!defaultRole) {
+    const insertRole = await roles.insertOne({ name: 'User', code: 'user', description: 'Default user role', privileges: ['read_only'], createdAt: now, updatedAt: now } as any)
+    defaultRole = await roles.findOne({ _id: insertRole.insertedId } as any)
+  }
   const insert = await users.insertOne({
     fullName: payload.fullName,
     email: payload.email,
@@ -41,7 +48,7 @@ export async function register(payload: {
     address: payload.address,
     dateOfBirth: payload.dateOfBirth,
     passwordHash,
-    role: 'user',
+    roleId: (defaultRole as any)._id,
     status: 1,
     createdAt: now,
     updatedAt: now
@@ -59,15 +66,14 @@ export async function register(payload: {
     gender: payload.gender,
     address: payload.address,
     dateOfBirth: payload.dateOfBirth,
-    role: 'user'
+    roleId: (defaultRole as any)._id
   }
 }
 
 export async function createUserByAdmin(payload: Parameters<typeof register>[0]) {
   // Same as register for now; could set different role later
   const created = await register(payload)
-  const { role, ...rest } = created
-  return rest
+  return created
 }
 
 export async function login(payload: { email: string; password: string }) {
@@ -158,7 +164,13 @@ export async function getProfile(userId: string | ObjectId) {
   const user = await users.findOne({ _id: targetId } as any)
   if (!user) throw new HttpError(404, MESSAGES.USER_NOT_FOUND)
   const { passwordHash, ...safe } = user as any
-  return safe
+  try {
+    const roles = (await import('~/models/role.model')).getRolesCollection()
+    const role = user.roleId ? await roles.findOne({ _id: user.roleId } as any) : null
+    return { ...safe, roleCode: role?.code, roleName: role?.name }
+  } catch {
+    return { ...safe }
+  }
 }
 
  

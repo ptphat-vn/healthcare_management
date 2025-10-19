@@ -90,5 +90,3 @@ export const profileUserController = async (req: Request, res: Response, next: N
     next(error)
   }
 }
-
-
