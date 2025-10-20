@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { validateUpdateUser, validateStatusChange, validateSearchUsers } from '~/validations/user.validation'
+import { validateUpdateUser, validateStatusChange } from '~/validations/user.validation'
 
-import { updateUserController, updateUserStatusController, deleteUserController, blockUserController, getAllUsers, getUserDetail, searchUsersController, updateUserProfileController } from '~/controllers/user.controller'
+import { updateUserController, updateUserStatusController, deleteUserController, blockUserController, getAllUsers, getUserDetail, updateUserProfileController } from '~/controllers/user.controller'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 import { roleMiddleware } from '~/middlewares/role.middleware'
 
@@ -14,7 +14,6 @@ userRouter.patch('/admin/users/:id/status', authMiddleware, validateStatusChange
 userRouter.delete('/admin/users/delete/:id', authMiddleware, roleMiddleware(['admin', 'manager']), deleteUserController)
 userRouter.post('/admin/users/block/:id', authMiddleware, roleMiddleware(['admin', 'manager']), blockUserController)
 userRouter.get('/user/all', getAllUsers)
-userRouter.get('/user/search', validateSearchUsers, searchUsersController)
 userRouter.get('/user/:id', getUserDetail)
 
 export default userRouter
