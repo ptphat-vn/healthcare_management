@@ -36,7 +36,7 @@ tags:
   - name: Profile
     description: User profile operations
   - name: Roles
-    description: Role management (create, update, list)
+    description: Role management (create, update, list, delete)
 
 paths:
   /roles:
@@ -199,6 +199,67 @@ paths:
                     $ref: '#/components/schemas/Role'
         '404':
           description: Role not found
+        '422':
+          description: Validation error
+
+
+    delete:
+      tags:
+        - Roles
+      summary: Remove a role from a user
+      description: Remove a role assignment from a specific user (requires authentication)
+      operationId: deleteUserRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          description: Role ID
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Role removed from user successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Role removed from user successfully"
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        example: "507f1f77bcf86cd799439011"
+                      roleId:
+                        type: string
+                        example: "507f1f77bcf86cd799439022"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User or Role not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           description: Validation error
   # Authentication endpoints

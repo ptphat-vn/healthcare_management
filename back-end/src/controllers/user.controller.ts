@@ -97,3 +97,19 @@ export const deleteUserRoleController = async (req: Request, res: Response, next
     next(err)
   }
 }
+
+
+export const banUserController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req.params as { id: string }).id
+    const adminId = (req as any).authUserId ?? null
+    const updated = await userService.banUser(userId, adminId)
+    return res.status(200).json({
+      message: 'User has been banned',
+      data: { id: updated._id ?? updated.id, status: updated.status }
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+

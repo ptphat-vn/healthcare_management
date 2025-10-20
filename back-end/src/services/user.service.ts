@@ -188,4 +188,38 @@ export async function deleteUserRole(id: string) {
   const { passwordHash, ...safe } = updated
   return safe
 }
- 
+
+export async function banUser(id: string, adminId?: string) {
+  let userObjectId: ObjectId
+  try {
+    userObjectId = new ObjectId(id)
+  } catch {
+    throw new HttpError(400, 'Invalid user id')
+  }
+
+  const users = getUsersCollection()
+  const user = await users.findOne({ _id: userObjectId } as any)
+  if (!user) throw new HttpError(404, MESSAGES.USER_NOT_FOUND)
+
+  const prevStatus = user.status
+  const now = new Date()
+  const result = await users.findOneAndUpdate(
+    { _id: userObjectId } as any,
+    { $set: { status: 2, updatedAt: now } }, // 2 = ban
+    { returnDocument: 'after' }
+  )
+
+  const updated: any = (result as any)?.value ?? result
+  if (!updated) throw new HttpError(404, MESSAGES.USER_NOT_FOUND)
+// Event log
+  const eventLogs = getEventLogsCollection()
+  await eventLogs.insertOne({
+    userId: updated._id as any,
+    action: 'USER_LOCKED',
+    details: `User locked by admin ${adminId ?? 'system'}`,
+    timestamp: now
+  })
+
+  const { passwordHash, ...safe } = updated as any
+  return safe
+}
