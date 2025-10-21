@@ -14,6 +14,7 @@ export default function RegisterPage() {
         margin: 0,
         padding: 0,
       }}
+      //ádasdasdasdsa dsa
     >
       <div className="flex flex-1 items-center justify-center px-8 relative z-10">
         <motion.div
