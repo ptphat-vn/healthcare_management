@@ -135,6 +135,12 @@ export const baseApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    getDashboardStats: builder.query<APIResponse<any>, void>({
+      query: () => ({
+        url: "/admin/dashboard/stats",
+        method: "GET",
+      }),
+    }),
   }),
 });
 export const {
@@ -145,4 +151,5 @@ export const {
   useGetAllUserQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
+  useGetDashboardStatsQuery,
 } = baseApi;
