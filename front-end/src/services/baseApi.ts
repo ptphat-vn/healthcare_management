@@ -26,6 +26,7 @@ const baseQuery = fetchBaseQuery({
     }
     return headers;
   },
+  
 });
 
 const customBaseQuery: BaseQueryFn<
