@@ -11,8 +11,9 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashBoard from "@/pages/user/UserDashBoard";
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
 
+import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
 import { useMemo } from "react";
-import { Monitor } from "lucide-react";
+
 import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
 
 function RootRedirect() {
@@ -58,9 +59,9 @@ export const router = createBrowserRouter([
     children: [
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "user-management", element: <UserManagementPage /> },
-      { path: "monitoring", element: <MonitoringServicePage />}
+      { path: "monitoring", element: <MonitoringServicePage /> },
+      { path: "medical-records", element: <MedicalRecordPage /> },
     ],
-     
   },
 
   // USER ROUTE
