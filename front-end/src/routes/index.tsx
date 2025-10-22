@@ -10,7 +10,10 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashBoard from "@/pages/user/UserDashBoard";
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
+
 import { useMemo } from "react";
+import { Monitor } from "lucide-react";
+import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -55,7 +58,9 @@ export const router = createBrowserRouter([
     children: [
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "user-management", element: <UserManagementPage /> },
+      { path: "monitoring", element: <MonitoringServicePage />}
     ],
+     
   },
 
   // USER ROUTE
