@@ -149,31 +149,4 @@ export const validateSearchUsers = (req: Request, _res: Response, next: NextFunc
   next()
 }
 
-export const validateDeleteUserRole = (req: Request, _res: Response, next: NextFunction) => {
-  const { id} = req.params
-    if (!id) {
-      return next(new HttpError(400, MESSAGES.USER_ID_REQUIRED))
-    }
-    next()
-}
 
-export const validateBanUser = (req: Request, _res: Response, next: NextFunction) => {
-  const { id } = req.params
-  if (!id) {
-    return next(new HttpError(400, MESSAGES.USER_ID_REQUIRED))
-  }
-
-  // basic ObjectId format check
-  if (!/^[0-9a-fA-F]{24}$/.test(id)) {
-    return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
-  }
-
-  const { reason } = req.body || {}
-  if (typeof reason !== 'undefined') {
-    if (typeof reason !== 'string' || reason.length > 500) {
-      return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
-    }
-  }
-
-  next()
-}

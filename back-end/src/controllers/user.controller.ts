@@ -100,27 +100,5 @@ export const updateUserProfileController = async (req: Request, res: Response, n
   }
 }
 
-export const deleteUserRoleController = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const data = await userService.deleteUserRole((req.params as { id: string }).id)
-    return res.status(200).json({ message: 'User role deleted successfully', data })
-  } catch (err) {
-    next(err)
-  }
-}
 
-
-export const banUserController = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userId = (req.params as { id: string }).id
-    const adminId = (req as any).authUserId ?? null
-    const updated = await userService.banUser(userId, adminId)
-    return res.status(200).json({
-      message: 'User has been banned',
-      data: { id: updated._id ?? updated.id, status: updated.status }
-    })
-  } catch (err) {
-    next(err)
-  }
-}
 
