@@ -224,6 +224,47 @@ paths:
           description: Role not found
         '422':
           description: Validation error
+
+
+    delete:
+      tags:
+        - Roles
+      summary: Delete role
+      description: Delete a role from role collection
+      operationId: deleteRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Role ID
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{24}$"
+      responses:
+        '200':
+          description: Role deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Role deleted successfully"
+                  data:
+                    $ref: '#/components/schemas/Role'
+        '400':
+          description: Invalid role id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Role not found
+        '422':
+          description: Validation error
   # Authentication endpoints
   /auth/register:
     post:

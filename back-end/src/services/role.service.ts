@@ -1,6 +1,7 @@
 import { ObjectId, WithId } from 'mongodb'
 import { getRolesCollection, type RoleDocument } from '~/models/role.model'
 import { HttpError } from '~/models/error.model'
+import { getUsersCollection } from '~/models/user.model'
 
 export interface CreateRolePayload {
   name: string
@@ -110,4 +111,23 @@ export const ensureDefaultRoles = async () => {
   }
 }
 
+
+export const deleteRole = async (id: string): Promise<WithId<RoleDocument>> => {
+  let objectId: ObjectId
+  try { objectId = new ObjectId(id) } catch { throw new HttpError(422, 'Invalid role id') }
+
+  const roles = getRolesCollection()
+  const users = getUsersCollection()
+
+  // Prevent deleting role that is still assigned to users
+  const assigned = await users.findOne({ roleId: objectId } as any)
+  if (assigned) {
+    throw new HttpError(409, 'Role is assigned to one or more users')
+  }
+
+  const result = await roles.findOneAndDelete({ _id: objectId } as any)
+  const deleted: any = (result as any)?.value ?? result
+  if (!deleted) throw new HttpError(404, 'Role not found')
+  return deleted as WithId<RoleDocument>
+}
 

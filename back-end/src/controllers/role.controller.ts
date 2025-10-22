@@ -56,3 +56,28 @@ export const listRolesController = async (req: Request, res: Response, next: Nex
 }
 
 
+export const deleteRoleController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = (req.params as { id?: string }).id
+    if (!id) return res.status(400).json({ message: 'Role id is required' })
+
+    const deleted = await roleService.deleteRole(id)
+
+    const logs = getEventLogsCollection()
+    const userId = (req as any).authUserId
+    await logs.insertOne({
+      userId,
+      action: 'delete_role',
+      details: `Deleted role ${deleted.code}`,
+      timestamp: new Date(),
+    } as any)
+
+    return res.status(200).json({ message: 'Role deleted successfully', data: deleted })
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+
+
