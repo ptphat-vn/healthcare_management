@@ -10,7 +10,13 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashBoard from "@/pages/user/UserDashBoard";
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
+
+import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrderManagementPage";
+import TestOrderDetailPage from "@/pages/admin/testOrderManagement/TestOrderDetailPage";
+import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
 import { useMemo } from "react";
+
+import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -55,6 +61,10 @@ export const router = createBrowserRouter([
     children: [
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "user-management", element: <UserManagementPage /> },
+      { path: "monitoring", element: <MonitoringServicePage /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
+      { path: "medical-records", element: <MedicalRecordPage /> },
     ],
   },
 

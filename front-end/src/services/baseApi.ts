@@ -14,8 +14,14 @@ import type {
   ErrorResponse,
   RefreshTokenResponse,
 } from "@/types/response.type";
-import type { LoginRequest, RegisterRequest, CreateUserRequest, UpdateUserRequest } from "@/types/request.type";
+import type {
+  LoginRequest,
+  RegisterRequest,
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "@/types/request.type";
 import type { User } from "@/types/user.type";
+import type { EventLog } from "@/types/monitor.type";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
@@ -26,6 +32,7 @@ const baseQuery = fetchBaseQuery({
     }
     return headers;
   },
+  
 });
 
 const customBaseQuery: BaseQueryFn<
@@ -119,6 +126,16 @@ export const baseApi = createApi({
       }),
       providesTags: ["User"],
     }),
+    getEventLogs: builder.query<
+      APIResponse<EventLog[]>,
+      { page?: number; limit?: number } | void
+    >({
+      query: (params) => ({
+        url: "/event-logs",
+        method: "GET",
+        params: params || undefined,
+      }),
+    }),
     createUser: builder.mutation<APIResponse<User>, CreateUserRequest>({
       query: (userData) => ({
         url: "/admin/create-user",
@@ -127,13 +144,22 @@ export const baseApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
-    updateUser: builder.mutation<APIResponse<User>, { id: string } & UpdateUserRequest>({
+    updateUser: builder.mutation<
+      APIResponse<User>,
+      { id: string } & UpdateUserRequest
+    >({
       query: ({ id, ...userData }) => ({
         url: `/admin/users/${id}`,
         method: "PUT",
         body: userData,
       }),
       invalidatesTags: ["User"],
+    }),
+    getDashboardStats: builder.query<APIResponse<any>, void>({
+      query: () => ({
+        url: "/admin/dashboard/stats",
+        method: "GET",
+      }),
     }),
   }),
 });
@@ -143,6 +169,8 @@ export const {
   useGetProfileQuery,
   useLogoutMutation,
   useGetAllUserQuery,
+  useGetEventLogsQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
+  useGetDashboardStatsQuery,
 } = baseApi;
