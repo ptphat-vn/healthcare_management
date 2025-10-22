@@ -187,11 +187,14 @@ export const listUsers = async (params: ListUsersParams) => {
 }
 
 export async function getUserDetail(id: string) {
-  const users = getUsersCollection()
-  const user = await users.findOne({ _id: new ObjectId(id) })
+  const userId = new ObjectId(id)
+  const user = await getUsersCollection().findOne({ _id: userId })
   if (!user) throw new HttpError(404, MESSAGES.USER_NOT_FOUND)
-  const { passwordHash, ...safe } = user as any
-  return safe
+
+  const role = user.roleId ? await getRolesCollection().findOne({ _id: user.roleId }) : null
+  const { passwordHash, roleId, ...safeUser } = user
+
+  return { ...safeUser, roleName: role?.name ?? null }
 }
 
 
