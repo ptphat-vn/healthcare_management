@@ -10,6 +10,8 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashBoard from "@/pages/user/UserDashBoard";
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
+import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrderManagementPage";
+import TestOrderDetailPage from "@/pages/admin/testOrderManagement/TestOrderDetailPage";
 import { useMemo } from "react";
 
 function RootRedirect() {
@@ -55,6 +57,8 @@ export const router = createBrowserRouter([
     children: [
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "user-management", element: <UserManagementPage /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
     ],
   },
 
