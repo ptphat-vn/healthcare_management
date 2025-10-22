@@ -23,5 +23,6 @@ export const MESSAGES = {
   GET_USERS_SUCCESS: 'Lấy danh sách người dùng thành công',
   USERS_NOT_FOUND: 'Không tìm thấy người dùng nào',
   GET_USER_DETAIL_SUCCESS: 'Lấy thông tin người dùng thành công',
-  USER_NOT_FOUND: 'Không tìm thấy người dùng'
+  USER_NOT_FOUND: 'Không tìm thấy người dùng',
+  USER_ID_REQUIRED: 'ID người dùng là bắt buộc'
 } as const

@@ -45,4 +45,13 @@ export const validateUpdateRole = (req: Request, res: Response, next: NextFuncti
   next()
 }
 
+export const validateDeleteRole = (req: Request, _res: Response, next: NextFunction) => {
+  const { id } = req.params as { id?: string }
+  if (!id) return _res.status(400).json({ message: 'Role id is required' })
+
+  const objIdRegex = /^[0-9a-fA-F]{24}$/
+  if (!objIdRegex.test(id)) return _res.status(422).json({ message: MESSAGES.VALIDATION_ERROR })
+
+  next()
+}
 
