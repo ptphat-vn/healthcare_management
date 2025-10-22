@@ -4,7 +4,7 @@ info:
   description: |
     API documentation for Healthcare Management System
     
-    This API provides endpoints for user authentication, user management, and healthcare-related operations.
+    This API provides endpoints for user authentication, user management, test order management, and healthcare-related operations.
     
     ## Authentication
     Most endpoints require authentication using JWT tokens. Include the token in the Authorization header:
@@ -15,11 +15,24 @@ info:
     - `user`: Basic user access
     - `service`: Service provider access
     - `consultant`: Consultant access
+    - `lab_technician`: Laboratory technician access
     
     ## User Status
     - `0`: Inactive (soft deleted)
     - `1`: Active
     - `2`: Locked
+    
+    ## Test Order Status
+    - `pending`: Test order created, waiting for processing
+    - `cancelled`: Test order cancelled
+    - `completed`: Test results available
+    - `reviewed`: Manually reviewed by staff
+    - `ai_reviewed`: Reviewed by AI system
+    
+    ## Test Result Status
+    - `normal`: Within normal range
+    - `abnormal`: Outside normal range
+    - `critical`: Critical values requiring immediate attention
   version: 1.0.0
   license:
     name: MIT
@@ -36,7 +49,17 @@ tags:
   - name: Profile
     description: User profile operations
   - name: Roles
-    description: Role management (create, update, list, delete)
+    description: Role management (create, update, list)
+  - name: Test Orders
+    description: Test order management operations
+  - name: Test Results
+    description: Test results processing and management
+  - name: Test Order Review
+    description: Manual and AI review operations
+  - name: Comments
+    description: Comment management operations
+  - name: Flagging Configuration
+    description: Flagging configuration management
 
 paths:
   /roles:
@@ -1128,6 +1151,914 @@ paths:
         '422':
           description: Validation error
 
+  # Test Order Management
+  /test-orders:
+    post:
+      tags:
+        - Test Orders
+      summary: Create a new test order
+      description: Create a new patient test order with required information
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - patientName
+                - dateOfBirth
+                - age
+                - gender
+                - address
+                - phoneNumber
+                - email
+              properties:
+                patientName:
+                  type: string
+                  example: "Nguyễn Văn A"
+                dateOfBirth:
+                  type: string
+                  format: date
+                  example: "1990-01-15"
+                age:
+                  type: number
+                  example: 34
+                gender:
+                  type: string
+                  enum: [male, female]
+                  example: "male"
+                address:
+                  type: string
+                  example: "123 Đường ABC, Quận 1, TP.HCM"
+                phoneNumber:
+                  type: string
+                  pattern: "^[0-9]{10,11}$"
+                  example: "0123456789"
+                email:
+                  type: string
+                  format: email
+                  example: "patient@email.com"
+      responses:
+        '201':
+          description: Test order created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Tạo đơn xét nghiệm thành công"
+                  data:
+                    $ref: '#/components/schemas/TestOrder'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+
+    get:
+      tags:
+        - Test Orders
+      summary: Get list of test orders
+      description: Retrieve a paginated list of test orders with search and filter options
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: Search by patient name, phone, or email
+          schema:
+            type: string
+          example: "Nguyễn"
+        - name: status
+          in: query
+          description: Filter by test order status
+          schema:
+            type: string
+            enum: [pending, cancelled, completed, reviewed, ai_reviewed]
+          example: "completed"
+        - name: sortBy
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [patientName, createdDate, runDate, status]
+          example: "createdDate"
+        - name: sortOrder
+          in: query
+          description: Sort order (1 for ascending, -1 for descending)
+          schema:
+            type: integer
+            enum: [1, -1]
+          example: -1
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+        - name: limit
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          example: 10
+      responses:
+        '200':
+          description: Test orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Lấy danh sách đơn xét nghiệm thành công"
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TestOrder'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized
+
+  /test-orders/{id}:
+    get:
+      tags:
+        - Test Orders
+      summary: Get test order details
+      description: Retrieve detailed information of a specific test order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Test order details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Lấy chi tiết đơn xét nghiệm thành công"
+                  data:
+                    $ref: '#/components/schemas/TestOrderDetail'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Test order not found
+
+    put:
+      tags:
+        - Test Orders
+      summary: Update test order
+      description: Update patient information in a test order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patientName:
+                  type: string
+                  example: "Nguyễn Văn A"
+                dateOfBirth:
+                  type: string
+                  format: date
+                  example: "1990-01-15"
+                age:
+                  type: number
+                  example: 34
+                gender:
+                  type: string
+                  enum: [male, female]
+                  example: "male"
+                address:
+                  type: string
+                  example: "123 Đường ABC, Quận 1, TP.HCM"
+                phoneNumber:
+                  type: string
+                  pattern: "^[0-9]{10,11}$"
+                  example: "0123456789"
+                email:
+                  type: string
+                  format: email
+                  example: "patient@email.com"
+      responses:
+        '200':
+          description: Test order updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Cập nhật đơn xét nghiệm thành công"
+                  data:
+                    $ref: '#/components/schemas/TestOrder'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+        '404':
+          description: Test order not found
+
+    delete:
+      tags:
+        - Test Orders
+      summary: Delete test order
+      description: Delete a test order (soft delete)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Test order deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Xóa đơn xét nghiệm thành công"
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Test order deleted successfully"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (insufficient role)
+        '404':
+          description: Test order not found
+
+  # Test Results Management
+  /test-orders/{id}/results:
+    post:
+      tags:
+        - Test Results
+      summary: Add manual test results
+      description: Add test results manually to a test order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - testResults
+              properties:
+                testResults:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - testName
+                      - result
+                      - status
+                    properties:
+                      testName:
+                        type: string
+                        example: "Hemoglobin"
+                      result:
+                        type: string
+                        example: "14.5"
+                      unit:
+                        type: string
+                        example: "g/dL"
+                      normalRange:
+                        type: string
+                        example: "12.0-16.0"
+                      status:
+                        type: string
+                        enum: [normal, abnormal, critical]
+                        example: "normal"
+      responses:
+        '200':
+          description: Test results added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Test results added successfully"
+                  data:
+                    $ref: '#/components/schemas/TestOrder'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (insufficient role)
+        '404':
+          description: Test order not found
+
+  /test-orders/{id}/hl7-results:
+    post:
+      tags:
+        - Test Results
+      summary: Process HL7 test results
+      description: Process test results from HL7 message. The system will randomly pick ONE test and generate its value.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: HL7 test results processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "HL7 test results processed successfully"
+                  data:
+                    type: object
+                    properties:
+                      testOrder:
+                        $ref: '#/components/schemas/TestOrder'
+                      hl7Message:
+                        $ref: '#/components/schemas/HL7Message'
+                      processedResults:
+                        type: array
+                        minItems: 1
+                        maxItems: 1
+                        items:
+                          $ref: '#/components/schemas/TestResult'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (insufficient role)
+        '404':
+          description: Test order not found
+
+  # Test Order Review
+  /test-orders/{id}/review:
+    post:
+      tags:
+        - Test Order Review
+      summary: Manually review test order
+      description: Review a completed test order and optionally adjust test result values
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resultUpdates:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - testResultId
+                      - newResult
+                    properties:
+                      testResultId:
+                        type: string
+                        example: "507f1f77bcf86cd799439012"
+                      newResult:
+                        type: string
+                        example: "14.8"
+      responses:
+        '200':
+          description: Test order reviewed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Test order reviewed successfully"
+                  data:
+                    $ref: '#/components/schemas/TestOrder'
+        '400':
+          description: Validation error or test order not completed
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (insufficient role)
+        '404':
+          description: Test order not found
+
+  /test-orders/{id}/ai-review:
+    post:
+      tags:
+        - Test Order Review
+      summary: AI auto review test order
+      description: Perform AI-driven automatic review of a completed test order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: AI review completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "AI review completed successfully"
+                  data:
+                    $ref: '#/components/schemas/TestOrder'
+        '400':
+          description: Test order not completed
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (insufficient role)
+        '404':
+          description: Test order not found
+
+  # Comment Management
+  /test-orders/{id}/comments:
+    post:
+      tags:
+        - Comments
+      summary: Add comment to test order
+      description: Add a new comment to a test order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: "Kết quả xét nghiệm bình thường, không có dấu hiệu bất thường"
+      responses:
+        '200':
+          description: Comment added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment added successfully"
+                  data:
+                    type: object
+                    properties:
+                      commentId:
+                        type: string
+                        example: "507f1f77bcf86cd799439017"
+                      testOrder:
+                        $ref: '#/components/schemas/TestOrder'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+        '404':
+          description: Test order not found
+
+  /test-orders/{testOrderId}/comments/{commentId}:
+    put:
+      tags:
+        - Comments
+      summary: Update comment
+      description: Update an existing comment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testOrderId
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+        - name: commentId
+          in: path
+          required: true
+          description: Comment ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439013"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: "Cập nhật: Kết quả xét nghiệm đã được xem xét lại"
+      responses:
+        '200':
+          description: Comment updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment updated successfully"
+                  data:
+                    $ref: '#/components/schemas/TestOrder'
+        '400':
+          description: Validation error or comment already deleted
+        '401':
+          description: Unauthorized
+        '404':
+          description: Test order or comment not found
+
+    delete:
+      tags:
+        - Comments
+      summary: Delete comment
+      description: Soft delete a comment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testOrderId
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+        - name: commentId
+          in: path
+          required: true
+          description: Comment ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439013"
+      responses:
+        '200':
+          description: Comment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment deleted successfully"
+                  data:
+                    $ref: '#/components/schemas/TestOrder'
+        '400':
+          description: Comment already deleted
+        '401':
+          description: Unauthorized
+        '404':
+          description: Test order or comment not found
+
+  # Flagging Configuration Management
+  /flagging-configs:
+    post:
+      tags:
+        - Flagging Configuration
+      summary: Create flagging configuration
+      description: Create a new flagging configuration for test results
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - testName
+                - normalRange
+                - unit
+                - flag
+              properties:
+                testName:
+                  type: string
+                  example: "Hemoglobin"
+                normalRange:
+                  type: object
+                  required:
+                    - min
+                    - max
+                  properties:
+                    min:
+                      type: number
+                      example: 12.0
+                    max:
+                      type: number
+                      example: 16.0
+                abnormalRange:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                      example: 10.0
+                    max:
+                      type: number
+                      example: 18.0
+                criticalRange:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                      example: 8.0
+                    max:
+                      type: number
+                      example: 20.0
+                unit:
+                  type: string
+                  example: "g/dL"
+                flag:
+                  type: string
+                  example: "HGB"
+      responses:
+        '201':
+          description: Flagging configuration created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Flagging configuration created successfully"
+                  data:
+                    $ref: '#/components/schemas/FlaggingConfiguration'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (insufficient role)
+
+    get:
+      tags:
+        - Flagging Configuration
+      summary: Get flagging configurations
+      description: Retrieve all flagging configurations or only active ones
+      parameters:
+        - name: active
+          in: query
+          description: Get only active configurations
+          schema:
+            type: boolean
+            default: false
+          example: true
+      responses:
+        '200':
+          description: Flagging configurations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Flagging configurations retrieved successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FlaggingConfiguration'
+
+  /flagging-configs/{id}:
+    get:
+      tags:
+        - Flagging Configuration
+      summary: Get flagging configuration by test name
+      description: Retrieve a specific flagging configuration by test name
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test name
+          schema:
+            type: string
+            example: "Hemoglobin"
+      responses:
+        '200':
+          description: Flagging configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Flagging configuration retrieved successfully"
+                  data:
+                    $ref: '#/components/schemas/FlaggingConfiguration'
+        '404':
+          description: Flagging configuration not found
+
+    put:
+      tags:
+        - Flagging Configuration
+      summary: Update flagging configuration
+      description: Update an existing flagging configuration
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Flagging configuration ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                testName:
+                  type: string
+                  example: "Hemoglobin"
+                normalRange:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                      example: 12.0
+                    max:
+                      type: number
+                      example: 16.0
+                abnormalRange:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                      example: 10.0
+                    max:
+                      type: number
+                      example: 18.0
+                criticalRange:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                      example: 8.0
+                    max:
+                      type: number
+                      example: 20.0
+                unit:
+                  type: string
+                  example: "g/dL"
+                flag:
+                  type: string
+                  example: "HGB"
+                isActive:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Flagging configuration updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Flagging configuration updated successfully"
+                  data:
+                    $ref: '#/components/schemas/FlaggingConfiguration'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (insufficient role)
+        '404':
+          description: Flagging configuration not found
+
+    delete:
+      tags:
+        - Flagging Configuration
+      summary: Delete flagging configuration
+      description: Delete a flagging configuration
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Flagging configuration ID
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Flagging configuration deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Flagging configuration deleted successfully"
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Flagging configuration deleted successfully"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (insufficient role)
+        '404':
+          description: Flagging configuration not found
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1243,3 +2174,279 @@ components:
           example:
             email: "Email không đúng định dạng"
             password: "Mật khẩu phải có ít nhất 8 ký tự"
+
+    TestOrder:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        patientName:
+          type: string
+          example: "Nguyễn Văn A"
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1990-01-15"
+        age:
+          type: number
+          example: 34
+        gender:
+          type: string
+          enum: [male, female]
+          example: "male"
+        address:
+          type: string
+          example: "123 Đường ABC, Quận 1, TP.HCM"
+        phoneNumber:
+          type: string
+          example: "0123456789"
+        email:
+          type: string
+          format: email
+          example: "patient@email.com"
+        status:
+          type: string
+          enum: [pending, cancelled, completed, reviewed, ai_reviewed]
+          example: "completed"
+        createdDate:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        createdBy:
+          type: string
+          example: "507f1f77bcf86cd799439012"
+        runDate:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:30:00Z"
+        runBy:
+          type: string
+          example: "507f1f77bcf86cd799439013"
+        testResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestResult'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:30:00Z"
+
+    TestOrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/TestOrder'
+        - type: object
+          properties:
+            createdByUser:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "Dr. Nguyễn Văn B"
+                email:
+                  type: string
+                  example: "doctor@hospital.com"
+            runByUser:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "Lab Tech C"
+                email:
+                  type: string
+                  example: "labtech@hospital.com"
+
+    TestResult:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439014"
+        testName:
+          type: string
+          example: "Hemoglobin"
+        result:
+          type: string
+          example: "14.5"
+        unit:
+          type: string
+          example: "g/dL"
+        normalRange:
+          type: string
+          example: "12.0-16.0"
+        status:
+          type: string
+          enum: [normal, abnormal, critical]
+          example: "normal"
+        flag:
+          type: string
+          example: ""
+        hl7MessageId:
+          type: string
+          example: "HL7_1234567890_abc123"
+        rawHl7Data:
+          type: string
+          example: "MSH|^~\\&|LAB|HOSPITAL|LIS|HOSPITAL|2024-01-15T14:30:00Z|HL7_1234567890_abc123|ORU^R01|HL7_1234567890_abc123|P|2.5"
+        processedData:
+          type: object
+          example:
+            originalFlag: ""
+            processingTimestamp: "2024-01-15T14:30:00Z"
+            configApplied: "507f1f77bcf86cd799439015"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T15:30:00Z"
+        reviewedBy:
+          type: string
+          example: "507f1f77bcf86cd799439016"
+        aiReviewedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T16:30:00Z"
+
+    Comment:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439017"
+        content:
+          type: string
+          example: "Kết quả xét nghiệm bình thường, không có dấu hiệu bất thường"
+        createdBy:
+          type: string
+          example: "507f1f77bcf86cd799439018"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T16:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T17:30:00Z"
+        modifiedBy:
+          type: string
+          example: "507f1f77bcf86cd799439019"
+        isDeleted:
+          type: boolean
+          example: false
+
+    HL7Message:
+      type: object
+      properties:
+        messageId:
+          type: string
+          example: "HL7_1234567890_abc123"
+        patientId:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        testResults:
+          type: array
+          items:
+            type: object
+            properties:
+              testName:
+                type: string
+                example: "Hemoglobin"
+              result:
+                type: string
+                example: "13.2"
+              unit:
+                type: string
+                example: "g/dL"
+              normalRange:
+                type: string
+                example: "12.0-16.0"
+              flag:
+                type: string
+                example: ""
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:30:00Z"
+        rawMessage:
+          type: string
+          example: "MSH|^~\\&|LAB|HOSPITAL|LIS|HOSPITAL|2024-01-15T14:30:00Z|HL7_1234567890_abc123|ORU^R01|HL7_1234567890_abc123|P|2.5"
+
+    FlaggingConfiguration:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439020"
+        testName:
+          type: string
+          example: "Hemoglobin"
+        normalRange:
+          type: object
+          properties:
+            min:
+              type: number
+              example: 12.0
+            max:
+              type: number
+              example: 16.0
+        abnormalRange:
+          type: object
+          properties:
+            min:
+              type: number
+              example: 10.0
+            max:
+              type: number
+              example: 18.0
+        criticalRange:
+          type: object
+          properties:
+            min:
+              type: number
+              example: 8.0
+            max:
+              type: number
+              example: 20.0
+        unit:
+          type: string
+          example: "g/dL"
+        flag:
+          type: string
+          example: "HGB"
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:30:00Z"
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 10

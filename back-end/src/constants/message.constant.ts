@@ -24,5 +24,15 @@ export const MESSAGES = {
   USERS_NOT_FOUND: 'Không tìm thấy người dùng nào',
   GET_USER_DETAIL_SUCCESS: 'Lấy thông tin người dùng thành công',
   USER_NOT_FOUND: 'Không tìm thấy người dùng',
-  USER_ID_REQUIRED: 'ID người dùng là bắt buộc'
+  // Test Order Messages
+  TEST_ORDER_CREATED_SUCCESS: 'Tạo đơn xét nghiệm thành công',
+  TEST_ORDER_UPDATED_SUCCESS: 'Cập nhật đơn xét nghiệm thành công',
+  TEST_ORDER_DELETED_SUCCESS: 'Xóa đơn xét nghiệm thành công',
+  TEST_ORDER_NOT_FOUND: 'Không tìm thấy đơn xét nghiệm',
+  GET_TEST_ORDERS_SUCCESS: 'Lấy danh sách đơn xét nghiệm thành công',
+  GET_TEST_ORDER_DETAIL_SUCCESS: 'Lấy chi tiết đơn xét nghiệm thành công',
+  TEST_ORDERS_NOT_FOUND: 'Không có dữ liệu',
+  INVALID_TEST_ORDER_STATUS: 'Trạng thái đơn xét nghiệm không hợp lệ',
+  EMAIL_FORMAT_INVALID: 'Email không đúng định dạng',
+  DATE_FORMAT_INVALID: 'Ngày sinh phải đúng định dạng MM/DD/YYYY'
 } as const
