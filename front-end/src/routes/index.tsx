@@ -12,6 +12,7 @@ import UserDashBoard from "@/pages/user/UserDashBoard";
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
 import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrderManagementPage";
 import TestOrderDetailPage from "@/pages/admin/testOrderManagement/TestOrderDetailPage";
+import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
 import { useMemo } from "react";
 
 function RootRedirect() {
@@ -59,6 +60,8 @@ export const router = createBrowserRouter([
       { path: "user-management", element: <UserManagementPage /> },
       { path: "test-order", element: <TestOrderManagementPage /> },
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
+      { path: "medical-records", element: <MedicalRecordPage /> },
+      
     ],
   },
 
