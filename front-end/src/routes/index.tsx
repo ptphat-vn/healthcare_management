@@ -18,10 +18,11 @@ import { useMemo } from "react";
 
 import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
 import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
+import RoleManagementPage from "@/pages/admin/roleManagement/roleManagementPage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
-  const role = user?.data.roleCode;
+  // const role = user?.data.roleCode;
 
   const redirectTo = useMemo(() => {
     if (isAuthenticated && user?.data?.roleCode) {
@@ -61,11 +62,17 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: "dashboard", element: <AdminDashboard /> },
+      // user management
       { path: "user-management", element: <UserManagementPage /> },
       { path: "user-management/:id", element: <UserDetail /> },
+      // role management
+      { path: "roles-management", element: <RoleManagementPage /> },
+      // event log
       { path: "event-log", element: <MonitoringServicePage /> },
+      // test-order
       { path: "test-order", element: <TestOrderManagementPage /> },
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
+      // medical record
       { path: "medical-records", element: <MedicalRecordPage /> },
     ],
   },

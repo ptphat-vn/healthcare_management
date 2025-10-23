@@ -13,7 +13,7 @@ export default function UserManagementPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
           <p className="text-sm text-gray-500 mt-2">
-            Manage all users in your system. Add, edit, block, or delete users.
+            Manage all users in your system.
           </p>
         </div>
 

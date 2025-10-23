@@ -1,0 +1,18 @@
+export const privilegeList = [
+  "view_role",
+  "create_role",
+  "update_role",
+  "view_config",
+  "create_config",
+  "modify_config",
+  "delete_config",
+  "view_user",
+  "modify_user",
+  "delete_user",
+  "lock_unlock_user",
+  "add_comment",
+  "modify_comment",
+  "delete_comment",
+  "review_test_order",
+  "modify_test_order",
+];

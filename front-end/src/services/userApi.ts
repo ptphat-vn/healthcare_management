@@ -3,7 +3,6 @@ import { baseApi } from "./baseApi";
 import type { APIResponse, GetAllUserResponse } from "@/types/response.type";
 import type {
   CreateUserRequest,
-  GetDetailUserRequest,
   UpdateUserRequest,
 } from "@/types/request.type";
 
@@ -25,6 +24,7 @@ export const userApi = baseApi.injectEndpoints({
         method: "GET",
         params: params || {},
       }),
+      keepUnusedDataFor: 0,
       providesTags: ["User"],
     }),
 
@@ -52,6 +52,7 @@ export const userApi = baseApi.injectEndpoints({
         url: `/user/${id}`,
         method: "GET",
       }),
+      keepUnusedDataFor: 0,
       providesTags: ["User"],
     }),
     deleteUser: builder.mutation<APIResponse<User>, string>({
