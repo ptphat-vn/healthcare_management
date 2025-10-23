@@ -796,6 +796,10 @@ paths:
                   type: string
                   pattern: '^[0-9]{10,11}$'
                   example: '0123456789'
+                roleId:
+                  type: string
+                  description: Role ID to assign to the user
+                  example: '507f1f77bcf86cd799439099'
       responses:
         '200':
           description: User updated successfully
@@ -810,11 +814,11 @@ paths:
                   data:
                     $ref: '#/components/schemas/User'
         '400':
-          description: Invalid user ID
+          description: Invalid user ID or role ID
         '401':
           description: Unauthorized
         '404':
-          description: User not found
+          description: User not found or role not found
         '409':
           description: Email or phone number already exists
         '422':

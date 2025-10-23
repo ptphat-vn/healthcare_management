@@ -14,6 +14,7 @@ export async function updateUser(id: string, updatePayload: Record<string, unkno
   }
 
   const users = getUsersCollection()
+  const roles = getRolesCollection()
 
   if (updatePayload.email) {
     const dupEmail = await users.findOne({ email: updatePayload.email, _id: { $ne: userObjectId } as any })
@@ -22,6 +23,21 @@ export async function updateUser(id: string, updatePayload: Record<string, unkno
   if (updatePayload.phoneNumber) {
     const dupPhone = await users.findOne({ phoneNumber: updatePayload.phoneNumber, _id: { $ne: userObjectId } as any })
     if (dupPhone) throw new HttpError(409, MESSAGES.PHONE_EXISTS)
+  }
+
+  if (updatePayload.roleId) {
+    let roleObjectId: ObjectId
+    try {
+      roleObjectId = new ObjectId(updatePayload.roleId as string)
+    } catch {
+      throw new HttpError(400, 'Invalid role ID')
+    }
+    
+    const roleExists = await roles.findOne({ _id: roleObjectId } as any)
+    if (!roleExists) {
+      throw new HttpError(404, 'Role not found')
+    }
+    updatePayload.roleId = roleObjectId
   }
 
   const now = new Date()
