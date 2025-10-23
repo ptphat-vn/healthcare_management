@@ -1,5 +1,5 @@
 export interface User {
-  id: string;
+  _id: string;
   fullName: string;
   email: string;
   phoneNumber: string;
@@ -14,6 +14,12 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
-export type RoleUser = "user" | "admin" | "manager" | "consultant" | "service" | "lab_user";
+export type RoleUser =
+  | "user"
+  | "admin"
+  | "manager"
+  | "consultant"
+  | "service"
+  | "lab_user";
 
 export type GenderUser = "male" | "female";

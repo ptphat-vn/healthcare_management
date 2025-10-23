@@ -17,6 +17,7 @@ import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
 import { useMemo } from "react";
 
 import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
+import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -61,13 +62,24 @@ export const router = createBrowserRouter([
     children: [
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "user-management", element: <UserManagementPage /> },
-      { path: "monitoring", element: <MonitoringServicePage /> },
+      { path: "user-management/:id", element: <UserDetail /> },
+      { path: "event-log", element: <MonitoringServicePage /> },
       { path: "test-order", element: <TestOrderManagementPage /> },
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
       { path: "medical-records", element: <MedicalRecordPage /> },
     ],
   },
 
+  // Manager
+  {
+    path: "manager",
+    element: (
+      <ProtectedRoute allowedRoles={["manager"]}>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [{ path: "dashboard", element: "Dang lam" }],
+  },
   // USER ROUTE
   {
     path: "/user",

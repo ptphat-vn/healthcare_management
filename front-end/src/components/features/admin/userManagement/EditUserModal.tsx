@@ -7,7 +7,7 @@ import {
 import { type CreateUserFormData } from "@/schemas/userSchema";
 import { type UpdateUserRequest } from "@/types/request.type";
 import { useState } from "react";
-import { useUpdateUserMutation } from "@/services/baseApi";
+import { useUpdateUserMutation } from "@/services/userApi";
 import { toast } from "sonner";
 import { type User } from "@/types/user.type";
 
@@ -20,13 +20,17 @@ interface EditUserModalProps {
   user: User | null;
 }
 
-export default function EditUserModal({ open, onOpenChange, user }: EditUserModalProps) {
+export default function EditUserModal({
+  open,
+  onOpenChange,
+  user,
+}: EditUserModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [updateUser] = useUpdateUserMutation();
 
   const onSubmit = async (data: CreateUserFormData) => {
     if (!user) return;
-    
+
     try {
       setIsLoading(true);
 
@@ -43,14 +47,19 @@ export default function EditUserModal({ open, onOpenChange, user }: EditUserModa
 
       console.log("Updating user:", requestData);
 
-      const result = await updateUser({ id: user.id, ...requestData }).unwrap();
-      
+      const result = await updateUser({
+        id: user._id,
+        ...requestData,
+      }).unwrap();
+
       toast.success(result?.message || "Cập nhật người dùng thành công");
       onOpenChange(false);
     } catch (error) {
       console.error("Error updating user:", error);
       const err = error as { data?: { message?: string } };
-      toast.error(err.data?.message || "Cập nhật người dùng thất bại, vui lòng thử lại");
+      toast.error(
+        err.data?.message || "Cập nhật người dùng thất bại, vui lòng thử lại"
+      );
     } finally {
       setIsLoading(false);
     }

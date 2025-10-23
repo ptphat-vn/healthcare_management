@@ -10,6 +10,9 @@
     height: 100%;
     z-index: 0;
   }
+  .btn-primary {
+    @apply bg-blue-700 hover:bg-blue-900 text-white font-semibold px-5 py-2 rounded-lg shadow transition cursor-pointer;
+  }
 }
 
 @theme inline {

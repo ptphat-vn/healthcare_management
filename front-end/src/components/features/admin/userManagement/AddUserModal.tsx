@@ -8,7 +8,7 @@ import { type CreateUserFormData } from "@/schemas/userSchema";
 import { type CreateUserRequest } from "@/types/request.type";
 import { NewUserForm } from "./NewUserForm";
 import { useState } from "react";
-import { useCreateUserMutation } from "@/services/baseApi";
+import { useCreateUserMutation } from "@/services/userApi";
 import { toast } from "sonner";
 
 interface AddUserModalProps {

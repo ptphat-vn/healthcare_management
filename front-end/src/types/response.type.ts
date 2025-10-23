@@ -20,3 +20,12 @@ export interface RefreshTokenResponse {
     refreshToken: string;
   };
 }
+export interface GetAllUserResponse {
+  user: User[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}

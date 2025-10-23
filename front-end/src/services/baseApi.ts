@@ -32,7 +32,6 @@ const baseQuery = fetchBaseQuery({
     }
     return headers;
   },
-  
 });
 
 const customBaseQuery: BaseQueryFn<
@@ -119,48 +118,6 @@ export const baseApi = createApi({
         method: "POST",
       }),
     }),
-    getAllUser: builder.query<APIResponse<User[]>, void>({
-      query: () => ({
-        url: "/user/all",
-        method: "GET",
-      }),
-      providesTags: ["User"],
-    }),
-    getEventLogs: builder.query<
-      APIResponse<EventLog[]>,
-      { page?: number; limit?: number } | void
-    >({
-      query: (params) => ({
-        url: "/event-logs",
-        method: "GET",
-        params: params || undefined,
-      }),
-    }),
-    createUser: builder.mutation<APIResponse<User>, CreateUserRequest>({
-      query: (userData) => ({
-        url: "/admin/create-user",
-        method: "POST",
-        body: userData,
-      }),
-      invalidatesTags: ["User"],
-    }),
-    updateUser: builder.mutation<
-      APIResponse<User>,
-      { id: string } & UpdateUserRequest
-    >({
-      query: ({ id, ...userData }) => ({
-        url: `/admin/users/${id}`,
-        method: "PUT",
-        body: userData,
-      }),
-      invalidatesTags: ["User"],
-    }),
-    getDashboardStats: builder.query<APIResponse<any>, void>({
-      query: () => ({
-        url: "/admin/dashboard/stats",
-        method: "GET",
-      }),
-    }),
   }),
 });
 export const {
@@ -168,9 +125,4 @@ export const {
   useRegisterMutation,
   useGetProfileQuery,
   useLogoutMutation,
-  useGetAllUserQuery,
-  useGetEventLogsQuery,
-  useCreateUserMutation,
-  useUpdateUserMutation,
-  useGetDashboardStatsQuery,
 } = baseApi;
