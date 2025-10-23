@@ -15,7 +15,7 @@ export default function SideBar() {
 
   // safe role extraction
 
-  const role = String(user?.data.roleCode || 'user').toLowerCase();
+  const role = String(user?.data.roleCode || "user").toLowerCase();
 
   // define menus per role
   const menus: Record<
@@ -31,18 +31,18 @@ export default function SideBar() {
       },
       { label: "Role Management", to: "/admin/roles", icon: <ShieldUser /> },
       {
-        label: "Medical Records Management",
+        label: "Medical Records",
         to: "/admin/medical-records",
         icon: <ClipboardPlus />,
       },
       {
-        label: "Test Order Management",
+        label: "Test Order",
         to: "/admin/test-order",
         icon: <TestTubeDiagonal />,
       },
       {
-        label: "Monitoring Service",
-        to: "/admin/monitoring",
+        label: "Event Log",
+        to: "/admin/event-log",
         icon: <ClipboardClock />,
       },
     ],
