@@ -92,15 +92,19 @@ export const getAllTestOrdersController = async (req: Request, res: Response, ne
     if (data.testOrders.length === 0) {
       return res.status(200).json({ 
         message: MESSAGES.TEST_ORDERS_NOT_FOUND, 
-        data: [],
-        pagination: data.pagination
+        data: {
+          testOrder: [],
+          pagination: data.pagination
+        }
       })
     }
     
     return res.status(200).json({ 
       message: MESSAGES.GET_TEST_ORDERS_SUCCESS, 
-      data: data.testOrders,
-      pagination: data.pagination
+      data: {
+        testOrder: data.testOrders,
+        pagination: data.pagination
+      }
     })
   } catch (err) {
     next(err)
