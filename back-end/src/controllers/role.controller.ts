@@ -11,7 +11,7 @@ export const createRoleController = async (req: Request, res: Response, next: Ne
       userId,
       action: 'create_role',
       details: `Created role ${created.code}`,
-      timestamp: new Date(),
+      timestamp: new Date()
     } as any)
     return res.status(200).json({ message: 'Role created successfully', data: created })
   } catch (err) {
@@ -29,7 +29,7 @@ export const updateRoleController = async (req: Request, res: Response, next: Ne
       userId,
       action: 'update_role',
       details: `Updated role ${updated.code}`,
-      timestamp: new Date(),
+      timestamp: new Date()
     } as any)
     return res.status(200).json({ message: 'Role updated successfully', data: updated })
   } catch (err) {
@@ -44,19 +44,19 @@ export const listRolesController = async (req: Request, res: Response, next: Nex
       sortBy: (req.query.sortBy as any) || 'name',
       sortOrder: (req.query.sortOrder ? Number(req.query.sortOrder) : 1) as 1 | -1,
       page: req.query.page ? parseInt(req.query.page as string) : 1,
-      limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : 10
     })
     if (data.pagination.total === 0) {
-      return res.status(200).json({ 
-        message: 'No Data', 
+      return res.status(200).json({
+        message: 'No Data',
         data: {
           role: [],
           pagination: data.pagination
         }
       })
     }
-    return res.status(200).json({ 
-      message: 'Get roles successfully', 
+    return res.status(200).json({
+      message: 'Get roles successfully',
       data: {
         role: data.roles,
         pagination: data.pagination
@@ -66,7 +66,6 @@ export const listRolesController = async (req: Request, res: Response, next: Nex
     next(err)
   }
 }
-
 
 export const deleteRoleController = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -81,7 +80,7 @@ export const deleteRoleController = async (req: Request, res: Response, next: Ne
       userId,
       action: 'delete_role',
       details: `Deleted role ${deleted.code}`,
-      timestamp: new Date(),
+      timestamp: new Date()
     } as any)
 
     return res.status(200).json({ message: 'Role deleted successfully', data: deleted })
@@ -89,7 +88,3 @@ export const deleteRoleController = async (req: Request, res: Response, next: Ne
     next(err)
   }
 }
-
-
-
-

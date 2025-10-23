@@ -17,11 +17,12 @@ interface SearchAndFilterProps {
   status?: number | "";
   onStatusChange?: (value: number | "") => void;
 
-  sortBy?: "fullName" | "email" | "createdAt" | "updatedAt" | "";
+  sortOptions?: { value: string; label: string }[];
+  sortByValue?: string;
   onSortByChange?: (value: string) => void;
 
   sortOrder?: 1 | -1 | "";
-  onSortOrderChange?: (value: 1 | -1 | "") => void;
+  onSortOrderChange?: (value: 1 | -1) => void;
 
   filterPlaceholder?: string;
   searchPlaceholder?: string;
@@ -34,7 +35,8 @@ export default function SearchAndFilter({
   onSearchChange,
   status = "",
   onStatusChange,
-  sortBy = "createdAt",
+  sortOptions = [],
+  sortByValue = "",
   onSortByChange,
   sortOrder = -1,
   onSortOrderChange,
@@ -60,39 +62,42 @@ export default function SearchAndFilter({
       {/* Filter group */}
       <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 items-stretch w-full sm:w-auto">
         {/* Status */}
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="h-5 w-5 text-blue-400" />
-          <Select
-            value={String(status ?? "")}
-            onValueChange={(v) =>
-              onStatusChange && onStatusChange(v === "" ? "" : Number(v))
-            }
-          >
-            <SelectTrigger className="w-full sm:w-40 rounded-lg border focus:ring-2 focus:ring-blue-200 transition">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Active</SelectItem>
-              <SelectItem value="0">Inactive</SelectItem>
-              <SelectItem value="2">Banned</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {status !== "" && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Filter className="h-5 w-5 text-blue-400" />
+            <Select
+              value={String(status ?? "")}
+              onValueChange={(v) =>
+                onStatusChange && onStatusChange(v === "" ? "" : Number(v))
+              }
+            >
+              <SelectTrigger className="w-full sm:w-40 rounded-lg border focus:ring-2 focus:ring-blue-200 transition">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Active</SelectItem>
+                <SelectItem value="0">Inactive</SelectItem>
+                <SelectItem value="2">Banned</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* sortBy */}
         <div className="w-full sm:w-auto">
           <Select
-            value={sortBy ?? ""}
+            value={sortByValue ?? ""}
             onValueChange={(v) => onSortByChange && onSortByChange(v)}
           >
             <SelectTrigger className="w-full sm:w-44 rounded-lg border focus:ring-2 focus:ring-blue-200 transition">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="fullName">Name</SelectItem>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="createdAt">Created At</SelectItem>
-              <SelectItem value="updatedAt">Updated At</SelectItem>
+              {sortOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -119,7 +124,7 @@ export default function SearchAndFilter({
         {/* clear */}
         {showClearFilters &&
           onClearFilters &&
-          (searchTerm || String(status) !== "" || sortBy || sortOrder) && (
+          (searchTerm || String(status) !== "" || sortByValue || sortOrder) && (
             <Button
               variant="outline"
               size="sm"

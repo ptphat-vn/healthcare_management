@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,33 +8,32 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
-import type { User } from "@/types/user.type";
-import { useDeleteUserMutation } from "@/services/userApi";
+import type { Roles } from "@/types/roles.type";
+import { useDeleteRoleMutation } from "@/services/roleApi";
 import { toast } from "sonner";
 
-interface DeleteUserModalProps {
+interface DeleteRoleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: User | null;
+  role: Roles | null;
 }
 
-export default function DeleteUserModal({
+export default function DeleteRoleModal({
   open,
   onOpenChange,
-  user,
-}: DeleteUserModalProps & { onConfirm?: () => void }) {
-  const [deleteUser, { isLoading }] = useDeleteUserMutation();
+  role,
+}: DeleteRoleModalProps) {
+  const [deleteRole, { isLoading }] = useDeleteRoleMutation();
 
-  if (!user) return null;
+  if (!role) return null;
 
   const handleConfirm = async () => {
     try {
-      await deleteUser(user._id).unwrap();
-
+      await deleteRole(role._id as any).unwrap();
       onOpenChange(false);
-      toast.success("Delete successfully !!");
+      toast.success("Role deleted successfully!");
     } catch (err) {
-      toast.error("Delete failed!" + err);
+      toast.error("Failed to delete role: " + err);
     }
   };
 
@@ -52,11 +50,11 @@ export default function DeleteUserModal({
               <AlertTriangle className="h-6 w-6 text-red-600" />
             </div>
             <DialogTitle className="text-xl font-semibold text-gray-900">
-              Delete User
+              Delete Role
             </DialogTitle>
           </div>
           <DialogDescription className="text-base text-gray-600 pt-2">
-            Are you sure you want to delete this user? This action cannot be
+            Are you sure you want to delete this role? This action cannot be
             undone.
           </DialogDescription>
         </DialogHeader>
@@ -65,19 +63,25 @@ export default function DeleteUserModal({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-500">
-                Full Name:
+                Role Name:
               </span>
               <span className="text-sm font-semibold text-gray-900">
-                {user.fullName}
+                {role.name}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-500">Email:</span>
-              <span className="text-sm text-gray-900">{user.email}</span>
+              <span className="text-sm font-medium text-gray-500">
+                Role Code:
+              </span>
+              <span className="text-sm text-gray-900">{role.code}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-500">Phone:</span>
-              <span className="text-sm text-gray-900">{user.phoneNumber}</span>
+              <span className="text-sm font-medium text-gray-500">
+                Privileges:
+              </span>
+              <span className="text-sm text-gray-900">
+                {role.privileges.length} privilege(s)
+              </span>
             </div>
           </div>
         </div>
@@ -88,8 +92,8 @@ export default function DeleteUserModal({
             <div className="text-sm text-yellow-800">
               <p className="font-medium">Warning:</p>
               <p className="mt-1">
-                All data associated with this user will be permanently deleted
-                from the system.
+                All users assigned to this role may be affected. This role will
+                be permanently removed from the system.
               </p>
             </div>
           </div>
@@ -100,7 +104,7 @@ export default function DeleteUserModal({
             type="button"
             variant="outline"
             onClick={handleCancel}
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none cursor-pointer"
             disabled={isLoading}
           >
             Cancel
@@ -109,10 +113,10 @@ export default function DeleteUserModal({
             type="button"
             variant="destructive"
             onClick={handleConfirm}
-            className="flex-1 sm:flex-none bg-red-600 hover:bg-red-700"
+            className="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 cursor-pointer"
             disabled={isLoading}
           >
-            {isLoading ? "Deleting..." : "Delete User"}
+            {isLoading ? "Deleting..." : "Delete Role"}
           </Button>
         </DialogFooter>
       </DialogContent>

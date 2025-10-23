@@ -36,3 +36,16 @@ export interface UpdateUserRequest {
   address?: string;
   dateOfBirth: string;
 }
+
+export interface CreateRoleRequest {
+  name: string;
+  code: string;
+  description: string;
+  privileges: string[];
+}
+
+export interface UpdateRoleRequest {
+  name: string;
+  description: string;
+  privileges: string[];
+}

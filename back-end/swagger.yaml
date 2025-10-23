@@ -3089,7 +3089,7 @@ components:
                 example: 1
               changes:
                 type: object
-                example: {'fullName': {'old': 'Nguyễn Văn A', 'new': 'Nguyễn Văn B'}}
+                example: { 'fullName': { 'old': 'Nguyễn Văn A', 'new': 'Nguyễn Văn B' } }
               changedBy:
                 type: string
                 example: '507f1f77bcf86cd799439011'

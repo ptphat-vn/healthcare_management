@@ -5,13 +5,16 @@ import {
   type CreateUserFormData,
 } from "@/schemas/userSchema";
 import Input from "@/components/ui/input/Input";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { TextField } from "@mui/material";
-import dayjs from "dayjs";
+
 import { type User } from "@/types/user.type";
 import { useEffect } from "react";
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 interface EditUserFormProps {
   onSubmit: (data: CreateUserFormData) => void;
@@ -22,7 +25,7 @@ interface EditUserFormProps {
 
 // Schema cho edit user (không có password)
 const editUserSchema = createUserSchema.omit({ password: true });
-type EditUserFormData = Omit<CreateUserFormData, 'password'>;
+type EditUserFormData = Omit<CreateUserFormData, "password">;
 
 export function EditUserForm({
   onSubmit,
@@ -92,39 +95,46 @@ export function EditUserForm({
               Date of Birth
               <span className="text-red-500">*</span>
             </label>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <Controller
-                name="dateOfBirth"
-                control={control}
-                render={({ field }) => (
-                  <DatePicker
-                    {...field}
-                    value={field.value ? dayjs(field.value) : null}
-                    onChange={(date) => field.onChange(date ? date.format('YYYY-MM-DD') : '')}
-                    enableAccessibleFieldDOMStructure={false}
-                    slots={{
-                      textField: TextField,
-                    }}
-                    slotProps={{
-                      textField: {
-                        size: "small",
-                        fullWidth: true,
-                        error: !!errors.dateOfBirth,
-                        helperText: errors.dateOfBirth?.message,
-                        sx: {
-                          '& .MuiOutlinedInput-root': {
-                            height: '40px',
-                            fontSize: '14px',
-                          }
-                        }
-                      },
-                    }}
-                    format="DD/MM/YYYY"
-                    maxDate={dayjs()}
-                  />
-                )}
-              />
-            </LocalizationProvider>
+            <Controller
+              name="dateOfBirth"
+              control={control}
+              render={({ field }) => (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={`w-full border rounded px-3 py-2 text-left text-sm ${
+                        errors.dateOfBirth ? "border-red-500" : "border-input"
+                      }`}
+                    >
+                      {field.value
+                        ? format(new Date(field.value), "dd/MM/yyyy")
+                        : "Select date"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) =>
+                        field.onChange(
+                          date ? date.toISOString().slice(0, 10) : ""
+                        )
+                      }
+                      captionLayout="dropdown"
+                      fromYear={1950}
+                      toYear={new Date().getFullYear()}
+                      disabled={(date) => date > new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+            {errors.dateOfBirth?.message && (
+              <p className="text-xs text-red-500">
+                {errors.dateOfBirth.message}
+              </p>
+            )}
           </div>
           {/* Gender */}
           <div className="flex flex-col space-y-1">
@@ -134,12 +144,13 @@ export function EditUserForm({
             </label>
             <select
               {...register("gender")}
-              className={`flex h-10 w-full rounded-sm border ${errors.gender?.message
-                ? "border-red-500"
-                : "border-input"
-                } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+              className={`flex h-10 w-full rounded-sm border ${
+                errors.gender?.message ? "border-red-500" : "border-input"
+              } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              <option value="" disabled>Choose your gender</option>
+              <option value="" disabled>
+                Choose your gender
+              </option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
@@ -180,7 +191,7 @@ export function EditUserForm({
             autoComplete="off"
           />
         </div>
-            
+
         <div className="flex justify-end space-x-2 pt-4">
           <button
             type="button"

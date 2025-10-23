@@ -42,7 +42,7 @@ export default function AddUserModal({
 
       const result = await createUser(requestData).unwrap();
 
-      toast.success(result?.message || "Tạo người dùng thành công");
+      toast.success(result?.message || "Create User Successfully!!");
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating user:", error);
