@@ -14,14 +14,8 @@ import type {
   ErrorResponse,
   RefreshTokenResponse,
 } from "@/types/response.type";
-import type {
-  LoginRequest,
-  RegisterRequest,
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "@/types/request.type";
+import type { LoginRequest, RegisterRequest } from "@/types/request.type";
 import type { User } from "@/types/user.type";
-import type { EventLog } from "@/types/monitor.type";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
@@ -90,7 +84,7 @@ export const baseApi = createApi({
   reducerPath: "api",
 
   baseQuery: customBaseQuery,
-  tagTypes: ["User"],
+  tagTypes: ["User", "Roles", "testOrder"],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
       // mutation là biển đổi, gửi dữ liệu xuống BE

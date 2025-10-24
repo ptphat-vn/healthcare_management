@@ -37,7 +37,6 @@ export default function PaginationUI({
             <PaginationLink
               isActive={currentPage === page}
               key={page}
-              href="#"
               onClick={() => onPageChange(page)}
             >
               {page}
@@ -52,7 +51,6 @@ export default function PaginationUI({
                 : "cursor-pointer"
             }
             onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
-            href="#"
           />
         </PaginationItem>
       </PaginationContent>

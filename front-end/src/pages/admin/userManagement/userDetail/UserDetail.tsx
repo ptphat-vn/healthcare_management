@@ -12,6 +12,7 @@ import {
   Ban,
   User as UserIcon,
 } from "lucide-react";
+import ButtonBack from "@/components/ui/button/ButtonBack";
 
 export default function UserDetail() {
   const { id } = useParams<{ _id?: string }>();
@@ -82,15 +83,8 @@ export default function UserDetail() {
   };
 
   return (
-    <div className="p-4 md:p-6">
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="cursor-pointer mb-4 flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 text-sm font-medium transition"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Users List
-      </button>
+    <div>
+      <ButtonBack title="User List" />
 
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-6 md:p-8">

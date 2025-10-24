@@ -6,6 +6,7 @@ import authRouter from './routes/auth.routes'
 import testOrderRouter from './routes/test-order.routes'
 import flaggingConfigRouter from './routes/flagging-config.routes'
 import eventLogRouter from './routes/event-log.routes'
+import patientMedicalRecordRouter from './routes/patient-medical-record.routes'
 import { HttpError } from '~/models/error.model'
 import { corsMiddleware } from '~/configs/cors.config'
 import { connectMongo } from '~/configs/mongodb.config'
@@ -51,6 +52,7 @@ app.use('/api', roleRouter)
 app.use('/api', testOrderRouter)
 app.use('/api', flaggingConfigRouter)
 app.use('/api', eventLogRouter)
+app.use('/api', patientMedicalRecordRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err instanceof HttpError) {

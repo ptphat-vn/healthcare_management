@@ -1,8 +1,8 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  ClipboardClock,
   ClipboardPlus,
+  History,
   LayoutDashboard,
   ShieldUser,
   TestTubeDiagonal,
@@ -29,7 +29,11 @@ export default function SideBar() {
         to: "/admin/user-management",
         icon: <UserCog />,
       },
-      { label: "Role Management", to: "/admin/roles", icon: <ShieldUser /> },
+      {
+        label: "Role Management",
+        to: "/admin/roles-management",
+        icon: <ShieldUser />,
+      },
       {
         label: "Medical Records",
         to: "/admin/medical-records",
@@ -43,7 +47,7 @@ export default function SideBar() {
       {
         label: "Event Log",
         to: "/admin/event-log",
-        icon: <ClipboardClock />,
+        icon: <History />,
       },
     ],
     manager: [
@@ -79,7 +83,7 @@ export default function SideBar() {
   const items = menus[role] ?? menus["user"];
 
   return (
-    <aside className="w-80 bg-white border-r border-gray-200 min-h-screen">
+    <aside className="w-60 flex-shrink-0 bg-white border-r border-gray-200 min-h-screen">
       <div className="p-4">
         <div className="space-y-2 mb-6">
           {items.map((item) => (

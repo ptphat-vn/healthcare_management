@@ -8,7 +8,6 @@ import { getEventLogsCollection } from '~/models/event-log.model'
 export interface CreateTestOrderData {
   patientName: string
   dateOfBirth: string
-  age: number
   gender: 'male' | 'female'
   address: string
   phoneNumber: string
@@ -18,7 +17,6 @@ export interface CreateTestOrderData {
 export interface UpdateTestOrderData {
   patientName?: string
   dateOfBirth?: string
-  age?: number
   gender?: 'male' | 'female'
   address?: string
   phoneNumber?: string
