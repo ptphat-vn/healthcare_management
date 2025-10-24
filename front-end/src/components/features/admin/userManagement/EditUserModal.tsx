@@ -11,7 +11,6 @@ import { useUpdateUserMutation } from "@/services/userApi";
 import { toast } from "sonner";
 import { type User } from "@/types/user.type";
 
-// Import EditUserForm dynamically to avoid TS issues
 import { EditUserForm } from "@/components/features/admin/userManagement/EditUserForm";
 
 interface EditUserModalProps {
@@ -19,6 +18,8 @@ interface EditUserModalProps {
   onOpenChange: (open: boolean) => void;
   user: User | null;
 }
+
+type EditFormData = CreateUserFormData & { roleId?: string };
 
 export default function EditUserModal({
   open,
@@ -28,13 +29,12 @@ export default function EditUserModal({
   const [isLoading, setIsLoading] = useState(false);
   const [updateUser] = useUpdateUserMutation();
 
-  const onSubmit = async (data: CreateUserFormData) => {
+  const onSubmit = async (data: EditFormData) => {
     if (!user) return;
 
     try {
       setIsLoading(true);
 
-      // Chuyển đổi dữ liệu từ form sang format API
       const requestData: UpdateUserRequest = {
         fullName: data.fullName,
         email: data.email,
@@ -43,6 +43,7 @@ export default function EditUserModal({
         gender: data.gender?.toLowerCase() as "male" | "female",
         dateOfBirth: data.dateOfBirth,
         address: data.address,
+        roleId: data.roleId, 
       };
 
       console.log("Updating user:", requestData);

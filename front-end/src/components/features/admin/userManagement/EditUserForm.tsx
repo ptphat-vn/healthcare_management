@@ -1,5 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   createUserSchema,
   type CreateUserFormData,
@@ -15,17 +16,21 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { useGetAllRoleQuery } from "@/services/roleApi";
 
 interface EditUserFormProps {
-  onSubmit: (data: CreateUserFormData) => void;
+  onSubmit: (data: EditUserFormData & { password: string }) => void;
   onClose: () => void;
   isLoading?: boolean;
   defaultValues: User;
 }
 
-// Schema cho edit user (không có password)
-const editUserSchema = createUserSchema.omit({ password: true });
-type EditUserFormData = Omit<CreateUserFormData, "password">;
+const editUserSchema = createUserSchema.omit({ password: true }).extend({
+  roleId: z.string().min(1, "Role is required"),
+});
+type EditUserFormData = Omit<CreateUserFormData, "password"> & {
+  roleId: string;
+};
 
 export function EditUserForm({
   onSubmit,
@@ -43,7 +48,9 @@ export function EditUserForm({
     resolver: zodResolver(editUserSchema),
   });
 
-  // Set default values when component mounts or defaultValues change
+  const { data: rolesData } = useGetAllRoleQuery();
+  const roles = rolesData?.data?.role || [];
+
   useEffect(() => {
     if (defaultValues) {
       reset({
@@ -54,12 +61,12 @@ export function EditUserForm({
         gender: defaultValues.gender === "male" ? "Male" : "Female",
         dateOfBirth: defaultValues.dateOfBirth,
         address: defaultValues.address || "",
+        roleId: defaultValues.roleId || "",
       });
     }
   }, [defaultValues, reset]);
 
   const handleFormSubmit = (data: EditUserFormData) => {
-    // Add empty password for API compatibility
     onSubmit({ ...data, password: "" });
   };
 
@@ -67,7 +74,6 @@ export function EditUserForm({
     <div className="flex flex-col gap-1">
       <form className="space-y-2" onSubmit={handleSubmit(handleFormSubmit)}>
         <div className="grid grid-cols-2 gap-2">
-          {/* Name */}
           <Input
             {...register("fullName")}
             label="Full name"
@@ -76,7 +82,6 @@ export function EditUserForm({
             placeholder="Enter full name"
             autoComplete="off"
           />
-          {/* Email */}
           <Input
             {...register("email")}
             type="email"
@@ -89,7 +94,6 @@ export function EditUserForm({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          {/* Birthday */}
           <div className="flex flex-col space-y-1">
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Date of Birth
@@ -136,7 +140,6 @@ export function EditUserForm({
               </p>
             )}
           </div>
-          {/* Gender */}
           <div className="flex flex-col space-y-1">
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Gender
@@ -161,7 +164,6 @@ export function EditUserForm({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          {/* Phone */}
           <Input
             {...register("phone")}
             label="Phone"
@@ -170,7 +172,6 @@ export function EditUserForm({
             placeholder="0XXX XXX XXX"
             autoComplete="off"
           />
-          {/* CCCD */}
           <Input
             {...register("identifyNumber")}
             label="Identify number"
@@ -182,7 +183,6 @@ export function EditUserForm({
         </div>
 
         <div className="grid grid-cols-1 gap-2">
-          {/* Address */}
           <Input
             {...register("address")}
             label="Address"
@@ -190,6 +190,33 @@ export function EditUserForm({
             placeholder="Enter full address (street, city, district, etc.)"
             autoComplete="off"
           />
+        </div>
+
+        <div className="grid grid-cols-1 gap-2">
+          <div className="flex flex-col space-y-1">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Role
+              <span className="text-red-500">*</span>
+            </label>
+            <select
+              {...register("roleId")}
+              className={`flex h-10 w-full rounded-sm border ${
+                errors.roleId?.message ? "border-red-500" : "border-input"
+              } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <option value="" disabled>
+                Choose a role
+              </option>
+              {roles.map((role) => (
+                <option key={role._id} value={role._id}>
+                  {role.name}
+                </option>
+              ))}
+            </select>
+            {errors.roleId?.message && (
+              <p className="text-xs text-red-500">{errors.roleId.message}</p>
+            )}
+          </div>
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">
