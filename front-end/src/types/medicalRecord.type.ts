@@ -1,39 +1,95 @@
 export interface MedicalRecord {
-  id: string;
+  _id?: string;
+  id?: string;
   patientId: string;
-  patientName: string;
-  doctorId: string;
-  doctorName: string;
-  recordType: string;
-  title: string;
-  description: string;
-  diagnosis?: string;
-  symptoms: string[];
-  treatment?: string;
-  status: string;
+  fullName: string;
+  dateOfBirth: string;
+  gender: 'male' | 'female';
+  bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+  phoneNumber: string;
+  email?: string;
+  address: string;
+  identifyNumber?: string;
+  emergencyContact?: {
+    name: string;
+    phoneNumber: string;
+    relationship: string;
+  };
+  medicalHistory?: {
+    allergies?: string[];
+    chronicConditions?: string[];
+    medications?: string[];
+    previousSurgeries?: string[];
+  };
+  insuranceInfo?: {
+    provider: string;
+    policyNumber: string;
+    expiryDate?: string;
+  };
+  testOrders?: string[];
+  clinicalNotes?: any[];
+  versionHistory?: any[];
+  isDeleted?: boolean;
+  deletedAt?: Date;
+  deletedBy?: string;
   createdAt: string;
   updatedAt: string;
+  createdBy: string;
+  lastModifiedBy?: string;
 }
 
 export interface CreateMedicalRecordRequest {
   patientId: string;
-  recordType: string;
-  title: string;
-  description: string;
-  diagnosis?: string;
-  symptoms: string[];
-  treatment?: string;
-  status?: string;
+  fullName: string;
+  dateOfBirth: string;
+  gender: 'male' | 'female';
+  bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+  phoneNumber: string;
+  email?: string;
+  address: string;
+  identifyNumber?: string;
+  emergencyContact?: {
+    name: string;
+    phoneNumber: string;
+    relationship: string;
+  };
+  medicalHistory?: {
+    allergies?: string[];
+    chronicConditions?: string[];
+    medications?: string[];
+    previousSurgeries?: string[];
+  };
+  insuranceInfo?: {
+    provider: string;
+    policyNumber: string;
+    expiryDate?: string;
+  };
 }
 
 export interface UpdateMedicalRecordRequest {
-  id: string;
-  patientId: string;
-  recordType: string;
-  title: string;
-  description: string;
-  diagnosis?: string;
-  symptoms: string[];
-  treatment?: string;
-  status?: string;
+  _id: string;
+  fullName?: string;
+  dateOfBirth?: string;
+  gender?: 'male' | 'female';
+  bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+  phoneNumber?: string;
+  email?: string;
+  address?: string;
+  identifyNumber?: string;
+  emergencyContact?: {
+    name: string;
+    phoneNumber: string;
+    relationship: string;
+  };
+  medicalHistory?: {
+    allergies?: string[];
+    chronicConditions?: string[];
+    medications?: string[];
+    previousSurgeries?: string[];
+  };
+  insuranceInfo?: {
+    provider: string;
+    policyNumber: string;
+    expiryDate?: string;
+  };
 }

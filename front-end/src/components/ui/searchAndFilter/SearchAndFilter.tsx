@@ -17,6 +17,10 @@ interface SearchAndFilterProps {
   status?: number | "";
   onStatusChange?: (value: number | "") => void;
 
+  // Gender filter for medical records
+  gender?: number | "";
+  onGenderChange?: (value: number | "") => void;
+
   sortOptions?: { value: string; label: string }[];
   sortByValue?: string;
   onSortByChange?: (value: string) => void;
@@ -35,6 +39,8 @@ export default function SearchAndFilter({
   onSearchChange,
   status = "",
   onStatusChange,
+  gender = "",
+  onGenderChange,
   sortOptions = [],
   sortByValue = "",
   onSortByChange,
@@ -61,6 +67,27 @@ export default function SearchAndFilter({
 
       {/* Filter group */}
       <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 items-stretch w-full sm:w-auto">
+        {/* Gender filter */}
+        {gender !== "" && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Filter className="h-5 w-5 text-blue-400" />
+            <Select
+              value={String(gender ?? "")}
+              onValueChange={(v) =>
+                onGenderChange && onGenderChange(v === "" ? "" : Number(v))
+              }
+            >
+              <SelectTrigger className="w-full sm:w-40 rounded-lg border focus:ring-2 focus:ring-blue-200 transition">
+                <SelectValue placeholder="Gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Male</SelectItem>
+                <SelectItem value="0">Female</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Status */}
         {status !== "" && (
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -108,7 +135,7 @@ export default function SearchAndFilter({
             value={String(sortOrder ?? "")}
             onValueChange={(v) =>
               onSortOrderChange &&
-              onSortOrderChange(v === "" ? "" : (Number(v) as 1 | -1))
+              onSortOrderChange(v === "" ? -1 : (Number(v) as 1 | -1))
             }
           >
             <SelectTrigger className="w-full sm:w-30 rounded-lg border focus:ring-2 focus:ring-blue-200 transition">
@@ -124,7 +151,7 @@ export default function SearchAndFilter({
         {/* clear */}
         {showClearFilters &&
           onClearFilters &&
-          (searchTerm || String(status) !== "" || sortByValue || sortOrder) && (
+          (searchTerm || String(status) !== "" || String(gender) !== "" || sortByValue || sortOrder) && (
             <Button
               variant="outline"
               size="sm"

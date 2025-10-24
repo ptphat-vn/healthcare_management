@@ -4,9 +4,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
-import { type MedicalRecord } from "@/types/medicalRecord.type";
+import { type MedicalRecord, type UpdateMedicalRecordRequest } from "@/types/medicalRecord.type";
 import { EditMedicalRecordForm } from "./EditMedicalRecordForm";
+import { useUpdateMedicalRecordMutation } from "@/services/medicalRecordApi";
+import { toast } from "sonner";
 
 interface EditMedicalRecordModalProps {
   open: boolean;
@@ -21,24 +22,27 @@ export default function EditMedicalRecordModal({
   medicalRecord,
   onSuccess 
 }: EditMedicalRecordModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [updateMedicalRecord, { isLoading }] = useUpdateMedicalRecordMutation();
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: UpdateMedicalRecordRequest) => {
     if (!medicalRecord) return;
     
     try {
-      setIsLoading(true);
-      console.log("Updating medical record:", data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const result = await updateMedicalRecord(data).unwrap();
+      toast.success(result.message || "Medical record updated successfully");
       onOpenChange(false);
       onSuccess?.();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error updating medical record:", error);
-    } finally {
-      setIsLoading(false);
+      
+      // Handle validation errors from backend
+      const errorData = error as { data?: { errors?: Record<string, string>; message?: string } };
+      if (errorData?.data?.errors) {
+        const errorMessages = Object.values(errorData.data.errors).join('\n');
+        toast.error(`Validation errors:\n${errorMessages}`);
+      } else {
+        toast.error(errorData?.data?.message || "Failed to update medical record");
+      }
     }
   };
 
