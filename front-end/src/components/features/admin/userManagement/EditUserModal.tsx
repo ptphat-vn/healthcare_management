@@ -19,7 +19,7 @@ interface EditUserModalProps {
   user: User | null;
 }
 
-type EditFormData = CreateUserFormData & { roleId?: string };
+type EditFormData = CreateUserFormData & { roleId?: string; status?: number };
 
 export default function EditUserModal({
   open,
@@ -43,7 +43,8 @@ export default function EditUserModal({
         gender: data.gender?.toLowerCase() as "male" | "female",
         dateOfBirth: data.dateOfBirth,
         address: data.address,
-        roleId: data.roleId, 
+        roleId: data.roleId,
+        status: data.status,
       };
 
       console.log("Updating user:", requestData);
