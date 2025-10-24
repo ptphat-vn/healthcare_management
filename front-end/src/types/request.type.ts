@@ -36,6 +36,7 @@ export interface UpdateUserRequest {
   address?: string;
   dateOfBirth: string;
   roleId?: string;
+  status?: number;
 }
 
 export interface CreateRoleRequest {
