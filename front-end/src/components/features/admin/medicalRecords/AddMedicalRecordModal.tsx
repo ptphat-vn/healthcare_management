@@ -5,7 +5,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { NewMedicalRecordForm } from "./NewMedicalRecordForm";
-import { useState } from "react";
+import { useCreateMedicalRecordMutation } from "@/services/medicalRecordApi";
+import { toast } from "sonner";
+import { type CreateMedicalRecordRequest } from "@/types/medicalRecord.type";
 
 interface AddMedicalRecordModalProps {
   open: boolean;
@@ -18,22 +20,25 @@ export default function AddMedicalRecordModal({
   onOpenChange,
   onSuccess,
 }: AddMedicalRecordModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [createMedicalRecord, { isLoading }] = useCreateMedicalRecordMutation();
 
-  const onSubmit = async (data: unknown) => {
+  const onSubmit = async (data: CreateMedicalRecordRequest) => {
     try {
-      setIsLoading(true);
-      console.log("Creating medical record:", data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const result = await createMedicalRecord(data).unwrap();
+      toast.success(result.message || "Medical record created successfully");
       onOpenChange(false);
       onSuccess?.();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating medical record:", error);
-    } finally {
-      setIsLoading(false);
+      
+      // Handle validation errors from backend
+      const errorData = error as { data?: { errors?: Record<string, string>; message?: string } };
+      if (errorData?.data?.errors) {
+        const errorMessages = Object.values(errorData.data.errors).join('\n');
+        toast.error(`Validation errors:\n${errorMessages}`);
+      } else {
+        toast.error(errorData?.data?.message || "Failed to create medical record");
+      }
     }
   };
 

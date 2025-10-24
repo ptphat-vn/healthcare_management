@@ -14,11 +14,12 @@ import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage"
 import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrderManagementPage";
 import TestOrderDetailPage from "@/pages/admin/testOrderManagement/TestOrderDetailPage";
 import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
+import MedicalRecordDetail from "@/pages/admin/medicalRecords/medicalRecordDetail/MedicalRecordDetail";
 import { useMemo } from "react";
 
 import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
 import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
-import RoleManagementPage from "@/pages/admin/roleManagement/roleManagementPage";
+import RoleManagementPage from "@/pages/admin/roleManagement/RoleManagementPage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -74,6 +75,7 @@ export const router = createBrowserRouter([
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
       // medical record
       { path: "medical-records", element: <MedicalRecordPage /> },
+      { path: "medical-records/:id", element: <MedicalRecordDetail /> },
     ],
   },
 
@@ -88,7 +90,7 @@ export const router = createBrowserRouter([
     children: [{ path: "dashboard", element: "Dang lam" }],
   },
   // USER ROUTE
-  {
+  { 
     path: "/user",
     element: (
       <ProtectedRoute allowedRoles={["user"]}>

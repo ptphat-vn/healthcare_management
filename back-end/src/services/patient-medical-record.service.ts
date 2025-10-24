@@ -10,6 +10,7 @@ export interface CreatePatientRecordPayload {
   fullName: string
   dateOfBirth: string
   gender: 'male' | 'female'
+  bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
   phoneNumber: string
   email?: string
   address: string
@@ -36,6 +37,7 @@ export interface UpdatePatientRecordPayload {
   fullName?: string
   dateOfBirth?: string
   gender?: 'male' | 'female'
+  bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
   phoneNumber?: string
   email?: string
   address?: string
@@ -67,7 +69,7 @@ export interface ListPatientRecordsParams {
   instrumentUsed?: string
   dateRangeFrom?: string
   dateRangeTo?: string
-  sortBy?: 'fullName' | 'dateOfBirth' | 'createdAt' | 'lastTestDate'
+  sortBy?: 'fullName' | 'email' | 'createdAt' | 'lastTestDate'
   sortOrder?: 1 | -1
   page?: number
   limit?: number
