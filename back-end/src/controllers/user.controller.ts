@@ -5,7 +5,7 @@ import * as userService from '~/services/user.service'
 
 export const updateUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const allowedFields = ['fullName', 'dateOfBirth', 'age', 'gender', 'address', 'email', 'phoneNumber', 'status'] as const
+    const allowedFields = ['fullName', 'dateOfBirth', 'age', 'gender', 'address', 'email', 'phoneNumber', 'roleId'] as const
     const updatePayload: Record<string, unknown> = {}
     for (const key of allowedFields) {
       if (key in req.body) updatePayload[key] = (req.body as any)[key]
@@ -20,6 +20,14 @@ export const updateUserController = async (req: Request, res: Response, next: Ne
   }
 }
 
+export const updateUserStatusController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = await userService.updateUserStatus((req.params as { id: string }).id, (req.body as { status: 0 | 1 | 2 }).status)
+    return res.status(200).json({ message: 'User status updated', data })
+  } catch (err) {
+    next(err)
+  }
+}
  export const deleteUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await userService.deleteUser((req.params as { id: string }).id)
