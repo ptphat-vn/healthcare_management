@@ -58,12 +58,19 @@ export async function createTestOrder(data: CreateTestOrderData, createdBy: stri
   const result = await testOrders.insertOne(testOrder as TestOrderDocument)
   
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(createdBy),
-    action: 'TEST_ORDER_CREATED',
-    details: `Created test order for patient: ${data.patientName}`,
-    timestamp: now
-  })
+  try {
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actor = creator
+    const actorRoleDoc = actor?.roleId ? await actorRoleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(createdBy), name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'TEST_ORDER_CREATED',
+      details: `Created test order for patient: ${data.patientName}`,
+      timestamp: now
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return { _id: result.insertedId, ...testOrder }
 }
@@ -92,12 +99,20 @@ export async function updateTestOrder(id: string, data: UpdateTestOrderData, upd
   }
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(updatedBy),
-    action: 'TEST_ORDER_UPDATED',
-    details: `Updated test order for patient: ${updated.patientName}`,
-    timestamp: now
-  })
+  try {
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(updatedBy) })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(updatedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'TEST_ORDER_UPDATED',
+      details: `Updated test order for patient: ${updated.patientName}`,
+      timestamp: now
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return updated
 }
@@ -121,12 +136,20 @@ export async function deleteTestOrder(id: string, deletedBy: string) {
   await testOrders.deleteOne({ _id: testOrderObjectId })
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(deletedBy),
-    action: 'TEST_ORDER_DELETED',
-    details: `Deleted test order for patient: ${testOrder.patientName}`,
-    timestamp: new Date()
-  })
+  try {
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(deletedBy) })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(deletedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'TEST_ORDER_DELETED',
+      details: `Deleted test order for patient: ${testOrder.patientName}`,
+      timestamp: new Date()
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return { message: 'Test order deleted successfully' }
 }
@@ -269,12 +292,20 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
   }
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(addedBy),
-    action: 'TEST_RESULTS_ADDED',
-    details: `Added test results for patient: ${updated.patientName}`,
-    timestamp: now
-  })
+  try {
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(addedBy) })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(addedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'TEST_RESULTS_ADDED',
+      details: `Added test results for patient: ${updated.patientName}`,
+      timestamp: now
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return updated
 }
@@ -314,12 +345,20 @@ export async function addComment(id: string, content: string, addedBy: string) {
   }
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(addedBy),
-    action: 'TEST_ORDER_COMMENT_ADDED',
-    details: `Added comment to test order for patient: ${updated.patientName}`,
-    timestamp: now
-  })
+  try {
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(addedBy) })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(addedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'TEST_ORDER_COMMENT_ADDED',
+      details: `Added comment to test order for patient: ${updated.patientName}`,
+      timestamp: now
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return { testOrder: updated, commentId }
 }
@@ -382,12 +421,20 @@ export async function reviewTestOrderResults(id: string, reviewedBy: string, res
   }
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(reviewedBy),
-    action: 'TEST_ORDER_REVIEWED',
-    details: `Manually reviewed test order for patient: ${updated.patientName}`,
-    timestamp: now
-  })
+  try {
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(reviewedBy) })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(reviewedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'TEST_ORDER_REVIEWED',
+      details: `Manually reviewed test order for patient: ${updated.patientName}`,
+      timestamp: now
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return updated
 }
@@ -460,12 +507,20 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
   }
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(reviewedBy),
-    action: 'TEST_ORDER_AI_REVIEWED',
-    details: `AI reviewed test order for patient: ${updated.patientName}`,
-    timestamp: now
-  })
+  try {
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(reviewedBy) })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(reviewedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'TEST_ORDER_AI_REVIEWED',
+      details: `AI reviewed test order for patient: ${updated.patientName}`,
+      timestamp: now
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return updated
 }
@@ -528,12 +583,20 @@ export async function updateComment(testOrderId: string, commentId: string, cont
   }
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(updatedBy),
-    action: 'COMMENT_UPDATED',
-    details: `Updated comment for test order: ${updated.patientName}`,
-    timestamp: now
-  })
+  try {
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(updatedBy) })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(updatedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'COMMENT_UPDATED',
+      details: `Updated comment for test order: ${updated.patientName}`,
+      timestamp: now
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return updated
 }
@@ -596,12 +659,17 @@ export async function deleteComment(testOrderId: string, commentId: string, dele
   }
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(deletedBy),
-    action: 'COMMENT_DELETED',
-    details: `Deleted comment for test order: ${updated.patientName}`,
-    timestamp: now
-  })
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(deletedBy) })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(deletedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'COMMENT_DELETED',
+      details: `Deleted comment for test order: ${updated.patientName}`,
+      timestamp: now
+    } as any)
+  
 
   return updated
 }

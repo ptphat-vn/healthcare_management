@@ -3,6 +3,7 @@ import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getTestOrdersCollection, TestResult, getFlaggingConfigCollection } from '~/models/test-order.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
+import { getUsersCollection } from '~/models/user.model'
 
 export interface HL7Message {
   messageId: string
@@ -208,12 +209,17 @@ export async function addTestResultsFromHL7(testOrderId: string, addedBy: string
   }
   
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(addedBy),
-    action: 'HL7_TEST_RESULTS_PROCESSED',
-    details: `Processed HL7 message ${messageId} with ${processedResults.length} test results for patient: ${updated.patientName}`,
-    timestamp: now
-  })
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(addedBy) })
+    const roleCol = (await import('~/models/role.model')).getRolesCollection()
+    const roleDoc = actorUser?.roleId ? await roleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(addedBy), name: actorUser?.fullName || '', role: roleDoc?.code || '' },
+      action: 'HL7_TEST_RESULTS_PROCESSED',
+      details: `Processed HL7 message ${messageId} with ${processedResults.length} test results for patient: ${updated.patientName}`,
+      timestamp: now
+    } as any)
+  
   
   return {
     testOrder: updated,

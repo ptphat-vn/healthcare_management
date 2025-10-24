@@ -33,10 +33,15 @@ export async function updateUser(id: string, updatePayload: Record<string, unkno
 
   const updated: any = (result as any)?.value ?? result
   if (!updated) throw new HttpError(404, 'User not found')
-
   const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({ userId: updated._id as any, action: 'USER_UPDATED', details: 'User information updated', timestamp: now })
-
+  const roles = getRolesCollection()
+  const roleDoc = updated.roleId ? await roles.findOne({ _id: updated.roleId } as any) : null
+  await eventLogs.insertOne({
+    operator: { id: updated._id as any, name: updated.fullName || '', role: roleDoc?.code || '' },
+    action: 'USER_UPDATED',
+    details: 'User information updated',
+    timestamp: now
+  } as any)
   const { passwordHash, ...safe } = updated as any
   return safe
 }
@@ -60,7 +65,14 @@ export async function updateUserStatus(id: string, status: 0 | 1 | 2) {
 
   const eventLogs = getEventLogsCollection()
   const actionMap: Record<0 | 1 | 2, string> = { 0: 'USER_INACTIVE', 1: 'USER_ACTIVE', 2: 'USER_LOCKED' }
-  await eventLogs.insertOne({ userId: updated._id as any, action: actionMap[status], details: `User status set to ${status}`, timestamp: new Date() })
+  const roles = getRolesCollection()
+  const roleDoc = updated.roleId ? await roles.findOne({ _id: updated.roleId } as any) : null
+  await eventLogs.insertOne({
+    operator: { id: updated._id as any, name: updated.fullName || '', role: roleDoc?.code || '' },
+    action: actionMap[status],
+    details: `User status set to ${status}`,
+    timestamp: new Date()
+  } as any)
 
   const { passwordHash, ...safe } = updated as any
   return safe
@@ -83,7 +95,14 @@ export async function deleteUser(id: string) {
   if (!updated) throw new HttpError(404, 'User not found')
 
   const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({ userId: updated._id as any, action: 'USER_INACTIVE', details: 'User soft-deleted (status=0)', timestamp: new Date() })
+  const roles = getRolesCollection()
+  const roleDoc = updated.roleId ? await roles.findOne({ _id: updated.roleId } as any) : null
+  await eventLogs.insertOne({
+    operator: { id: updated._id as any, name: updated.fullName || '', role: roleDoc?.code || '' },
+    action: 'USER_INACTIVE',
+    details: 'User soft-deleted (status=0)',
+    timestamp: new Date()
+  } as any)
 
   const { passwordHash, ...safe } = updated as any
   return safe
@@ -107,7 +126,14 @@ export async function blockUser(id: string) {
   if (!updated) throw new HttpError(404, 'User not found')
 
   const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({ userId: updated._id as any, action: 'USER_LOCKED', details: 'User blocked (status=2)', timestamp: new Date() })
+  const roles = getRolesCollection()
+  const roleDoc = updated.roleId ? await roles.findOne({ _id: updated.roleId } as any) : null
+  await eventLogs.insertOne({
+    operator: { id: updated._id as any, name: updated.fullName || '', role: roleDoc?.code || '' },
+    action: 'USER_LOCKED',
+    details: 'User blocked (status=2)',
+    timestamp: new Date()
+  } as any)
 
   const { passwordHash, ...safe } = updated as any
   return safe

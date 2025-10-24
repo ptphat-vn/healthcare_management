@@ -1,18 +1,20 @@
 import { Request, Response, NextFunction } from 'express'
 import * as roleService from '~/services/role.service'
 import { getEventLogsCollection } from '~/models/event-log.model'
+import { getUsersCollection } from '~/models/user.model'
 
 export const createRoleController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const created = await roleService.createRole(req.body)
     const logs = getEventLogsCollection()
     const userId = (req as any).authUserId
-    await logs.insertOne({
-      userId,
-      action: 'create_role',
-      details: `Created role ${created.code}`,
-      timestamp: new Date(),
-    } as any)
+    //event log
+      const users = getUsersCollection()
+      const actor = userId ? await users.findOne({ _id: userId } as any) : null
+      const roleCol = (await import('~/models/role.model')).getRolesCollection()
+      const roleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+      await logs.insertOne({ operator: { id: userId, name: actor?.fullName || '', role: roleDoc?.code || '' }, action: 'create_role', details: `Created role ${created.code}`, timestamp: new Date() } as any)
+
     return res.status(200).json({ message: 'Role created successfully', data: created })
   } catch (err) {
     next(err)
@@ -25,12 +27,13 @@ export const updateRoleController = async (req: Request, res: Response, next: Ne
     const updated = await roleService.updateRole(id, req.body)
     const logs = getEventLogsCollection()
     const userId = (req as any).authUserId
-    await logs.insertOne({
-      userId,
-      action: 'update_role',
-      details: `Updated role ${updated.code}`,
-      timestamp: new Date(),
-    } as any)
+    //event log
+      const users = getUsersCollection()
+      const actor = userId ? await users.findOne({ _id: userId } as any) : null
+      const roleCol = (await import('~/models/role.model')).getRolesCollection()
+      const roleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+      await logs.insertOne({ operator: { id: userId, name: actor?.fullName || '', role: roleDoc?.code || '' }, action: 'update_role', details: `Updated role ${updated.code}`, timestamp: new Date() } as any)
+
     return res.status(200).json({ message: 'Role updated successfully', data: updated })
   } catch (err) {
     next(err)
@@ -65,12 +68,13 @@ export const deleteRoleController = async (req: Request, res: Response, next: Ne
 
     const logs = getEventLogsCollection()
     const userId = (req as any).authUserId
-    await logs.insertOne({
-      userId,
-      action: 'delete_role',
-      details: `Deleted role ${deleted.code}`,
-      timestamp: new Date(),
-    } as any)
+    //event log
+      const users = getUsersCollection()
+      const actor = userId ? await users.findOne({ _id: userId } as any) : null
+      const roleCol = (await import('~/models/role.model')).getRolesCollection()
+      const roleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+      await logs.insertOne({ operator: { id: userId, name: actor?.fullName || '', role: roleDoc?.code || '' }, action: 'delete_role', details: `Deleted role ${deleted.code}`, timestamp: new Date() } as any)
+
 
     return res.status(200).json({ message: 'Role deleted successfully', data: deleted })
   } catch (err) {
