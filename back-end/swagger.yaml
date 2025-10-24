@@ -1157,7 +1157,6 @@ paths:
               required:
                 - patientName
                 - dateOfBirth
-                - age
                 - gender
                 - address
                 - phoneNumber
@@ -1170,9 +1169,6 @@ paths:
                   type: string
                   format: date
                   example: '1990-01-15'
-                age:
-                  type: number
-                  example: 34
                 gender:
                   type: string
                   enum: [male, female]
@@ -1342,9 +1338,6 @@ paths:
                   type: string
                   format: date
                   example: '1990-01-15'
-                age:
-                  type: number
-                  example: 34
                 gender:
                   type: string
                   enum: [male, female]
@@ -2710,9 +2703,6 @@ components:
           type: string
           format: date
           example: '1990-01-15'
-        age:
-          type: number
-          example: 34
         gender:
           type: string
           enum: [male, female]

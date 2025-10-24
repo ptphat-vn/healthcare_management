@@ -7,7 +7,6 @@ export interface TestOrderDocument {
   _id?: ObjectId
   patientName: string
   dateOfBirth: string
-  age: number
   gender: 'male' | 'female'
   address: string
   phoneNumber: string
