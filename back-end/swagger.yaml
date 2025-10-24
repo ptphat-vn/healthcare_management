@@ -36,9 +36,14 @@ tags:
   - name: Profile
     description: User profile operations
   - name: Roles
+    description: Role management (create, update, list, delete)
+  - name: Event Logs
+    description: Event log management (list, get by id)
     description: Role management (create, update, list)
   - name: Test Orders
     description: Test order management operations
+  - name: Patient Medical Records
+    description: Patient medical record management operations
   - name: Test Results
     description: Test results processing and management
   - name: Test Order Review
@@ -903,6 +908,15 @@ paths:
                   type: string
                   pattern: '^[0-9]{10,11}$'
                   example: '0123456789'
+                roleId:
+                  type: string
+                  description: Role ID to assign to the user
+                  example: '507f1f77bcf86cd799439099'
+                status:
+                  type: integer
+                  enum: [0, 1, 2]
+                  description: User status (0=inactive, 1=active, 2=locked)
+                  example: 1
       responses:
         '200':
           description: User updated successfully
@@ -1224,7 +1238,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: "updated@example.com"
+                  example: "updated@example.com"   
                 phoneNumber:
                   type: string
                   pattern: "^[0-9]{10,11}$"
@@ -1271,7 +1285,6 @@ paths:
               required:
                 - patientName
                 - dateOfBirth
-                - age
                 - gender
                 - address
                 - phoneNumber
@@ -1284,9 +1297,6 @@ paths:
                   type: string
                   format: date
                   example: '1990-01-15'
-                age:
-                  type: number
-                  example: 34
                 gender:
                   type: string
                   enum: [male, female]
@@ -1382,11 +1392,14 @@ paths:
                     type: string
                     example: 'Lấy danh sách đơn xét nghiệm thành công'
                   data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TestOrder'
-                  pagination:
-                    $ref: '#/components/schemas/Pagination'
+                    type: object
+                    properties:
+                      testOrder:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TestOrder'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
         '401':
           description: Unauthorized
 
@@ -1453,9 +1466,6 @@ paths:
                   type: string
                   format: date
                   example: '1990-01-15'
-                age:
-                  type: number
-                  example: 34
                 gender:
                   type: string
                   enum: [male, female]
@@ -2161,6 +2171,537 @@ paths:
         '404':
           description: Flagging configuration not found
 
+  # Patient Medical Record Management endpoints
+  /patient-records:
+    post:
+      tags:
+        - Patient Medical Records
+      summary: Create a new patient medical record
+      description: Create a new patient medical record with comprehensive information
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - patientId
+                - fullName
+                - dateOfBirth
+                - gender
+                - phoneNumber
+                - address
+              properties:
+                patientId:
+                  type: string
+                  example: 'P001234'
+                  description: Unique patient identifier
+                fullName:
+                  type: string
+                  example: 'Nguyễn Văn A'
+                dateOfBirth:
+                  type: string
+                  format: date
+                  example: '1990-01-15'
+                gender:
+                  type: string
+                  enum: [male, female]
+                  example: 'male'
+                phoneNumber:
+                  type: string
+                  pattern: '^[0-9]{10,11}$'
+                  example: '0123456789'
+                email:
+                  type: string
+                  format: email
+                  example: 'patient@email.com'
+                address:
+                  type: string
+                  example: '123 Đường ABC, Quận 1, TP.HCM'
+                identifyNumber:
+                  type: string
+                  pattern: '^[0-9]{9,12}$'
+                  example: '123456789'
+                emergencyContact:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: 'Nguyễn Thị B'
+                    phoneNumber:
+                      type: string
+                      example: '0987654321'
+                    relationship:
+                      type: string
+                      example: 'Spouse'
+                medicalHistory:
+                  type: object
+                  properties:
+                    allergies:
+                      type: array
+                      items:
+                        type: string
+                      example: ['Penicillin', 'Shellfish']
+                    chronicConditions:
+                      type: array
+                      items:
+                        type: string
+                      example: ['Diabetes', 'Hypertension']
+                    medications:
+                      type: array
+                      items:
+                        type: string
+                      example: ['Metformin', 'Lisinopril']
+                    previousSurgeries:
+                      type: array
+                      items:
+                        type: string
+                      example: ['Appendectomy']
+                insuranceInfo:
+                  type: object
+                  properties:
+                    provider:
+                      type: string
+                      example: 'Bảo Việt Insurance'
+                    policyNumber:
+                      type: string
+                      example: 'BV123456789'
+                    expiryDate:
+                      type: string
+                      format: date
+                      example: '2025-12-31'
+      responses:
+        '201':
+          description: Patient medical record created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Patient medical record created successfully'
+                  data:
+                    $ref: '#/components/schemas/PatientMedicalRecord'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+        '409':
+          description: Patient ID or identity number already exists
+
+    get:
+      tags:
+        - Patient Medical Records
+      summary: Get list of patient medical records
+      description: Retrieve a paginated list of patient medical records with search and filter options
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: Search by patient name, ID, or identity number
+          schema:
+            type: string
+          example: 'Nguyễn'
+        - name: gender
+          in: query
+          description: Filter by gender
+          schema:
+            type: string
+            enum: [male, female]
+          example: 'male'
+        - name: dateOfBirthFrom
+          in: query
+          description: Filter by date of birth from
+          schema:
+            type: string
+            format: date
+          example: '1990-01-01'
+        - name: dateOfBirthTo
+          in: query
+          description: Filter by date of birth to
+          schema:
+            type: string
+            format: date
+          example: '2000-12-31'
+        - name: testType
+          in: query
+          description: Filter by test type
+          schema:
+            type: string
+          example: 'Blood Test'
+        - name: instrumentUsed
+          in: query
+          description: Filter by instrument used
+          schema:
+            type: string
+          example: 'Analyzer-001'
+        - name: dateRangeFrom
+          in: query
+          description: Filter by date range from
+          schema:
+            type: string
+            format: date
+          example: '2024-01-01'
+        - name: dateRangeTo
+          in: query
+          description: Filter by date range to
+          schema:
+            type: string
+            format: date
+          example: '2024-12-31'
+        - name: sortBy
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [fullName, dateOfBirth, createdAt, lastTestDate]
+          example: 'createdAt'
+        - name: sortOrder
+          in: query
+          description: Sort order (1 for ascending, -1 for descending)
+          schema:
+            type: integer
+            enum: [1, -1]
+          example: -1
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+        - name: limit
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          example: 10
+      responses:
+        '200':
+          description: Patient records retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Patient records retrieved successfully'
+                  data:
+                    type: object
+                    properties:
+                      patient:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/PatientMedicalRecord'
+                            - type: object
+                              properties:
+                                lastTestDate:
+                                  type: string
+                                  format: date-time
+                                  example: '2024-01-15T10:30:00Z'
+                                lastTestStatus:
+                                  type: string
+                                  example: 'completed'
+                                createdByUser:
+                                  type: object
+                                  properties:
+                                    fullName:
+                                      type: string
+                                    email:
+                                      type: string
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized
+
+  /patient-records/{id}:
+    get:
+      tags:
+        - Patient Medical Records
+      summary: Get patient medical record details
+      description: Retrieve detailed information of a specific patient medical record
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Patient medical record ID
+          schema:
+            type: string
+            example: '507f1f77bcf86cd799439011'
+      responses:
+        '200':
+          description: Patient record details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Patient record details retrieved successfully'
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/PatientMedicalRecord'
+                      - type: object
+                        properties:
+                          testOrders:
+                            type: array
+                            items:
+                              allOf:
+                                - $ref: '#/components/schemas/TestOrder'
+                                - type: object
+                                  properties:
+                                    createdByUser:
+                                      type: object
+                                      properties:
+                                        fullName:
+                                          type: string
+                                        email:
+                                          type: string
+                                    runByUser:
+                                      type: object
+                                      properties:
+                                        fullName:
+                                          type: string
+                                        email:
+                                          type: string
+                          createdByUser:
+                            type: object
+                            properties:
+                              fullName:
+                                type: string
+                              email:
+                                type: string
+                          lastModifiedByUser:
+                            type: object
+                            properties:
+                              fullName:
+                                type: string
+                              email:
+                                type: string
+        '404':
+          description: Patient record not found
+        '401':
+          description: Unauthorized
+
+    put:
+      tags:
+        - Patient Medical Records
+      summary: Update patient medical record
+      description: Update patient medical record information
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Patient medical record ID
+          schema:
+            type: string
+            example: '507f1f77bcf86cd799439011'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: 'Nguyễn Văn A Updated'
+                dateOfBirth:
+                  type: string
+                  format: date
+                  example: '1990-01-15'
+                gender:
+                  type: string
+                  enum: [male, female]
+                  example: 'male'
+                phoneNumber:
+                  type: string
+                  pattern: '^[0-9]{10,11}$'
+                  example: '0123456789'
+                email:
+                  type: string
+                  format: email
+                  example: 'patient@email.com'
+                address:
+                  type: string
+                  example: '123 Đường ABC, Quận 1, TP.HCM'
+                identifyNumber:
+                  type: string
+                  pattern: '^[0-9]{9,12}$'
+                  example: '123456789'
+                emergencyContact:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: 'Nguyễn Thị B'
+                    phoneNumber:
+                      type: string
+                      example: '0987654321'
+                    relationship:
+                      type: string
+                      example: 'Spouse'
+                medicalHistory:
+                  type: object
+                  properties:
+                    allergies:
+                      type: array
+                      items:
+                        type: string
+                      example: ['Penicillin', 'Shellfish']
+                    chronicConditions:
+                      type: array
+                      items:
+                        type: string
+                      example: ['Diabetes', 'Hypertension']
+                    medications:
+                      type: array
+                      items:
+                        type: string
+                      example: ['Metformin', 'Lisinopril']
+                    previousSurgeries:
+                      type: array
+                      items:
+                        type: string
+                      example: ['Appendectomy']
+                insuranceInfo:
+                  type: object
+                  properties:
+                    provider:
+                      type: string
+                      example: 'Bảo Việt Insurance'
+                    policyNumber:
+                      type: string
+                      example: 'BV123456789'
+                    expiryDate:
+                      type: string
+                      format: date
+                      example: '2025-12-31'
+      responses:
+        '200':
+          description: Patient medical record updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Patient medical record updated successfully'
+                  data:
+                    $ref: '#/components/schemas/PatientMedicalRecord'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+        '404':
+          description: Patient record not found
+        '409':
+          description: Identity number already exists
+
+    delete:
+      tags:
+        - Patient Medical Records
+      summary: Delete patient medical record
+      description: Soft delete a patient medical record (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Patient medical record ID
+          schema:
+            type: string
+            example: '507f1f77bcf86cd799439011'
+      responses:
+        '200':
+          description: Patient medical record deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Patient medical record deleted successfully'
+                  data:
+                    $ref: '#/components/schemas/PatientMedicalRecord'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (admin only)
+        '404':
+          description: Patient record not found
+        '409':
+          description: Cannot delete record with active test orders
+
+  /patient-records/{id}/clinical-notes:
+    post:
+      tags:
+        - Patient Medical Records
+      summary: Add clinical note to patient record
+      description: Add a clinical note to a patient medical record
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Patient medical record ID
+          schema:
+            type: string
+            example: '507f1f77bcf86cd799439011'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+                - noteType
+              properties:
+                content:
+                  type: string
+                  example: 'Patient shows improvement in blood pressure readings'
+                noteType:
+                  type: string
+                  enum: [general, diagnosis, treatment, follow_up, other]
+                  example: 'treatment'
+      responses:
+        '200':
+          description: Clinical note added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Clinical note added successfully'
+                  data:
+                    $ref: '#/components/schemas/PatientMedicalRecord'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+        '404':
+          description: Patient record not found
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2287,11 +2828,23 @@ components:
           example: "Nguyễn Văn A"
         role:
           type: string
+          example: "manager"
+
+    EventLog:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60d5f9b2b60a3c6f1c9e8b7a"
+        operator:
+          $ref: '#/components/schemas/Operator'
+        action:
+          type: string
+          example: "USER_UPDATED"
+        details:
+          type: string
           format: date
           example: '1990-01-15'
-        age:
-          type: number
-          example: 34
         gender:
           type: string
           enum: [male, female]
@@ -2378,7 +2931,104 @@ components:
           example: "USER_UPDATED"
         details:
           type: string
-          example: "User information updated"
+          example: '14.5'
+        unit:
+          type: string
+          example: 'g/dL'
+        normalRange:
+          type: string
+          example: '12.0-16.0'
+        status:
+          type: string
+          enum: [normal, abnormal, critical]
+          example: 'normal'
+        flag:
+          type: string
+          example: ''
+        hl7MessageId:
+          type: string
+          example: 'HL7_1234567890_abc123'
+        rawHl7Data:
+          type: string
+          example: "MSH|^~\\&|LAB|HOSPITAL|LIS|HOSPITAL|2024-01-15T14:30:00Z|HL7_1234567890_abc123|ORU^R01|HL7_1234567890_abc123|P|2.5"
+        processedData:
+          type: object
+          example:
+            originalFlag: ''
+            processingTimestamp: '2024-01-15T14:30:00Z'
+            configApplied: '507f1f77bcf86cd799439015'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T14:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T15:30:00Z'
+        reviewedBy:
+          type: string
+          example: '507f1f77bcf86cd799439016'
+        aiReviewedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T16:30:00Z'
+
+    Comment:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439017'
+        content:
+          type: string
+          example: 'Kết quả xét nghiệm bình thường, không có dấu hiệu bất thường'
+        createdBy:
+          type: string
+          example: '507f1f77bcf86cd799439018'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T16:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T17:30:00Z'
+        modifiedBy:
+          type: string
+          example: '507f1f77bcf86cd799439019'
+        isDeleted:
+          type: boolean
+          example: false
+
+    HL7Message:
+      type: object
+      properties:
+        messageId:
+          type: string
+          example: 'HL7_1234567890_abc123'
+        patientId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        testResults:
+          type: array
+          items:
+            type: object
+            properties:
+              testName:
+                type: string
+                example: 'Hemoglobin'
+              result:
+                type: string
+                example: '13.2'
+              unit:
+                type: string
+                example: 'g/dL'
+              normalRange:
+                type: string
+                example: '12.0-16.0'
+              flag:
+                type: string
+                example: ''
         timestamp:
           type: string
           format: date-time
@@ -2440,6 +3090,174 @@ components:
           type: string
           format: date-time
           example: '2024-01-15T14:30:00Z'
+
+    PatientMedicalRecord:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        patientId:
+          type: string
+          example: 'P001234'
+          description: Unique patient identifier
+        fullName:
+          type: string
+          example: 'Nguyễn Văn A'
+        dateOfBirth:
+          type: string
+          format: date
+          example: '1990-01-15'
+        gender:
+          type: string
+          enum: [male, female]
+          example: 'male'
+        phoneNumber:
+          type: string
+          example: '0123456789'
+        email:
+          type: string
+          format: email
+          example: 'patient@email.com'
+        address:
+          type: string
+          example: '123 Đường ABC, Quận 1, TP.HCM'
+        identifyNumber:
+          type: string
+          example: '123456789'
+        emergencyContact:
+          type: object
+          properties:
+            name:
+              type: string
+              example: 'Nguyễn Thị B'
+            phoneNumber:
+              type: string
+              example: '0987654321'
+            relationship:
+              type: string
+              example: 'Spouse'
+        medicalHistory:
+          type: object
+          properties:
+            allergies:
+              type: array
+              items:
+                type: string
+              example: ['Penicillin', 'Shellfish']
+            chronicConditions:
+              type: array
+              items:
+                type: string
+              example: ['Diabetes', 'Hypertension']
+            medications:
+              type: array
+              items:
+                type: string
+              example: ['Metformin', 'Lisinopril']
+            previousSurgeries:
+              type: array
+              items:
+                type: string
+              example: ['Appendectomy']
+        insuranceInfo:
+          type: object
+          properties:
+            provider:
+              type: string
+              example: 'Bảo Việt Insurance'
+            policyNumber:
+              type: string
+              example: 'BV123456789'
+            expiryDate:
+              type: string
+              format: date
+              example: '2025-12-31'
+        testOrders:
+          type: array
+          items:
+            type: string
+          example: ['507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012']
+        clinicalNotes:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                example: '507f1f77bcf86cd799439011'
+              content:
+                type: string
+                example: 'Patient shows improvement in blood pressure readings'
+              noteType:
+                type: string
+                enum: [general, diagnosis, treatment, follow_up, other]
+                example: 'treatment'
+              createdBy:
+                type: string
+                example: '507f1f77bcf86cd799439011'
+              createdAt:
+                type: string
+                format: date-time
+                example: '2024-01-15T10:30:00Z'
+              updatedAt:
+                type: string
+                format: date-time
+                example: '2024-01-15T14:30:00Z'
+              modifiedBy:
+                type: string
+                example: '507f1f77bcf86cd799439011'
+              isDeleted:
+                type: boolean
+                example: false
+        versionHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                example: '507f1f77bcf86cd799439011'
+              version:
+                type: integer
+                example: 1
+              changes:
+                type: object
+                example: { 'fullName': { 'old': 'Nguyễn Văn A', 'new': 'Nguyễn Văn B' } }
+              changedBy:
+                type: string
+                example: '507f1f77bcf86cd799439011'
+              changeReason:
+                type: string
+                example: 'Name correction'
+              timestamp:
+                type: string
+                format: date-time
+                example: '2024-01-15T10:30:00Z'
+        isDeleted:
+          type: boolean
+          example: false
+        deletedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+        deletedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T14:30:00Z'
+        createdBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        lastModifiedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
 
     Pagination:
       type: object

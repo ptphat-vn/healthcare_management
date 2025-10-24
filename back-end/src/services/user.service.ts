@@ -49,7 +49,9 @@ export async function updateUser(id: string, updatePayload: Record<string, unkno
 
   const updated: any = (result as any)?.value ?? result
   if (!updated) throw new HttpError(404, 'User not found')
-  const eventLogs = getEventLogsCollection()
+    //event log
+  try{
+    const eventLogs = getEventLogsCollection()
   const roles = getRolesCollection()
   const roleDoc = updated.roleId ? await roles.findOne({ _id: updated.roleId } as any) : null
   await eventLogs.insertOne({
@@ -58,6 +60,10 @@ export async function updateUser(id: string, updatePayload: Record<string, unkno
     details: 'User information updated',
     timestamp: now
   } as any)
+  }catch{
+    // swallow logging errors
+  }
+  
   const { passwordHash, ...safe } = updated as any
   return safe
 }
