@@ -64,7 +64,7 @@ export const getAllPatientRecordsController = async (req: Request, res: Response
       instrumentUsed: req.query.instrumentUsed as string,
       dateRangeFrom: req.query.dateRangeFrom as string,
       dateRangeTo: req.query.dateRangeTo as string,
-      sortBy: req.query.sortBy as 'fullName' | 'dateOfBirth' | 'createdAt' | 'lastTestDate',
+      sortBy: req.query.sortBy as 'fullName' | 'email' | 'createdAt' | 'lastTestDate',
       sortOrder: req.query.sortOrder ? parseInt(req.query.sortOrder as string) as 1 | -1 : undefined,
       page: req.query.page ? parseInt(req.query.page as string) : undefined,
       limit: req.query.limit ? parseInt(req.query.limit as string) : undefined
