@@ -9,6 +9,7 @@ export interface PatientMedicalRecordDocument {
   fullName: string
   dateOfBirth: string
   gender: 'male' | 'female'
+  bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
   phoneNumber: string
   email?: string
   address: string

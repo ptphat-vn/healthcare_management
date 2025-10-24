@@ -55,7 +55,16 @@ export async function register(payload: {
   } as UserDocument)
 
   const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({ userId: insert.insertedId, action: 'USER_CREATED', details: 'User account created', timestamp: now })
+  try {
+    await eventLogs.insertOne({
+      operator: { id: insert.insertedId, name: payload.fullName, role: (defaultRole as any)?.code || 'user' },
+      action: 'USER_CREATED',
+      details: 'User account created',
+      timestamp: now
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return {
     id: insert.insertedId,
@@ -113,10 +122,17 @@ export async function resetPassword(payload: { token: string; newPassword: strin
   await users.updateOne({ _id: resetRecord.userId as any }, { $set: { passwordHash: newPasswordHash, updatedAt: new Date() } })
   await resetTokens.updateOne({ _id: resetRecord._id }, { $set: { used: true } })
 
-  const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({ userId: resetRecord.userId, action: 'PASSWORD_RESET', details: 'Password was successfully reset', timestamp: new Date() })
-
   const updatedUser = await users.findOne({ _id: resetRecord.userId as any })
+  const roles = getRolesCollection()
+  const roleDoc = updatedUser?.roleId ? await roles.findOne({ _id: updatedUser.roleId } as any) : null
+  const eventLogs = getEventLogsCollection()
+  await eventLogs.insertOne({
+    operator: { id: resetRecord.userId, name: updatedUser?.fullName || '', role: roleDoc?.code || '' },
+    action: 'PASSWORD_RESET',
+    details: 'Password was successfully reset',
+    timestamp: new Date()
+  } as any)
+
   const accessToken = jwt.sign({ sub: String(updatedUser?._id), email: updatedUser?.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
   const refreshToken = jwt.sign({ sub: String(updatedUser?._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
   return { accessToken, refreshToken }
@@ -133,7 +149,18 @@ export async function changePassword(payload: { userId: string | ObjectId; oldPa
   const newHash = await bcrypt.hash(payload.newPassword, 10)
   await users.updateOne({ _id: targetId } as any, { $set: { passwordHash: newHash, updatedAt: new Date() } })
   const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({ userId: targetId, action: 'PASSWORD_CHANGED', details: 'User changed password', timestamp: new Date() })
+  try {
+    const roles = getRolesCollection()
+    const roleDoc = user?.roleId ? await roles.findOne({ _id: user.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: targetId, name: user?.fullName || '', role: roleDoc?.code || '' },
+      action: 'PASSWORD_CHANGED',
+      details: 'User changed password',
+      timestamp: new Date()
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
   const refreshToken = jwt.sign({ sub: String(user._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })

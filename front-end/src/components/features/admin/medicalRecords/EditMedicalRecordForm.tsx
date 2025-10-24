@@ -1,10 +1,16 @@
-import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import {
+  updateMedicalRecordSchema,
+  type UpdateMedicalRecordFormData,
+} from "@/schemas/medicalRecordSchema";
+import { transformFormToUpdateRequest, transformBackendToFormData } from "@/utils/medicalRecordTransform";
+import { type MedicalRecord, type UpdateMedicalRecordRequest } from "@/types/medicalRecord.type";
 import Input from "@/components/ui/input/Input";
-import { Button } from "@/components/ui/button";
-import { type MedicalRecord } from "@/types/medicalRecord.type";
 
 interface EditMedicalRecordFormProps {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: UpdateMedicalRecordRequest) => void;
   onClose: () => void;
   isLoading?: boolean;
   defaultValues: MedicalRecord;
@@ -16,281 +22,323 @@ export function EditMedicalRecordForm({
   isLoading = false,
   defaultValues,
 }: EditMedicalRecordFormProps) {
-  const [formData, setFormData] = useState({
-    // Patient's Information
-    name: "",
-    phoneNumber: "",
-    email: "",
-    dob: "",
-    gender: "",
-    blood: "",
-    address: "",
-    // Medical Information
-    allergy: "",
-    chronicDisease: "",
-    medication: "",
-    // Emergency Contact
-    emergencyName: "",
-    emergencyRelationship: "",
-    emergencyPhone: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<UpdateMedicalRecordFormData>({
+    resolver: zodResolver(updateMedicalRecordSchema),
+    defaultValues: {
+      patientId: "",
+      fullName: "",
+      phoneNumber: "",
+      email: "",
+      dateOfBirth: "",
+      gender: undefined,
+      bloodType: undefined,
+      address: "",
+      identifyNumber: "",
+      allergies: "",
+      chronicConditions: "",
+      medications: "",
+      previousSurgeries: "",
+      emergencyName: "",
+      emergencyRelationship: "",
+      emergencyPhone: "",
+      insuranceProvider: "",
+      insurancePolicyNumber: "",
+      insuranceExpiryDate: "",
+    },
   });
 
   useEffect(() => {
     if (defaultValues) {
-      setFormData({
-        // Mock data for demo - in real app, this would come from API
-        name: "Nguyen Van A",
-        phoneNumber: "0395239426",
-        email: "vana@gmail.com",
-        dob: "26/01/2004",
-        gender: "Male",
-        blood: "A+",
-        address: "123 ABC, Vinhome, Thu Duc",
-        allergy: "Penicillin, ABC",
-        chronicDisease: "High blood, pressure",
-        medication: "Losartan 50mg, Amlodipine 5mg",
-        emergencyName: "Nguyen Thi B",
-        emergencyRelationship: "Wife",
-        emergencyPhone: "0395239425",
-      });
+      const formData = transformBackendToFormData(defaultValues);
+      reset(formData as UpdateMedicalRecordFormData);
     }
-  }, [defaultValues]);
+  }, [defaultValues, reset]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
+  const onFormSubmit = (data: UpdateMedicalRecordFormData) => {
+    const recordId = defaultValues._id || defaultValues.id || "";
+    const transformedData = transformFormToUpdateRequest(data, recordId);
+    onSubmit(transformedData);
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Patient's Information Section */}
+    <div className="flex flex-col gap-1">
+      <form className="space-y-2" onSubmit={handleSubmit(onFormSubmit)}>
+        {/* Patient's Information */}
         <div className="space-y-3">
-          <h3 className="text-base font-semibold text-gray-900 border-b pb-1">Patient's Information</h3>
+          <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
+            Patient's Information
+          </h3>
           
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-700">
-                Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-700">
-                Phone Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="tel"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              />
-            </div>
+            <Input
+              {...register("patientId")}
+              label="Patient ID"
+              required
+              error={errors.patientId?.message}
+              placeholder="Enter patient ID"
+              autoComplete="off"
+            />
+            <Input
+              {...register("fullName")}
+              label="Full Name"
+              required
+              error={errors.fullName?.message}
+              placeholder="Enter full name"
+              autoComplete="off"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div className="space-y-1">
+            <Input
+              {...register("dateOfBirth")}
+              type="date"
+              label="Date of Birth"
+              required
+              error={errors.dateOfBirth?.message}
+            />
+            <div className="flex flex-col space-y-1">
               <label className="text-xs font-medium text-gray-700">
-                DOB <span className="text-red-500">*</span>
+                Gender <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="dob"
-                  value={formData.dob}
-                  onChange={handleInputChange}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 pr-8"
-                  placeholder="DD/MM/YYYY"
-                  required
-                />
-                <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                  <svg className="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-700">Gender</label>
               <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleInputChange}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                {...register("gender")}
+                className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                  errors.gender?.message ? "border-red-500" : "border-gray-300"
+                }`}
               >
                 <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
               </select>
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-700">Blood</label>
-              <div className="relative">
-                <select
-                  name="blood"
-                  value={formData.blood}
-                  onChange={handleInputChange}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
-                >
-                  <option value="">Select Blood Type</option>
-                  <option value="A+">A+</option>
-                  <option value="A-">A-</option>
-                  <option value="B+">B+</option>
-                  <option value="B-">B-</option>
-                  <option value="AB+">AB+</option>
-                  <option value="AB-">AB-</option>
-                  <option value="O+">O+</option>
-                  <option value="O-">O-</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                  <svg className="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              {errors.gender?.message && (
+                <p className="text-xs text-red-500">{errors.gender.message}</p>
+              )}
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-gray-700">Address</label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-medium text-gray-700">
+                Blood Type
+              </label>
+              <select
+                {...register("bloodType")}
+                className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                  errors.bloodType?.message ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                <option value="">Select Blood Type</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+              {errors.bloodType?.message && (
+                <p className="text-xs text-red-500">{errors.bloodType.message}</p>
+              )}
+            </div>
+            <Input
+              {...register("phoneNumber")}
+              label="Phone Number"
+              required
+              error={errors.phoneNumber?.message}
+              placeholder="Enter phone number"
+              autoComplete="off"
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              {...register("email")}
+              type="email"
+              label="Email"
+              error={errors.email?.message}
+              placeholder="Enter email"
+              autoComplete="off"
+            />
+            <Input
+              {...register("identifyNumber")}
+              label="Identity Number"
+              error={errors.identifyNumber?.message}
+              placeholder="Enter identity number"
+              autoComplete="off"
+            />
+          </div>
+
+          <Input
+            {...register("address")}
+            label="Address"
+            required
+            error={errors.address?.message}
+            placeholder="Enter full address"
+            autoComplete="off"
+          />
         </div>
 
-        {/* Medical Information Section */}
+        {/* Medical Information */}
         <div className="space-y-3">
-          <h3 className="text-base font-semibold text-gray-900 border-b pb-1">Medical Information</h3>
+          <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
+            Medical Information
+          </h3>
           
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-gray-700">
-              Allery (separated by commas ",")
-            </label>
-            <input
-              type="text"
-              name="allergy"
-              value={formData.allergy}
-              onChange={handleInputChange}
-              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Penicillin, ABC"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                Allergies
+              </label>
+              <textarea
+                {...register("allergies")}
+                placeholder="Enter allergies (comma separated)"
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
+                  errors.allergies?.message ? "border-red-500" : "border-gray-300"
+                }`}
+                rows={2}
+              />
+              {errors.allergies?.message && (
+                <p className="text-sm text-red-500">{errors.allergies.message}</p>
+              )}
+            </div>
+            <div className="flex flex-col space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                Chronic Conditions
+              </label>
+              <textarea
+                {...register("chronicConditions")}
+                placeholder="Enter chronic conditions (comma separated)"
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
+                  errors.chronicConditions?.message ? "border-red-500" : "border-gray-300"
+                }`}
+                rows={2}
+              />
+              {errors.chronicConditions?.message && (
+                <p className="text-sm text-red-500">{errors.chronicConditions.message}</p>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-gray-700">
-              Chronic Disease (separated by commas ",")
-            </label>
-            <input
-              type="text"
-              name="chronicDisease"
-              value={formData.chronicDisease}
-              onChange={handleInputChange}
-              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="High blood, pressure"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-gray-700">
-              Medication in use (separated by commas ",")
-            </label>
-            <input
-              type="text"
-              name="medication"
-              value={formData.medication}
-              onChange={handleInputChange}
-              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Losartan 50mg, Amlodipine 5mg"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                Current Medications
+              </label>
+              <textarea
+                {...register("medications")}
+                placeholder="Enter current medications (comma separated)"
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
+                  errors.medications?.message ? "border-red-500" : "border-gray-300"
+                }`}
+                rows={2}
+              />
+              {errors.medications?.message && (
+                <p className="text-sm text-red-500">{errors.medications.message}</p>
+              )}
+            </div>
+            <div className="flex flex-col space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                Previous Surgeries
+              </label>
+              <textarea
+                {...register("previousSurgeries")}
+                placeholder="Enter previous surgeries (comma separated)"
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
+                  errors.previousSurgeries?.message ? "border-red-500" : "border-gray-300"
+                }`}
+                rows={2}
+              />
+              {errors.previousSurgeries?.message && (
+                <p className="text-sm text-red-500">{errors.previousSurgeries.message}</p>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Emergency Contact Section */}
+        {/* Emergency Contact */}
         <div className="space-y-3">
-          <h3 className="text-base font-semibold text-gray-900 border-b pb-1">Emergency Contact</h3>
+          <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
+            Emergency Contact
+          </h3>
           
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-700">Name</label>
-              <input
-                type="text"
-                name="emergencyName"
-                value={formData.emergencyName}
-                onChange={handleInputChange}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-700">Relationship</label>
-              <input
-                type="text"
-                name="emergencyRelationship"
-                value={formData.emergencyRelationship}
-                onChange={handleInputChange}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-gray-700">Phone number</label>
-              <input
-                type="tel"
-                name="emergencyPhone"
-                value={formData.emergencyPhone}
-                onChange={handleInputChange}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              {...register("emergencyName")}
+              label="Emergency Contact Name"
+              error={errors.emergencyName?.message}
+              placeholder="Enter emergency contact name"
+              autoComplete="off"
+            />
+            <Input
+              {...register("emergencyPhone")}
+              label="Emergency Phone"
+              error={errors.emergencyPhone?.message}
+              placeholder="Enter emergency phone number"
+              autoComplete="off"
+            />
           </div>
+          
+          <Input
+            {...register("emergencyRelationship")}
+            label="Relationship"
+            error={errors.emergencyRelationship?.message}
+            placeholder="Enter relationship"
+            autoComplete="off"
+          />
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-2 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={onClose} className="px-4 py-1.5 text-sm">
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading} className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-700">
-            {isLoading ? "Updating..." : "Update"}
-          </Button>
+        {/* Insurance Information */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
+            Insurance Information
+          </h3>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              {...register("insuranceProvider")}
+              label="Insurance Provider"
+              error={errors.insuranceProvider?.message}
+              placeholder="Enter insurance provider"
+              autoComplete="off"
+            />
+            <Input
+              {...register("insurancePolicyNumber")}
+              label="Policy Number"
+              error={errors.insurancePolicyNumber?.message}
+              placeholder="Enter policy number"
+              autoComplete="off"
+            />
+          </div>
+          
+          <Input
+            {...register("insuranceExpiryDate")}
+            type="date"
+            label="Expiry Date"
+            error={errors.insuranceExpiryDate?.message}
+          />
+        </div>
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
+          >
+            Close
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+          >
+            {isLoading ? "Updating..." : "Update Medical Record"}
+          </button>
         </div>
       </form>
     </div>

@@ -54,15 +54,15 @@ export default function DeleteMedicalRecordModal({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-500">Patient:</span>
-              <span className="text-sm font-semibold text-gray-900">{medicalRecord.patientName}</span>
+              <span className="text-sm font-semibold text-gray-900">{medicalRecord.fullName}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-500">Title:</span>
-              <span className="text-sm text-gray-900">{medicalRecord.title}</span>
+              <span className="text-sm font-medium text-gray-500">Patient ID:</span>
+              <span className="text-sm text-gray-900">{medicalRecord.patientId}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-500">Type:</span>
-              <span className="text-sm text-gray-900">{medicalRecord.recordType}</span>
+              <span className="text-sm font-medium text-gray-500">Gender:</span>
+              <span className="text-sm text-gray-900 capitalize">{medicalRecord.gender}</span>
             </div>
           </div>
         </div>

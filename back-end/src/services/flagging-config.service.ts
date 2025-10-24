@@ -3,6 +3,7 @@ import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getFlaggingConfigCollection, FlaggingConfiguration } from '~/models/test-order.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
+import { getUsersCollection } from '~/models/user.model'
 
 export interface CreateFlaggingConfigData {
   testName: string
@@ -62,12 +63,17 @@ export async function createFlaggingConfig(data: CreateFlaggingConfigData, creat
   const result = await flaggingConfigs.insertOne(config)
   
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(createdBy),
-    action: 'FLAGGING_CONFIG_CREATED',
-    details: `Created flagging configuration for test: ${data.testName}`,
-    timestamp: now
-  })
+
+    if (createdBy === 'system') {
+      await eventLogs.insertOne({ operator: { id: 'system', name: 'system', role: 'system' }, action: 'FLAGGING_CONFIG_CREATED', details: `Created flagging configuration for test: ${data.testName}`, timestamp: now } as any)
+    } else {
+      const usersCol = getUsersCollection()
+      const actor = await usersCol.findOne({ _id: new ObjectId(createdBy) })
+      const roleCol = (await import('~/models/role.model')).getRolesCollection()
+      const roleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+      await eventLogs.insertOne({ operator: { id: new ObjectId(createdBy), name: actor?.fullName || '', role: roleDoc?.code || '' }, action: 'FLAGGING_CONFIG_CREATED', details: `Created flagging configuration for test: ${data.testName}`, timestamp: now } as any)
+    }
+  
 
   const { _id, ...configWithoutId } = config
   return { _id: result.insertedId, ...configWithoutId }
@@ -97,12 +103,17 @@ export async function updateFlaggingConfig(id: string, data: UpdateFlaggingConfi
   }
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(updatedBy),
-    action: 'FLAGGING_CONFIG_UPDATED',
-    details: `Updated flagging configuration for test: ${updated.testName}`,
-    timestamp: now
-  })
+  
+    if (updatedBy === 'system') {
+      await eventLogs.insertOne({ operator: { id: 'system', name: 'system', role: 'system' }, action: 'FLAGGING_CONFIG_UPDATED', details: `Updated flagging configuration for test: ${updated.testName}`, timestamp: now } as any)
+    } else {
+      const usersCol = getUsersCollection()
+      const actor = await usersCol.findOne({ _id: new ObjectId(updatedBy) })
+      const roleCol = (await import('~/models/role.model')).getRolesCollection()
+      const roleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+      await eventLogs.insertOne({ operator: { id: new ObjectId(updatedBy), name: actor?.fullName || '', role: roleDoc?.code || '' }, action: 'FLAGGING_CONFIG_UPDATED', details: `Updated flagging configuration for test: ${updated.testName}`, timestamp: now } as any)
+    }
+  
 
   return updated
 }
@@ -126,12 +137,17 @@ export async function deleteFlaggingConfig(id: string, deletedBy: string) {
   await flaggingConfigs.deleteOne({ _id: configObjectId })
 
   // Log the event
-  await eventLogs.insertOne({
-    userId: new ObjectId(deletedBy),
-    action: 'FLAGGING_CONFIG_DELETED',
-    details: `Deleted flagging configuration for test: ${config.testName}`,
-    timestamp: new Date()
-  })
+  
+    if (deletedBy === 'system') {
+      await eventLogs.insertOne({ operator: { id: 'system', name: 'system', role: 'system' }, action: 'FLAGGING_CONFIG_DELETED', details: `Deleted flagging configuration for test: ${config.testName}`, timestamp: new Date() } as any)
+    } else {
+      const usersCol = getUsersCollection()
+      const actor = await usersCol.findOne({ _id: new ObjectId(deletedBy) })
+      const roleCol = (await import('~/models/role.model')).getRolesCollection()
+      const roleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+      await eventLogs.insertOne({ operator: { id: new ObjectId(deletedBy), name: actor?.fullName || '', role: roleDoc?.code || '' }, action: 'FLAGGING_CONFIG_DELETED', details: `Deleted flagging configuration for test: ${config.testName}`, timestamp: new Date() } as any)
+    }
+ 
 
   return { message: 'Flagging configuration deleted successfully' }
 }

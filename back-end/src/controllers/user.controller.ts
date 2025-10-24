@@ -5,7 +5,7 @@ import * as userService from '~/services/user.service'
 
 export const updateUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const allowedFields = ['fullName', 'dateOfBirth', 'age', 'gender', 'address', 'email', 'phoneNumber', 'roleId', 'status'] as const
+    const allowedFields = ['fullName', 'dateOfBirth', 'gender', 'address', 'email', 'phoneNumber', 'roleId', 'status'] as const
     const updatePayload: Record<string, unknown> = {}
     for (const key of allowedFields) {
       if (key in req.body) updatePayload[key] = (req.body as any)[key]
