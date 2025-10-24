@@ -755,7 +755,7 @@ paths:
       tags:
         - User Management
       summary: Update user
-      description: Update user information (requires authentication)
+      description: Update user information and status (requires authentication)
       operationId: updateUser
       security:
         - bearerAuth: []
@@ -800,6 +800,14 @@ paths:
                   type: string
                   description: Role ID to assign to the user
                   example: '507f1f77bcf86cd799439099'
+                status:
+                  type: integer
+                  enum: [0, 1, 2]
+                  description: |
+                    0 - Inactive (soft deleted)
+                    1 - Active
+                    2 - Locked
+                  example: 1
       responses:
         '200':
           description: User updated successfully
@@ -814,7 +822,7 @@ paths:
                   data:
                     $ref: '#/components/schemas/User'
         '400':
-          description: Invalid user ID or role ID
+          description: Invalid user ID, role ID, or status
         '401':
           description: Unauthorized
         '404':
@@ -824,61 +832,6 @@ paths:
         '422':
           description: Validation error
 
-  /admin/users/{id}/status:
-    patch:
-      tags:
-        - User Management
-      summary: Update user status
-      description: Update user status (active/inactive/locked)
-      operationId: updateUserStatus
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: User ID
-          schema:
-            type: string
-            example: '507f1f77bcf86cd799439011'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - status
-              properties:
-                status:
-                  type: integer
-                  enum: [0, 1, 2]
-                  description: |
-                    0 - Inactive (soft deleted)
-                    1 - Active
-                    2 - Locked
-                  example: 1
-      responses:
-        '200':
-          description: User status updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'User status updated'
-                  data:
-                    $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid user ID or status
-        '401':
-          description: Unauthorized
-        '404':
-          description: User not found
-        '422':
-          description: Validation error
   /admin/users/delete/{id}:
     delete:
       tags:
@@ -945,7 +898,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'User blocked successfully'
+                    example: 'User blocked (status=2)'
                   data:
                     $ref: '#/components/schemas/User'
         '400':

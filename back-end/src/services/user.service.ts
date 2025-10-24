@@ -51,36 +51,30 @@ export async function updateUser(id: string, updatePayload: Record<string, unkno
   if (!updated) throw new HttpError(404, 'User not found')
 
   const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({ userId: updated._id as any, action: 'USER_UPDATED', details: 'User information updated', timestamp: now })
-
-  const { passwordHash, ...safe } = updated as any
-  return safe
-}
-
-export async function updateUserStatus(id: string, status: 0 | 1 | 2) {
-  let userObjectId: ObjectId
-  try {
-    userObjectId = new ObjectId(id)
-  } catch {
-    throw new HttpError(400, 'Invalid user id')
+  
+  // Handle status update with specific logging
+  if (updatePayload.status !== undefined) {
+    const status = updatePayload.status as 0 | 1 | 2
+    const actionMap: Record<0 | 1 | 2, string> = { 0: 'USER_INACTIVE', 1: 'USER_ACTIVE', 2: 'USER_LOCKED' }
+    await eventLogs.insertOne({ 
+      userId: updated._id as any, 
+      action: actionMap[status], 
+      details: `User status set to ${status}`, 
+      timestamp: now 
+    })
+  } else {
+    await eventLogs.insertOne({ 
+      userId: updated._id as any, 
+      action: 'USER_UPDATED', 
+      details: 'User information updated', 
+      timestamp: now 
+    })
   }
 
-  const users = getUsersCollection()
-  const result = await users.findOneAndUpdate(
-    { _id: userObjectId } as any,
-    { $set: { status, updatedAt: new Date() } },
-    { returnDocument: 'after' }
-  )
-  const updated: any = (result as any)?.value ?? result
-  if (!updated) throw new HttpError(404, 'User not found')
-
-  const eventLogs = getEventLogsCollection()
-  const actionMap: Record<0 | 1 | 2, string> = { 0: 'USER_INACTIVE', 1: 'USER_ACTIVE', 2: 'USER_LOCKED' }
-  await eventLogs.insertOne({ userId: updated._id as any, action: actionMap[status], details: `User status set to ${status}`, timestamp: new Date() })
-
   const { passwordHash, ...safe } = updated as any
   return safe
 }
+
 export async function deleteUser(id: string) {
   let userObjectId: ObjectId
   try {
