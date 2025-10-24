@@ -2357,7 +2357,7 @@ paths:
           description: Sort field
           schema:
             type: string
-            enum: [fullName, dateOfBirth, createdAt, lastTestDate]
+            enum: [fullName, email, createdAt, lastTestDate]
           example: 'createdAt'
         - name: sortOrder
           in: query
@@ -2835,12 +2835,30 @@ components:
         _id:
           type: string
           example: "60d5f9b2b60a3c6f1c9e8b7a"
-        operator:
-          $ref: '#/components/schemas/Operator'
+        userId:
+          type: string
+          example: "507f1f77bcf86cd799439011"
         action:
           type: string
           example: "USER_UPDATED"
         details:
+          type: string
+          example: "Updated user profile information"
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+
+    TestOrder:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        patientName:
+          type: string
+          example: 'Nguyễn Văn A'
+        dateOfBirth:
           type: string
           format: date
           example: '1990-01-15'
@@ -2923,12 +2941,10 @@ components:
         _id:
           type: string
           example: "60d5f9b2b60a3c6f1c9e8b7a"
-        operator:
-          $ref: '#/components/schemas/Operator'
-        action:
+        testName:
           type: string
-          example: "USER_UPDATED"
-        details:
+          example: 'Hemoglobin'
+        result:
           type: string
           example: '14.5'
         unit:
@@ -2952,10 +2968,17 @@ components:
           example: "MSH|^~\\&|LAB|HOSPITAL|LIS|HOSPITAL|2024-01-15T14:30:00Z|HL7_1234567890_abc123|ORU^R01|HL7_1234567890_abc123|P|2.5"
         processedData:
           type: object
-          example:
-            originalFlag: ''
-            processingTimestamp: '2024-01-15T14:30:00Z'
-            configApplied: '507f1f77bcf86cd799439015'
+          properties:
+            originalFlag:
+              type: string
+              example: ''
+            processingTimestamp:
+              type: string
+              format: date-time
+              example: '2024-01-15T14:30:00Z'
+            configApplied:
+              type: string
+              example: '507f1f77bcf86cd799439015'
         createdAt:
           type: string
           format: date-time
