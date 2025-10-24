@@ -39,7 +39,6 @@ tags:
     description: Role management (create, update, list, delete)
   - name: Event Logs
     description: Event log management (list, get by id)
-    description: Role management (create, update, list)
   - name: Test Orders
     description: Test order management operations
   - name: Patient Medical Records
