@@ -35,6 +35,7 @@ export interface UpdateUserRequest {
   gender: GenderUser;
   address?: string;
   dateOfBirth: string;
+  roleId?: string;
 }
 
 export interface CreateRoleRequest {
