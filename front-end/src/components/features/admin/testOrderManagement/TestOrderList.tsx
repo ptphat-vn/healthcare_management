@@ -1,185 +1,93 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
   TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Eye, Edit, Trash2, MoreVertical } from "lucide-react";
-import { toast } from "sonner";
+import { MoreHorizontal, Edit, Trash2, Eye, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import EditTestOrderModal from "./EditTestOrderModal";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
+import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
+import PaginationUI from "@/components/ui/pagination/PaginationUI";
+import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
+import { formatDate } from "@/utils/formatDate";
 
 export interface TestOrder {
-  id: string;
+  _id: string;
   patientName: string;
-  patientDob: string;
-  age: number;
-  gender: "Male" | "Female";
-  testType: string;
-  priority: "NORMAL" | "URGENT";
-  createdBy: string;
-  createdOn: string;
-  status: "Complete" | "In Progress" | "Pending" | "Review";
+  dateOfBirth: string;
+  gender: "male" | "female";
+  address: string;
+  phoneNumber: string;
+  email: string;
+  status: "pending" | "cancelled" | "completed" | "reviewed" | "ai_reviewed";
+  createdDate: string | Date;
+  runDate?: string | Date;
+  createdByUser?: {
+    fullName: string;
+    email: string;
+  };
+  runByUser?: {
+    fullName: string;
+    email: string;
+  };
 }
 
-// Fake data
-const fakeTestOrders: TestOrder[] = [
-  {
-    id: "TO-001234",
-    patientName: "John Doe",
-    patientDob: "1985-03-15",
-    age: 49,
-    gender: "Male",
-    testType: "Complete Blood Count",
-    priority: "NORMAL",
-    createdBy: "Dr. Smith",
-    createdOn: "9/10/2025",
-    status: "Complete",
-  },
-  {
-    id: "TO-001235",
-    patientName: "Jane Smith",
-    patientDob: "1985-03-15",
-    age: 49,
-    gender: "Female",
-    testType: "Lipid Panel",
-    priority: "URGENT",
-    createdBy: "Dr.Wilson",
-    createdOn: "9/11/2025",
-    status: "In Progress",
-  },
-  {
-    id: "TO-001236",
-    patientName: "John Doe",
-    patientDob: "1985-03-15",
-    age: 49,
-    gender: "Male",
-    testType: "Thyroid Function",
-    priority: "NORMAL",
-    createdBy: "Dr. Smith",
-    createdOn: "9/9/2025",
-    status: "Pending",
-  },
-  {
-    id: "TO-001237",
-    patientName: "Jane Smith",
-    patientDob: "1985-03-15",
-    age: 49,
-    gender: "Female",
-    testType: "Thyroid Function",
-    priority: "URGENT",
-    createdBy: "Dr.Wilson",
-    createdOn: "9/12/2025",
-    status: "Review",
-  },
-  {
-    id: "TO-001238",
-    patientName: "Michael Johnson",
-    patientDob: "1990-07-22",
-    age: 35,
-    gender: "Male",
-    testType: "Liver Function Test",
-    priority: "NORMAL",
-    createdBy: "Dr. Brown",
-    createdOn: "9/13/2025",
-    status: "Complete",
-  },
-  {
-    id: "TO-001239",
-    patientName: "Emily Davis",
-    patientDob: "1992-11-08",
-    age: 33,
-    gender: "Female",
-    testType: "Kidney Function Panel",
-    priority: "URGENT",
-    createdBy: "Dr. Lee",
-    createdOn: "9/14/2025",
-    status: "In Progress",
-  },
-  {
-    id: "TO-001240",
-    patientName: "Robert Wilson",
-    patientDob: "1978-05-30",
-    age: 47,
-    gender: "Male",
-    testType: "Glucose Test",
-    priority: "NORMAL",
-    createdBy: "Dr. Martinez",
-    createdOn: "9/15/2025",
-    status: "Pending",
-  },
-  {
-    id: "TO-001241",
-    patientName: "Sarah Brown",
-    patientDob: "1988-09-12",
-    age: 37,
-    gender: "Female",
-    testType: "Hemoglobin A1C",
-    priority: "NORMAL",
-    createdBy: "Dr. Smith",
-    createdOn: "9/16/2025",
-    status: "Complete",
-  },
-];
-
 const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Complete":
-      return "bg-green-100 text-green-700";
-    case "In Progress":
-      return "bg-red-100 text-red-700";
-    case "Pending":
-      return "bg-yellow-100 text-yellow-700";
-    case "Review":
-      return "bg-blue-100 text-blue-700";
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
-};
-
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case "URGENT":
-      return "text-red-600 font-semibold";
-    case "NORMAL":
-      return "text-green-600 font-semibold";
-    default:
-      return "text-gray-600";
-  }
+  const statusStyles: Record<string, string> = {
+    completed: "bg-green-100 text-green-800 border-green-200",
+    pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    reviewed: "bg-blue-100 text-blue-800 border-blue-200",
+    ai_reviewed: "bg-purple-100 text-purple-800 border-purple-200",
+    cancelled: "bg-red-100 text-red-800 border-red-200",
+  };
+  return statusStyles[status] || "bg-gray-100 text-gray-800 border-gray-200";
 };
 
 export default function TestOrderList() {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [testOrders] = useState<TestOrder[]>(fakeTestOrders);
   const [editingOrder, setEditingOrder] = useState<TestOrder | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState<TestOrder | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"patientName" | "createdDate" | "status" | "">("");
+  const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
 
-  const filteredOrders = testOrders.filter(
-    (order) =>
-      order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.testType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.createdBy.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const itemsPerPage = 8;
+
+  const { data, isLoading, error } = useGetAllTestOrderQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: search || undefined,
+    sortBy: (sortBy || undefined) as any,
+    status: (filterStatus || undefined) as any,
+    sortOrder,
+  });
+
+  const testOrders: TestOrder[] = (data as any)?.data?.testOrder || [];
+  const pagination = (data as any)?.data?.pagination || {
+    page: 1,
+    limit: itemsPerPage,
+    total: 0,
+    totalPages: 1,
+  };
 
   const handleView = (order: TestOrder) => {
-    navigate(`/admin/test-order/${order.id}`);
+    navigate(`/admin/test-order/${order._id}`);
   };
 
   const handleEdit = (order: TestOrder) => {
@@ -194,121 +102,164 @@ export default function TestOrderList() {
 
   const handleConfirmDelete = () => {
     if (deletingOrder) {
-      // TODO: Implement actual delete API call
-      toast.success(`Test order ${deletingOrder.id} deleted successfully`);
+      setIsDeleteDialogOpen(false);
       setDeletingOrder(null);
     }
   };
 
-  return (
-    <div className="space-y-4">
-      {/* Search */}
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <Input
-              placeholder="Action, message or operator,..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 bg-gray-50 border-gray-200"
-            />
-          </div>
-        </CardContent>
-      </Card>
+  const handleClearFilters = () => {
+    setSearch("");
+    setFilterStatus("");
+    setSortBy("");
+    setSortOrder(-1);
+    setCurrentPage(1);
+  };
 
-      {/* List */}
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-0">
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  return (
+    <div className="w-full space-y-4">
+      {isLoading && (
+        <div className="bg-white p-12 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-2" />
+          <p className="text-gray-600">Loading test orders...</p>
+        </div>
+      )}
+
+      {error && !isLoading && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800 font-medium">Error loading test orders</p>
+          <p className="text-red-600 text-sm">
+            {typeof error === "string" ? error : "An error occurred while loading data"}
+          </p>
+        </div>
+      )}
+
+      {!isLoading && !error && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-blue-50 hover:bg-blue-50">
-                  <TableHead className="font-semibold text-gray-900">Order ID</TableHead>
-                  <TableHead className="font-semibold text-gray-900">Patient</TableHead>
-                  <TableHead className="font-semibold text-gray-900">Age</TableHead>
-                  <TableHead className="font-semibold text-gray-900">Gender</TableHead>
-                  <TableHead className="font-semibold text-gray-900">Test Type</TableHead>
-                  <TableHead className="font-semibold text-gray-900">Priority</TableHead>
-                  <TableHead className="font-semibold text-gray-900">Created By</TableHead>
-                  <TableHead className="font-semibold text-gray-900">Created on</TableHead>
-                  <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                  <TableHead className="font-semibold text-gray-900 text-center">Action</TableHead>
+                <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                  <TableHead className="font-semibold text-gray-700 w-16">No</TableHead>
+                  <TableHead className="font-semibold text-gray-700 min-w-[150px]">
+                    Patient Name
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 min-w-[150px]">
+                    Contact
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 min-w-[130px]">
+                    Created Date
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 min-w-[130px]">
+                    Created By
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 min-w-[100px]">
+                    Status
+                  </TableHead>
+                  <TableHead className="text-right font-semibold text-gray-700 w-20">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.length === 0 ? (
+                {testOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-gray-500">
-                      Không tìm thấy đơn xét nghiệm nào
+                    <TableCell colSpan={7} className="text-center py-12">
+                      <div className="flex flex-col items-center justify-center text-gray-500">
+                        <svg
+                          className="w-16 h-16 mb-4 text-gray-300"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                          />
+                        </svg>
+                        <p className="text-lg font-medium">No test orders found</p>
+                        <p className="text-sm">Try adjusting your search or filter criteria</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredOrders.map((order) => (
-                    <TableRow key={order.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">{order.id}</TableCell>
-                      <TableCell>
+                  testOrders.map((order: TestOrder, idx: number) => (
+                    <TableRow key={order._id} className="hover:bg-blue-50/50 transition-colors">
+                      <TableCell className="text-start font-medium text-gray-600">
+                        {(currentPage - 1) * itemsPerPage + idx + 1}
+                      </TableCell>
+                      <TableCell className="font-medium text-gray-900">
+                        {order.patientName}
+                      </TableCell>
+                      <TableCell className="text-gray-600">
                         <div>
-                          <div className="font-medium text-gray-900">{order.patientName}</div>
-                          <div className="text-sm text-gray-500">{order.patientDob}</div>
+                          <div className="text-sm text-gray-900">{order.phoneNumber}</div>
+                          <div className="text-xs text-gray-500">{order.email}</div>
                         </div>
                       </TableCell>
-                      <TableCell>{order.age}</TableCell>
-                      <TableCell>{order.gender}</TableCell>
-                      <TableCell>{order.testType}</TableCell>
-                      <TableCell>
-                        <span className={getPriorityColor(order.priority)}>
-                          {order.priority}
-                        </span>
+                      <TableCell className="text-gray-600">
+                        {formatDate(typeof order.createdDate === "string" ? order.createdDate : order.createdDate.toString())}
                       </TableCell>
-                      <TableCell>{order.createdBy}</TableCell>
-                      <TableCell>{order.createdOn}</TableCell>
+                      <TableCell className="text-gray-600">
+                        <div>
+                          <div className="text-sm text-gray-900">
+                            {order.createdByUser?.fullName || "N/A"}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {order.createdByUser?.email || ""}
+                          </div>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
                             order.status
                           )}`}
                         >
-                          {order.status}
+                          {order.status.replace(/_/g, " ")}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-center gap-2">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 hover:bg-gray-100"
-                              >
-                                <MoreVertical className="h-4 w-4 text-gray-600" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleView(order)}
-                                className="cursor-pointer"
-                              >
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleEdit(order)}
-                                className="cursor-pointer"
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDelete(order)}
-                                className="cursor-pointer text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-blue-100 transition-colors"
+                              aria-label="Actions"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuItem
+                              onClick={() => handleView(order)}
+                              className="cursor-pointer hover:bg-blue-50"
+                            >
+                              <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                              <span className="text-gray-700">View detail</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(order)}
+                              className="cursor-pointer hover:bg-blue-50"
+                            >
+                              <Edit className="mr-2 h-4 w-4 text-green-600" />
+                              <span className="text-gray-700">Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(order)}
+                              className="cursor-pointer hover:bg-red-50 text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -316,23 +267,63 @@ export default function TestOrderList() {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
-      {/* Edit Modal */}
-      <EditTestOrderModal
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        order={editingOrder}
-      />
+      {!isLoading && !error && testOrders.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
+            {testOrders.length > 0 ? (
+              <>
+                Showing{" "}
+                <span className="font-semibold">
+                  {(currentPage - 1) * itemsPerPage + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-semibold">
+                  {Math.min(currentPage * itemsPerPage, pagination.total)}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold">{pagination.total}</span> results
+              </>
+            ) : (
+              "No results"
+            )}
+          </div>
+          {pagination.totalPages > 1 && (
+            <div className="w-full sm:w-auto flex justify-center sm:justify-end">
+              <PaginationUI
+                currentPage={currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        order={deletingOrder}
-        onConfirm={handleConfirmDelete}
-      />
+      {isEditModalOpen && editingOrder && (
+        <EditTestOrderModal
+          open={isEditModalOpen}
+          onOpenChange={(open) => {
+            setIsEditModalOpen(open);
+            if (!open) setEditingOrder(null);
+          }}
+          order={editingOrder}
+        />
+      )}
+
+      {isDeleteDialogOpen && deletingOrder && (
+        <DeleteConfirmDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={(open) => {
+            setIsDeleteDialogOpen(open);
+            if (!open) setDeletingOrder(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          order={deletingOrder}
+        />
+      )}
     </div>
   );
 }

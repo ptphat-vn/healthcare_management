@@ -4,7 +4,6 @@ import * as z from "zod";
 import {
   createUserSchema,
   type CreateUserFormData,
-  statusOptions,
 } from "@/schemas/userSchema";
 import Input from "@/components/ui/input/Input";
 
@@ -28,11 +27,9 @@ interface EditUserFormProps {
 
 const editUserSchema = createUserSchema.omit({ password: true }).extend({
   roleId: z.string().min(1, "Role is required"),
-  status: z.number().min(0).max(2, "Invalid status"),
 });
 type EditUserFormData = Omit<CreateUserFormData, "password"> & {
   roleId: string;
-  status: number;
 };
 
 export function EditUserForm({
@@ -65,7 +62,6 @@ export function EditUserForm({
         dateOfBirth: defaultValues.dateOfBirth,
         address: defaultValues.address || "",
         roleId: defaultValues.roleId || "",
-        status: defaultValues.status ?? 1,
       });
     }
   }, [defaultValues, reset]);
@@ -196,7 +192,7 @@ export function EditUserForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <div className="flex flex-col space-y-1">
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Role
@@ -208,6 +204,9 @@ export function EditUserForm({
                 errors.roleId?.message ? "border-red-500" : "border-input"
               } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
             >
+              <option value="" disabled>
+                Choose a role
+              </option>
               {roles.map((role) => (
                 <option key={role._id} value={role._id}>
                   {role.name}
@@ -216,39 +215,6 @@ export function EditUserForm({
             </select>
             {errors.roleId?.message && (
               <p className="text-xs text-red-500">{errors.roleId.message}</p>
-            )}
-          </div>
-
-          <div className="flex flex-col space-y-1">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Status
-              <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              name="status"
-              control={control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  value={field.value}
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
-                  className={`flex h-10 w-full rounded-sm border ${
-                    errors.status?.message ? "border-red-500" : "border-input"
-                  } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
-                >
-                  <option value="" disabled>
-                    Choose status
-                  </option>
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              )}
-            />
-            {errors.status?.message && (
-              <p className="text-xs text-red-500">{errors.status.message}</p>
             )}
           </div>
         </div>
