@@ -14,6 +14,7 @@ const createPatientRecordSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   dateOfBirth: z.string().refine(isValidDate, 'Date of birth must be in MM/DD/YYYY or YYYY-MM-DD format'),
   gender: z.enum(['male', 'female'], { message: 'Gender must be male or female' }),
+  bloodType: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], { message: 'Invalid blood type' }).optional(),
   phoneNumber: z.string().regex(/^[0-9]{10,11}$/, 'Phone number must be 10-11 digits'),
   email: z.string().email('Invalid email format').optional().or(z.literal('')),
   address: z.string().min(1, 'Address is required'),
@@ -40,6 +41,7 @@ const updatePatientRecordSchema = z.object({
   fullName: z.string().min(1).optional(),
   dateOfBirth: z.string().refine(isValidDate).optional(),
   gender: z.enum(['male', 'female']).optional(),
+  bloodType: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']).optional(),
   phoneNumber: z.string().regex(/^[0-9]{10,11}$/).optional(),
   email: z.string().email().optional().or(z.literal('')),
   address: z.string().min(1).optional(),
@@ -70,16 +72,16 @@ const addClinicalNoteSchema = z.object({
 })
 
 const searchPatientRecordsSchema = z.object({
-  search: z.string().min(1).optional(),
+  search: z.string().optional(),
   gender: z.enum(['male', 'female']).optional(),
-  dateOfBirthFrom: z.string().refine(isValidDate).optional(),
-  dateOfBirthTo: z.string().refine(isValidDate).optional(),
+  dateOfBirthFrom: z.string().optional(),
+  dateOfBirthTo: z.string().optional(),
   testType: z.string().optional(),
   instrumentUsed: z.string().optional(),
-  dateRangeFrom: z.string().refine(isValidDate).optional(),
-  dateRangeTo: z.string().refine(isValidDate).optional(),
+  dateRangeFrom: z.string().optional(),
+  dateRangeTo: z.string().optional(),
   sortBy: z.enum(['fullName', 'dateOfBirth', 'createdAt', 'lastTestDate']).optional(),
-  sortOrder: z.string().regex(/^[1-]?1$/).transform(Number).optional(),
+  sortOrder: z.string().regex(/^-?1$/).transform(Number).optional(),
   page: z.string().regex(/^\d+$/).transform(Number).optional(),
   limit: z.string().regex(/^\d+$/).transform(Number).optional(),
 })
@@ -125,10 +127,19 @@ export const validateAddClinicalNote = (req: Request, res: Response, next: NextF
   next()
 }
 
-export const validateSearchPatientRecords = (req: Request, _res: Response, next: NextFunction) => {
+export const validateSearchPatientRecords = (req: Request, res: Response, next: NextFunction) => {
   const parse = searchPatientRecordsSchema.safeParse(req.query)
   if (!parse.success) {
-    return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
+    const fieldErrors: Record<string, string> = {}
+    for (const issue of parse.error.issues) {
+      const path = issue.path.join('.') || 'form'
+      if (!fieldErrors[path]) fieldErrors[path] = issue.message
+    }
+    return res.status(422).json({ 
+      success: 'error',
+      message: MESSAGES.VALIDATION_ERROR, 
+      errors: fieldErrors 
+    })
   }
   next()
 }

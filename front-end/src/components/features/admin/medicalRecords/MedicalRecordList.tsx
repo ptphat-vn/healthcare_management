@@ -8,6 +8,11 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
+import ErrorAlert from "@/components/ui/error/ErrorAlert";
+import EmptyState from "@/components/ui/empty/EmptyState";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,107 +21,43 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import type { MedicalRecord } from "@/types/medicalRecord.type";
-import type { User } from "@/types/user.type";
 import EditMedicalRecordModal from "./EditMedicalRecordModal";
 import DeleteMedicalRecordModal from "./DeleteMedicalRecordModal";
+import { useGetMedicalRecordsQuery, useDeleteMedicalRecordMutation } from "@/services/medicalRecordApi";
+import { toast } from "sonner";
+import PaginationUI from "@/components/ui/pagination/PaginationUI";
+import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 
-interface MedicalRecordListProps {
-  searchTerm: string;
+interface ApiError {
+  data?: {
+    message?: string;
+  };
 }
 
-export default function MedicalRecordList({ searchTerm }: MedicalRecordListProps) {
+export default function MedicalRecordList() {
   const navigate = useNavigate();
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<number | "">("");
+  const [sortBy, setSortBy] = useState<'fullName' | 'dateOfBirth' | 'createdAt'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
 
-  // Mock data
-  const [records, setRecords] = useState<MedicalRecord[]>([
-    {
-      id: "1",
-      patientId: "PAT-001",
-      patientName: "Nguyen Van A",
-      doctorId: "DOC-001",
-      doctorName: "Dr. Smith",
-      recordType: "consultation",
-      title: "Regular Checkup",
-      description: "Patient came for regular checkup",
-      diagnosis: "Healthy",
-      symptoms: ["No symptoms"],
-      treatment: "No treatment needed",
-      status: "active",
-      createdAt: "2024-01-15",
-      updatedAt: "2024-01-15",
-    },
-    {
-      id: "2",
-      patientId: "PAT-002",
-      patientName: "Nguyen Van B",
-      doctorId: "DOC-002",
-      doctorName: "Dr. Johnson",
-      recordType: "examination",
-      title: "Fever Examination",
-      description: "Patient has high fever",
-      diagnosis: "Common cold",
-      symptoms: ["Fever", "Cough"],
-      treatment: "Rest and medication",
-      status: "active",
-      createdAt: "2024-01-16",
-      updatedAt: "2024-01-16",
-    },
-    {
-      id: "3",
-      patientId: "PAT-003",
-      patientName: "Tran Thi C",
-      doctorId: "DOC-001",
-      doctorName: "Dr. Smith",
-      recordType: "treatment",
-      title: "Blood Pressure Treatment",
-      description: "Patient with high blood pressure",
-      diagnosis: "Hypertension",
-      symptoms: ["High blood pressure", "Headache"],
-      treatment: "Medication and lifestyle changes",
-      status: "inactive",
-      createdAt: "2024-01-17",
-      updatedAt: "2024-01-17",
-    },
-  ]);
+  // API hooks
+  const { data: recordsData, isLoading, error, refetch } = useGetMedicalRecordsQuery({
+    search: search || undefined,
+    gender: status === 1 ? 'male' : status === 0 ? 'female' : undefined,
+    sortBy,
+    sortOrder,
+    page: currentPage,
+    limit: 8,
+  });
+  const [deleteMedicalRecord] = useDeleteMedicalRecordMutation();
 
-  // Mock user data for each patient
-  const userByPatientId: Record<string, Pick<User, "fullName" | "email" | "phoneNumber" | "identifyNumber" | "gender" | "dateOfBirth" | "address"> & { bloodGroup?: string }> = {
-    "PAT-001": {
-      fullName: "Nguyen Van A",
-      email: "a@example.com",
-      phoneNumber: "0900000001",
-      identifyNumber: "012345678",
-      gender: "male",
-      dateOfBirth: "1989-01-01", // 35 tuổi
-      address: "HCM",
-      bloodGroup: "O+",
-    },
-    "PAT-002": {
-      fullName: "Nguyen Van B",
-      email: "b@example.com",
-      phoneNumber: "0900000002",
-      identifyNumber: "012345679",
-      gender: "female",
-      dateOfBirth: "1991-02-02", // 33 tuổi
-      address: "HN",
-      bloodGroup: "A-",
-    },
-    "PAT-003": {
-      fullName: "Tran Thi C",
-      email: "c@example.com",
-      phoneNumber: "0900000003",
-      identifyNumber: "012345680",
-      gender: "female",
-      dateOfBirth: "1994-03-03", // 30 tuổi
-      address: "DN",
-      bloodGroup: "B+",
-    },
-  };
+  const records = recordsData?.data?.patient || [];
 
   // Helper function to calculate age from date of birth
   const calcAge = (dob?: string) => {
@@ -130,20 +71,12 @@ export default function MedicalRecordList({ searchTerm }: MedicalRecordListProps
     return age >= 0 ? String(age) : "-";
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-      case "inactive":
-        return <Badge className="bg-red-100 text-red-800">Inactive</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
-    }
+  const handleChangePage = (page: number) => {
+    setCurrentPage(page);
   };
 
   const handleView = (record: MedicalRecord) => {
-    console.log("View record:", record);
-    navigate(`/admin/medical-records/${record.id}`);
+    navigate(`/admin/medical-records/${record._id || record.id}`);
   };
 
   const handleEdit = (record: MedicalRecord) => {
@@ -156,117 +89,257 @@ export default function MedicalRecordList({ searchTerm }: MedicalRecordListProps
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!selectedRecord) return;
     
-    setRecords(prev => prev.filter(record => record.id !== selectedRecord.id));
-    setIsDeleteModalOpen(false);
-    setSelectedRecord(null);
-    alert("Medical record deleted successfully!");
+    try {
+      const recordId = selectedRecord._id || selectedRecord.id;
+      if (!recordId) {
+        toast.error("Record ID not found");
+        return;
+      }
+      await deleteMedicalRecord(recordId).unwrap();
+      toast.success("Medical record deleted successfully");
+      setIsDeleteModalOpen(false);
+      setSelectedRecord(null);
+      refetch();
+    } catch (error: unknown) {
+      console.error("Error deleting medical record:", error);
+      
+      // Handle validation errors from backend
+      const errorData = error as ApiError & { data?: { errors?: Record<string, string> } };
+      if (errorData?.data?.errors) {
+        const errorMessages = Object.values(errorData.data.errors).join('\n');
+        toast.error(`Validation errors:\n${errorMessages}`);
+      } else {
+        toast.error(errorData?.data?.message || "Failed to delete medical record");
+      }
+    }
   };
 
-  const filteredRecords = records.filter(record =>
-    record.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.recordType.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Loading and error states
+  if (isLoading) {
+    return <LoadingSpinner message="Loading medical records..." />;
+  }
+
+  if (error) {
+    return (
+      <ErrorAlert 
+        message={(error as ApiError)?.data?.message || 'An unexpected error occurred'}
+        title="Error loading medical records"
+      />
+    );
+  }
 
   return (
-    <div className="w-full">
-      {/* Table Container */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-blue-50">
-              <TableHead className="font-semibold text-gray-700 text-left">Patient ID</TableHead>
-              <TableHead className="font-semibold text-gray-700 text-left">Full Name</TableHead>
-              <TableHead className="font-semibold text-gray-700 text-center">Age</TableHead>
-              <TableHead className="font-semibold text-gray-700 text-left">Gender</TableHead>
-              <TableHead className="font-semibold text-gray-700 text-center">Blood Type</TableHead>
-              <TableHead className="font-semibold text-gray-700 text-left">Phone Number</TableHead>
-              <TableHead className="font-semibold text-gray-700 text-left">Status</TableHead>
-              <TableHead className="font-semibold text-gray-700 text-left">Last Test Date</TableHead>
-              <TableHead className="text-right font-semibold text-gray-700">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredRecords.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                  No medical records found.
-                </TableCell>
+    <div className="w-full space-y-4">
+      {/* Search and Filter */}
+      <Card>
+        <CardContent className="p-4">
+          <SearchAndFilter
+            searchTerm={search}
+            onSearchChange={setSearch}
+            gender={status}
+            onGenderChange={setStatus}
+            sortOptions={[
+              { value: "fullName", label: "Full Name" },
+              { value: "dateOfBirth", label: "Date of Birth" },
+              { value: "createdAt", label: "Created At" }
+            ]}
+            sortByValue={sortBy}
+            onSortByChange={(value) => setSortBy(value as 'fullName' | 'dateOfBirth' | 'createdAt')}
+            sortOrder={sortOrder}
+            onSortOrderChange={setSortOrder}
+            searchPlaceholder="Search medical records..."
+            onClearFilters={() => {
+              setSearch("");
+              setStatus("");
+              setSortBy('createdAt');
+              setSortOrder(-1);
+              setCurrentPage(1);
+            }}
+            showClearFilters={true}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+            <TableHeader>
+              <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                <TableHead className="font-semibold text-gray-700 w-16 px-3">
+                  No
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-32 px-4">
+                  Patient ID
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-48 px-4">
+                  Full Name
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-20 px-3">
+                  Age
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-24 px-3">
+                  Gender
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-28 px-3">
+                  Blood Type
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-36 px-4">
+                  Phone
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-56 px-4">
+                  Email
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-32 px-4">
+                  Date of Birth
+                </TableHead>
+                <TableHead className="text-right font-semibold text-gray-700 w-24 px-3">
+                  Actions
+                </TableHead>
               </TableRow>
-            ) : (
-              filteredRecords.map((record) => {
-                const user = userByPatientId[record.patientId];
-                return (
-                  <TableRow key={record.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium text-left">{record.patientId}</TableCell>
-                    <TableCell className="font-medium text-left">{user?.fullName || record.patientName}</TableCell>
-                    <TableCell className="text-center">{calcAge(user?.dateOfBirth)}</TableCell>
-                    <TableCell className="capitalize text-left">{user?.gender || "-"}</TableCell>
-                    <TableCell className="text-center">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        {user?.bloodGroup || "-"}
-                      </span>
+            </TableHeader>
+            <TableBody>
+              {records.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={10} className="text-center py-12">
+                    <EmptyState
+                      title="No medical records found"
+                      description="Try adjusting your search or filter criteria"
+                      icon={
+                        <svg
+                          className="w-16 h-16"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                          />
+                        </svg>
+                      }
+                    />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                records.map((record, idx) => (
+                  <TableRow
+                    key={record._id || record.id}
+                    className="hover:bg-blue-50/50 transition-colors"
+                  >
+                    <TableCell className="text-start font-medium text-gray-600 px-3">
+                      {idx + 1}
                     </TableCell>
-                    <TableCell className="text-left">{user?.phoneNumber || "-"}</TableCell>
-                    <TableCell className="text-left">{getStatusBadge(record.status)}</TableCell>
-                    <TableCell className="text-left">{record.createdAt}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="font-medium text-gray-900 px-4">
+                      {record.patientId}
+                    </TableCell>
+                    <TableCell className="font-medium text-gray-900 px-4">
+                      {record.fullName}
+                    </TableCell>
+                    <TableCell className="text-gray-600 px-3">
+                      {calcAge(record.dateOfBirth)}
+                    </TableCell>
+                    <TableCell className="text-gray-600 capitalize px-3">
+                      {record.gender}
+                    </TableCell>
+                    <TableCell className="px-3">
+                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                        {record.bloodType || '-'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-gray-600 px-4">
+                      {record.phoneNumber}
+                    </TableCell>
+                    <TableCell className="text-gray-600 px-4">
+                      {record.email || '-'}
+                    </TableCell>
+                    <TableCell className="text-gray-600 px-4">
+                      {new Date(record.dateOfBirth).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right px-3">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-blue-100 transition-colors"
+                            aria-label="Actions"
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem onClick={() => handleView(record)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuItem
+                            onClick={() => handleView(record)}
+                            className="cursor-pointer hover:bg-blue-50"
+                          >
+                            <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                            <span className="text-gray-700">View detail</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(record)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
+                          <DropdownMenuItem
+                            onClick={() => handleEdit(record)}
+                            className="cursor-pointer hover:bg-blue-50"
+                          >
+                            <Edit className="mr-2 h-4 w-4 text-green-600" />
+                            <span className="text-gray-700">Edit</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleDelete(record)}
-                            className="text-red-600 focus:text-red-600"
+                            className="cursor-pointer hover:bg-red-50 text-red-600 focus:text-red-600"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            <span>Delete</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        </CardContent>
+      </Card>
 
       {/* Pagination */}
-      {filteredRecords.length > 0 && (
-        <div className="flex items-center justify-center mt-6">
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">1-{filteredRecords.length} of {filteredRecords.length}</span>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Button>
-            </div>
-          </div>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
+          {records.length > 0 ? (
+            <>
+              Showing{" "}
+              <span className="font-semibold">{(currentPage - 1) * 8 + 1}</span>{" "}
+              to{" "}
+              <span className="font-semibold">
+                {Math.min(currentPage * 8, recordsData?.data?.pagination?.total || 0)}
+              </span>{" "}
+              of <span className="font-semibold">{recordsData?.data?.pagination?.total || 0}</span>{" "}
+              medical records
+            </>
+          ) : (
+            <>No medical records to display</>
+          )}
         </div>
-      )}
+        <div className="w-full sm:w-auto flex justify-center sm:justify-end">
+          {recordsData?.data?.pagination && recordsData.data.pagination.totalPages > 1 && (
+            <PaginationUI
+              currentPage={currentPage}
+              totalPages={recordsData.data.pagination.totalPages}
+              onPageChange={handleChangePage}
+            />
+          )}
+        </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Modals */}
       <EditMedicalRecordModal

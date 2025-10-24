@@ -42,7 +42,7 @@ const customBaseQuery: BaseQueryFn<
       const refreshToken = (api.getState() as RootState).auth.refreshToken;
 
       if (refreshToken) {
-        let refreshResult = await baseQuery(
+        const refreshResult = await baseQuery(
           {
             url: "/auth/refresh",
             method: "POST",
@@ -84,7 +84,7 @@ export const baseApi = createApi({
   reducerPath: "api",
 
   baseQuery: customBaseQuery,
-  tagTypes: ["User", "Roles"],
+  tagTypes: ["User", "Roles", "MedicalRecord"],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
       // mutation là biển đổi, gửi dữ liệu xuống BE
