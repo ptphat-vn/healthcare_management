@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authMiddleware } from '~/middlewares/auth.middleware'
-import { roleMiddleware } from '~/middlewares/role.middleware'
+import { privilegeMiddleware } from '~/middlewares/privilege.middleware'
 import {
   createRoleController,
   listRolesController,
@@ -11,15 +11,13 @@ import { validateCreateRole, validateUpdateRole, validateDeleteRole } from '~/va
 
 const router = Router()
 
-const VIEW_ROLE_ROLES = ['admin', 'manager', 'service', 'user']
-const CREATE_ROLE_ROLES = ['admin', 'manager']
-const UPDATE_ROLE_ROLES = ['admin', 'manager']
-
 router.use(authMiddleware)
 
-router.get('/roles', roleMiddleware(VIEW_ROLE_ROLES), listRolesController)
-router.post('/roles', roleMiddleware(CREATE_ROLE_ROLES), validateCreateRole, createRoleController)
-router.put('/roles/:id', roleMiddleware(UPDATE_ROLE_ROLES), validateUpdateRole, updateRoleController)
-router.delete('/roles/:id', roleMiddleware(['admin', 'manager']), validateDeleteRole, deleteRoleController)
+router.get('/roles', privilegeMiddleware(['view_role']), listRolesController)
+router.post('/roles', privilegeMiddleware(['create_role']), validateCreateRole, createRoleController)
+router.put('/roles/:id', privilegeMiddleware(['update_role']), validateUpdateRole, updateRoleController)
+router.delete('/roles/:id', privilegeMiddleware(['delete_role']), validateDeleteRole, deleteRoleController)
 
 export default router
+
+
