@@ -18,7 +18,6 @@ import { MoreHorizontal, Edit, Trash2, Eye, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import EditTestOrderModal from "./EditTestOrderModal";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
-import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
 import { formatDate } from "@/utils/formatDate";
@@ -55,27 +54,35 @@ const getStatusColor = (status: string) => {
   return statusStyles[status] || "bg-gray-100 text-gray-800 border-gray-200";
 };
 
-export default function TestOrderList() {
+const formatStatusText = (status: string) => {
+  const statusMap: Record<string, string> = {
+    pending: "Pending",
+    completed: "Completed",
+    reviewed: "Reviewed",
+    ai_reviewed: "AI Reviewed",
+    cancelled: "Cancelled",
+  };
+  return statusMap[status] || status;
+};
+
+interface TestOrderListProps {
+  onOrderDeleted?: () => void;
+}
+
+export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
   const navigate = useNavigate();
   const [editingOrder, setEditingOrder] = useState<TestOrder | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState<TestOrder | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"patientName" | "createdDate" | "status" | "">("");
-  const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
 
   const itemsPerPage = 8;
 
   const { data, isLoading, error } = useGetAllTestOrderQuery({
     page: currentPage,
     limit: itemsPerPage,
-    search: search || undefined,
-    sortBy: (sortBy || undefined) as any,
-    status: (filterStatus || undefined) as any,
-    sortOrder,
+    sortOrder: -1,
   });
 
   const testOrders: TestOrder[] = (data as any)?.data?.testOrder || [];
@@ -98,21 +105,6 @@ export default function TestOrderList() {
   const handleDelete = (order: TestOrder) => {
     setDeletingOrder(order);
     setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (deletingOrder) {
-      setIsDeleteDialogOpen(false);
-      setDeletingOrder(null);
-    }
-  };
-
-  const handleClearFilters = () => {
-    setSearch("");
-    setFilterStatus("");
-    setSortBy("");
-    setSortOrder(-1);
-    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
@@ -221,7 +213,7 @@ export default function TestOrderList() {
                             order.status
                           )}`}
                         >
-                          {order.status.replace(/_/g, " ")}
+                          {formatStatusText(order.status)}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
@@ -310,6 +302,11 @@ export default function TestOrderList() {
             if (!open) setEditingOrder(null);
           }}
           order={editingOrder}
+          onSuccess={() => {
+            if (onOrderDeleted) {
+              onOrderDeleted();
+            }
+          }}
         />
       )}
 
@@ -320,8 +317,12 @@ export default function TestOrderList() {
             setIsDeleteDialogOpen(open);
             if (!open) setDeletingOrder(null);
           }}
-          onConfirm={handleConfirmDelete}
           order={deletingOrder}
+          onSuccess={() => {
+            if (onOrderDeleted) {
+              onOrderDeleted();
+            }
+          }}
         />
       )}
     </div>
