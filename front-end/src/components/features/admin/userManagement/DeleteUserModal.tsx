@@ -10,24 +10,33 @@ import {
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import type { User } from "@/types/user.type";
+import { useDeleteUserMutation } from "@/services/userApi";
+import { toast } from "sonner";
 
 interface DeleteUserModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
-  onConfirm: () => void;
 }
 
 export default function DeleteUserModal({
   open,
   onOpenChange,
   user,
-  onConfirm,
-}: DeleteUserModalProps) {
+}: DeleteUserModalProps & { onConfirm?: () => void }) {
+  const [deleteUser, { isLoading }] = useDeleteUserMutation();
+
   if (!user) return null;
 
-  const handleConfirm = () => {
-    onConfirm();
+  const handleConfirm = async () => {
+    try {
+      await deleteUser(user._id).unwrap();
+
+      onOpenChange(false);
+      toast.success("Delete successfully !!");
+    } catch (err) {
+      toast.error("Delete failed!" + err);
+    }
   };
 
   const handleCancel = () => {
@@ -92,6 +101,7 @@ export default function DeleteUserModal({
             variant="outline"
             onClick={handleCancel}
             className="flex-1 sm:flex-none"
+            disabled={isLoading}
           >
             Cancel
           </Button>
@@ -100,8 +110,9 @@ export default function DeleteUserModal({
             variant="destructive"
             onClick={handleConfirm}
             className="flex-1 sm:flex-none bg-red-600 hover:bg-red-700"
+            disabled={isLoading}
           >
-            Delete User
+            {isLoading ? "Deleting..." : "Delete User"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -10,11 +10,21 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashBoard from "@/pages/user/UserDashBoard";
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
+
+import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrderManagementPage";
+import TestOrderDetailPage from "@/pages/admin/testOrderManagement/TestOrderDetailPage";
+import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
+import MedicalRecordDetail from "@/pages/admin/medicalRecords/medicalRecordDetail/MedicalRecordDetail";
 import { useMemo } from "react";
+
+import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
+import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
+import RoleManagementPage from "@/pages/admin/roleManagement/RoleManagementPage";
+import ProfilePage from "@/pages/profile/ProfilePage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
-  const role = user?.data.roleCode;
+  // const role = user?.data.roleCode;
 
   const redirectTo = useMemo(() => {
     if (isAuthenticated && user?.data?.roleCode) {
@@ -54,12 +64,36 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: "dashboard", element: <AdminDashboard /> },
+      // user management
       { path: "user-management", element: <UserManagementPage /> },
+      { path: "user-management/:id", element: <UserDetail /> },
+      // role management
+      { path: "roles-management", element: <RoleManagementPage /> },
+      // event log
+      { path: "event-log", element: <MonitoringServicePage /> },
+      // test-order
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
+      // medical record
+      { path: "medical-records", element: <MedicalRecordPage /> },
+      { path: "medical-records/:id", element: <MedicalRecordDetail /> },
+      // profile
+      { path: "profile", element: <ProfilePage /> },
     ],
   },
 
-  // USER ROUTE
+  // Manager
   {
+    path: "manager",
+    element: (
+      <ProtectedRoute allowedRoles={["manager"]}>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [{ path: "dashboard", element: "Dang lam" }],
+  },
+  // USER ROUTE
+  { 
     path: "/user",
     element: (
       <ProtectedRoute allowedRoles={["user"]}>

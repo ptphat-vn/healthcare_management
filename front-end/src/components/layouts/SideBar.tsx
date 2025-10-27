@@ -1,8 +1,8 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  ClipboardClock,
   ClipboardPlus,
+  History,
   LayoutDashboard,
   ShieldUser,
   TestTubeDiagonal,
@@ -15,7 +15,7 @@ export default function SideBar() {
 
   // safe role extraction
 
-  const role = String(user?.data.roleCode || 'user').toLowerCase();
+  const role = String(user?.data.roleCode || "user").toLowerCase();
 
   // define menus per role
   const menus: Record<
@@ -29,21 +29,25 @@ export default function SideBar() {
         to: "/admin/user-management",
         icon: <UserCog />,
       },
-      { label: "Role Management", to: "/admin/roles", icon: <ShieldUser /> },
       {
-        label: "Medical Records Management",
+        label: "Role Management",
+        to: "/admin/roles-management",
+        icon: <ShieldUser />,
+      },
+      {
+        label: "Medical Records",
         to: "/admin/medical-records",
         icon: <ClipboardPlus />,
       },
       {
-        label: "Test Order Management",
+        label: "Test Order",
         to: "/admin/test-order",
         icon: <TestTubeDiagonal />,
       },
       {
-        label: "Monitoring Service",
-        to: "/admin/monitoring",
-        icon: <ClipboardClock />,
+        label: "Event Log",
+        to: "/admin/event-log",
+        icon: <History />,
       },
     ],
     manager: [
@@ -79,7 +83,7 @@ export default function SideBar() {
   const items = menus[role] ?? menus["user"];
 
   return (
-    <aside className="w-80 bg-white border-r border-gray-200 min-h-screen">
+    <aside className="w-60 flex-shrink-0 bg-white border-r border-gray-200 min-h-screen">
       <div className="p-4">
         <div className="space-y-2 mb-6">
           {items.map((item) => (

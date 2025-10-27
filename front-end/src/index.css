@@ -10,6 +10,12 @@
     height: 100%;
     z-index: 0;
   }
+  .btn-primary {
+    @apply bg-blue-700 hover:bg-blue-900 text-white font-semibold px-5 py-2 rounded-lg shadow transition cursor-pointer;
+  }
+  .btn-back {
+    @apply cursor-pointer mb-4 flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 text-sm font-medium transition;
+  }
 }
 
 @theme inline {
@@ -123,7 +129,9 @@
   * {
     @apply border-border outline-ring/50;
   }
-  html,
+  html {
+    overflow-y: scroll;
+  }
   body {
     margin: 0;
     padding: 0;

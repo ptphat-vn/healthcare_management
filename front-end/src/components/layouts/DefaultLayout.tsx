@@ -6,7 +6,7 @@ export default function DefaultLayout() {
   return (
     <>
       <Header />
-      <div className="flex">
+      <div className="flex ">
         <main className="flex-1 bg-white">
           <Outlet />
         </main>

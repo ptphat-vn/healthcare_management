@@ -8,7 +8,7 @@ import { type CreateUserFormData } from "@/schemas/userSchema";
 import { type CreateUserRequest } from "@/types/request.type";
 import { NewUserForm } from "./NewUserForm";
 import { useState } from "react";
-import { useCreateUserMutation } from "@/services/baseApi";
+import { useCreateUserMutation } from "@/services/userApi";
 import { toast } from "sonner";
 
 interface AddUserModalProps {
@@ -42,7 +42,7 @@ export default function AddUserModal({
 
       const result = await createUser(requestData).unwrap();
 
-      toast.success(result?.message || "Tạo người dùng thành công");
+      toast.success(result?.message || "Create User Successfully!!");
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating user:", error);

@@ -1,3 +1,4 @@
+import type { Roles } from "./roles.type";
 import type { User } from "./user.type";
 
 export interface ErrorResponse {
@@ -19,4 +20,20 @@ export interface RefreshTokenResponse {
     accessToken: string;
     refreshToken: string;
   };
+}
+export interface GetAllUserResponse {
+  user: User[];
+  pagination: Pagination;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface GetAllRoleResponse {
+  role: Roles[];
+  pagination: Pagination;
 }

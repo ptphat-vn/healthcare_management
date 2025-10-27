@@ -14,7 +14,11 @@ import type {
   ErrorResponse,
   RefreshTokenResponse,
 } from "@/types/response.type";
-import type { LoginRequest, RegisterRequest, CreateUserRequest, UpdateUserRequest } from "@/types/request.type";
+import type {
+  LoginRequest,
+  RegisterRequest,
+  UpdateUserRequest,
+} from "@/types/request.type";
 import type { User } from "@/types/user.type";
 
 const baseQuery = fetchBaseQuery({
@@ -42,7 +46,7 @@ const customBaseQuery: BaseQueryFn<
       const refreshToken = (api.getState() as RootState).auth.refreshToken;
 
       if (refreshToken) {
-        let refreshResult = await baseQuery(
+        const refreshResult = await baseQuery(
           {
             url: "/auth/refresh",
             method: "POST",
@@ -84,7 +88,7 @@ export const baseApi = createApi({
   reducerPath: "api",
 
   baseQuery: customBaseQuery,
-  tagTypes: ["User"],
+  tagTypes: ["User", "Roles", "testOrder", "medicalRecord"],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
       // mutation là biển đổi, gửi dữ liệu xuống BE
@@ -105,6 +109,15 @@ export const baseApi = createApi({
       query: () => ({
         url: "/auth/me",
       }),
+      providesTags: ["User"],
+    }),
+    updateProfile: builder.mutation<APIResponse<User>, UpdateUserRequest>({
+      query: (userData) => ({
+        url: "/user/profile",
+        method: "PUT",
+        body: userData,
+      }),
+      invalidatesTags: ["User"],
     }),
     logout: builder.mutation<{ success: string; message: string }, void>({
       query: () => ({
@@ -112,37 +125,12 @@ export const baseApi = createApi({
         method: "POST",
       }),
     }),
-    getAllUser: builder.query<APIResponse<User[]>, void>({
-      query: () => ({
-        url: "/user/all",
-        method: "GET",
-      }),
-      providesTags: ["User"],
-    }),
-    createUser: builder.mutation<APIResponse<User>, CreateUserRequest>({
-      query: (userData) => ({
-        url: "/admin/create-user",
-        method: "POST",
-        body: userData,
-      }),
-      invalidatesTags: ["User"],
-    }),
-    updateUser: builder.mutation<APIResponse<User>, { id: string } & UpdateUserRequest>({
-      query: ({ id, ...userData }) => ({
-        url: `/admin/users/${id}`,
-        method: "PUT",
-        body: userData,
-      }),
-      invalidatesTags: ["User"],
-    }),
   }),
 });
 export const {
   useLoginMutation,
   useRegisterMutation,
   useGetProfileQuery,
+  useUpdateProfileMutation,
   useLogoutMutation,
-  useGetAllUserQuery,
-  useCreateUserMutation,
-  useUpdateUserMutation,
 } = baseApi;
