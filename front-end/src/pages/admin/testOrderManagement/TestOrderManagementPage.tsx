@@ -6,30 +6,43 @@ import { Plus } from "lucide-react";
 
 export default function TestOrderManagementPage() {
   const [isAddOrderModalOpen, setIsAddOrderModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleOrderCreated = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const handleOrderDeleted = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold">Test Order Management</h1>
+    <div className="p-6 bg-gray-50 min-h-screen rounded-[20px]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Test Order Management</h1>
+          <p className="text-sm text-gray-500 mt-2">
+            Manage all test orders in your system.
+          </p>
+        </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button
             onClick={() => setIsAddOrderModalOpen(true)}
-            className="flex items-center"
+            className="flex items-center gap-2 btn-primary"
           >
-            <Plus size={15} />
-            <span className="ml-2">Test Order</span>
+            <Plus size={18} />
+            <span>Add New Test Order</span>
           </Button>
-
           <AddTestOrderModal
             open={isAddOrderModalOpen}
             onOpenChange={setIsAddOrderModalOpen}
+            onSuccess={handleOrderCreated}
           />
         </div>
       </div>
 
-      {/* Danh sách Test Orders */}
-      <TestOrderList />
+      <TestOrderList key={refreshKey} onOrderDeleted={handleOrderDeleted} />
     </div>
   );
 }

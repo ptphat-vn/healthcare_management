@@ -13,9 +13,8 @@ import {
   User,
   Edit,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import { useGetAllUserQuery } from "@/services/userApi";
+import { useGetAllRoleQuery } from "@/services/roleApi";
 import { toast } from "sonner";
 
 interface DashboardStats {
@@ -44,7 +43,6 @@ interface RoleDistribution {
 }
 
 export default function AdminDashboard() {
-  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -57,7 +55,13 @@ export default function AdminDashboard() {
   });
   const [recentActivities, setRecentActivities] = useState<UserActivity[]>([]);
 
-  const { data: usersData, isLoading, isError, error } = useGetAllUserQuery();
+  const { data: usersData, isLoading, isError, error } = useGetAllUserQuery({
+    limit: 10000,
+  });
+
+  const { data: rolesData } = useGetAllRoleQuery({
+    limit: 10000,
+  });
 
   useEffect(() => {
     if (usersData?.data.user) {
@@ -188,24 +192,41 @@ export default function AdminDashboard() {
     return date.toLocaleDateString("vi-VN");
   };
 
-  const roleDistribution: RoleDistribution[] = [
-    {
-      role: "Admin",
-      count: stats.adminUsers,
-      percentage:
-        stats.totalUsers > 0 ? (stats.adminUsers / stats.totalUsers) * 100 : 0,
-      color: "bg-purple-500",
-    },
-    {
-      role: "User",
-      count: stats.regularUsers,
-      percentage:
-        stats.totalUsers > 0
-          ? (stats.regularUsers / stats.totalUsers) * 100
-          : 0,
-      color: "bg-blue-500",
-    },
-  ];
+  const roleDistribution: RoleDistribution[] = (() => {
+    if (!rolesData?.data?.role || rolesData.data.role.length === 0) {
+      return [];
+    }
+
+    const users = usersData?.data?.user || [];
+    const allRoles = rolesData.data.role;
+    
+    const roleCounts: Record<string, number> = {};
+    users.forEach((user) => {
+      const roleName = user.roleName || user.roleCode || "Unknown";
+      roleCounts[roleName] = (roleCounts[roleName] || 0) + 1;
+    });
+
+    const colors = [
+      "bg-purple-500",
+      "bg-blue-500",
+      "bg-green-500",
+      "bg-red-500",
+      "bg-yellow-500",
+      "bg-pink-500",
+      "bg-indigo-500",
+      "bg-cyan-500",
+    ];
+
+    return allRoles
+      .map((role, index) => ({
+        role: role.name,
+        count: roleCounts[role.name] || 0,
+        percentage:
+          users.length > 0 ? ((roleCounts[role.name] || 0) / users.length) * 100 : 0,
+        color: colors[index % colors.length],
+      }))
+      .sort((a, b) => b.count - a.count);
+  })();
 
   const statCards = [
     {
@@ -241,14 +262,6 @@ export default function AdminDashboard() {
       borderColor: "border-cyan-200",
     },
     {
-      title: "Người dùng không hoạt động",
-      value: stats.inactiveUsers,
-      icon: Activity,
-      color: "bg-orange-50",
-      textColor: "text-orange-600",
-      borderColor: "border-orange-200",
-    },
-    {
       title: "Quản trị viên",
       value: stats.adminUsers,
       icon: Shield,
@@ -263,6 +276,14 @@ export default function AdminDashboard() {
       color: "bg-gray-50",
       textColor: "text-gray-600",
       borderColor: "border-gray-200",
+    },
+    {
+      title: "Người dùng không hoạt động",
+      value: stats.inactiveUsers,
+      icon: Activity,
+      color: "bg-orange-50",
+      textColor: "text-orange-600",
+      borderColor: "border-orange-200",
     },
     {
       title: "Tài khoản bị khóa",
@@ -293,7 +314,7 @@ export default function AdminDashboard() {
           return (
             <Card
               key={index}
-              className={`${stat.color} border-2 ${stat.borderColor} hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}
+              className={`${stat.color} border-2 ${stat.borderColor}`}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -316,7 +337,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border-2 border-gray-200">
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center">
               <Crown className="h-5 w-5 mr-2 text-purple-600" />
@@ -324,7 +345,7 @@ export default function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[420px] overflow-y-auto pr-2">
               {roleDistribution.map((role, index) => (
                 <div key={index}>
                   <div className="flex items-center justify-between mb-2">
@@ -350,7 +371,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2 border-0 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="lg:col-span-2 border-2 border-gray-200">
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center">
               <Activity className="h-5 w-5 mr-2 text-green-600" />
@@ -402,7 +423,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols gap-6">
-        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border-2 border-gray-200">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">
               Thống kê chi tiết

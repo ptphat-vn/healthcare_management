@@ -55,7 +55,7 @@ export function EditUserForm({
   const roles = rolesData?.data?.role || [];
 
   useEffect(() => {
-    if (defaultValues) {
+    if (defaultValues && roles.length > 0) {
       reset({
         fullName: defaultValues.fullName,
         email: defaultValues.email,
@@ -68,7 +68,7 @@ export function EditUserForm({
         status: defaultValues.status ?? 1,
       });
     }
-  }, [defaultValues, reset]);
+  }, [defaultValues, reset, roles]);
 
   const handleFormSubmit = (data: EditUserFormData) => {
     onSubmit({ ...data, password: "" });
@@ -208,6 +208,9 @@ export function EditUserForm({
                 errors.roleId?.message ? "border-red-500" : "border-input"
               } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
             >
+              <option value="" disabled>
+                Choose role
+              </option>
               {roles.map((role) => (
                 <option key={role._id} value={role._id}>
                   {role.name}
