@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
 import { format } from "date-fns";
 import {
   Popover,
@@ -9,6 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { useState } from "react";
 
 export interface TestOrderFormData {
   patientName: string;
@@ -136,9 +136,15 @@ export default function TestOrderForm({
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined}
+                selected={
+                  formData.dateOfBirth
+                    ? new Date(formData.dateOfBirth)
+                    : undefined
+                }
                 onSelect={(date) => {
-                  const dateString = date ? date.toISOString().slice(0, 10) : "";
+                  const dateString = date
+                    ? date.toISOString().slice(0, 10)
+                    : "";
                   setFormData({
                     ...formData,
                     dateOfBirth: dateString,

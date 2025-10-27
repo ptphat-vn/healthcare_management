@@ -13,6 +13,8 @@ import {
   User,
   Edit,
 } from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
 import { useGetAllUserQuery } from "@/services/userApi";
 import { useGetAllRoleQuery } from "@/services/roleApi";
 import { toast } from "sonner";
@@ -55,7 +57,12 @@ export default function AdminDashboard() {
   });
   const [recentActivities, setRecentActivities] = useState<UserActivity[]>([]);
 
-  const { data: usersData, isLoading, isError, error } = useGetAllUserQuery({
+  const {
+    data: usersData,
+    isLoading,
+    isError,
+    error,
+  } = useGetAllUserQuery({
     limit: 10000,
   });
 
@@ -199,7 +206,6 @@ export default function AdminDashboard() {
 
     const users = usersData?.data?.user || [];
     const allRoles = rolesData.data.role;
-    
     const roleCounts: Record<string, number> = {};
     users.forEach((user) => {
       const roleName = user.roleName || user.roleCode || "Unknown";
@@ -222,7 +228,9 @@ export default function AdminDashboard() {
         role: role.name,
         count: roleCounts[role.name] || 0,
         percentage:
-          users.length > 0 ? ((roleCounts[role.name] || 0) / users.length) * 100 : 0,
+          users.length > 0
+            ? ((roleCounts[role.name] || 0) / users.length) * 100
+            : 0,
         color: colors[index % colors.length],
       }))
       .sort((a, b) => b.count - a.count);
