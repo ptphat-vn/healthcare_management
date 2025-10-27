@@ -90,7 +90,7 @@ export default function Header() {
 
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem>
-                  <Link to="/app/profile" className="w-full block">
+                  <Link to="/admin/profile" className="w-full block">
                     Profile
                   </Link>
                 </DropdownMenuItem>

@@ -14,7 +14,11 @@ import type {
   ErrorResponse,
   RefreshTokenResponse,
 } from "@/types/response.type";
-import type { LoginRequest, RegisterRequest } from "@/types/request.type";
+import type {
+  LoginRequest,
+  RegisterRequest,
+  UpdateUserRequest,
+} from "@/types/request.type";
 import type { User } from "@/types/user.type";
 
 const baseQuery = fetchBaseQuery({
@@ -105,6 +109,15 @@ export const baseApi = createApi({
       query: () => ({
         url: "/auth/me",
       }),
+      providesTags: ["User"],
+    }),
+    updateProfile: builder.mutation<APIResponse<User>, UpdateUserRequest>({
+      query: (userData) => ({
+        url: "/user/profile",
+        method: "PUT",
+        body: userData,
+      }),
+      invalidatesTags: ["User"],
     }),
     logout: builder.mutation<{ success: string; message: string }, void>({
       query: () => ({
@@ -118,5 +131,6 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useGetProfileQuery,
+  useUpdateProfileMutation,
   useLogoutMutation,
 } = baseApi;

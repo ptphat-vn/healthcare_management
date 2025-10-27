@@ -20,6 +20,7 @@ import { useMemo } from "react";
 import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
 import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
 import RoleManagementPage from "@/pages/admin/roleManagement/RoleManagementPage";
+import ProfilePage from "@/pages/profile/ProfilePage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -76,6 +77,8 @@ export const router = createBrowserRouter([
       // medical record
       { path: "medical-records", element: <MedicalRecordPage /> },
       { path: "medical-records/:id", element: <MedicalRecordDetail /> },
+      // profile
+      { path: "profile", element: <ProfilePage /> },
     ],
   },
 
