@@ -2,18 +2,37 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import TestOrderForm, { type TestOrderFormData } from "./TestOrderForm";
 import type { TestOrder } from "./TestOrderList";
+import { useUpdateTestOrderMutation } from "@/services/testOrderApi";
 
 interface EditTestOrderModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order: TestOrder | null;
+  onSuccess?: () => void;
 }
 
-export default function EditTestOrderModal({ open, onOpenChange, order }: EditTestOrderModalProps) {
-  const handleSubmit = (formData: TestOrderFormData) => {
-    console.log("Updated test order data:", formData);
-    toast.success("Test order updated successfully!");
-    onOpenChange(false);
+export default function EditTestOrderModal({ open, onOpenChange, order, onSuccess }: EditTestOrderModalProps) {
+  const [updateTestOrder] = useUpdateTestOrderMutation();
+
+  const handleSubmit = async (formData: TestOrderFormData) => {
+    if (!order) return;
+    
+    try {
+      await updateTestOrder({
+        id: order._id,
+        ...formData,
+        gender: (formData.gender as "male" | "female"),
+      }).unwrap();
+      
+      toast.success("Test order updated successfully!");
+      onOpenChange(false);
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err: any) {
+      toast.error("Update failed: " + (err?.data?.message || "Unknown error"));
+    }
   };
 
   const handleCancel = () => {
@@ -26,7 +45,7 @@ export default function EditTestOrderModal({ open, onOpenChange, order }: EditTe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Test Order - {order.id}</DialogTitle>
+          <DialogTitle>Edit Test Order</DialogTitle>
         </DialogHeader>
         
         <TestOrderForm 
@@ -34,11 +53,11 @@ export default function EditTestOrderModal({ open, onOpenChange, order }: EditTe
           onCancel={handleCancel}
           initialData={{
             patientName: order.patientName,
-            patientDob: order.patientDob,
-            age: order.age.toString(),
+            dateOfBirth: order.dateOfBirth,
             gender: order.gender,
-            testType: order.testType,
-            priority: order.priority,
+            address: order.address,
+            phoneNumber: order.phoneNumber,
+            email: order.email,
           }}
         />
       </DialogContent>

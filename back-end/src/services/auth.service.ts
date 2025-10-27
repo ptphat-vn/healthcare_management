@@ -34,9 +34,9 @@ export async function register(payload: {
   const passwordHash = await bcrypt.hash(payload.password, 10)
   const now = new Date()
   const roles = getRolesCollection()
-  let defaultRole = await roles.findOne({ code: 'user' } as any)
+  let defaultRole = await roles.findOne({ code: 'custom' } as any)
   if (!defaultRole) {
-    const insertRole = await roles.insertOne({ name: 'User', code: 'user', description: 'Default user role', privileges: ['read_only'], createdAt: now, updatedAt: now } as any)
+    const insertRole = await roles.insertOne({ name: 'Custom User', code: 'custom', description: 'Default user role', privileges: ['read_only'], createdAt: now, updatedAt: now } as any)
     defaultRole = await roles.findOne({ _id: insertRole.insertedId } as any)
   }
   const insert = await users.insertOne({

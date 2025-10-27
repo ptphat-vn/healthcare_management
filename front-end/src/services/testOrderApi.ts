@@ -25,7 +25,7 @@ export const testOrderApi = baseApi.injectEndpoints({
       } | void
     >({
       query: (params) => ({
-        url: "/test-order",
+        url: "/test-orders",
         method: "GET",
         params: params || {},
       }),
@@ -37,7 +37,7 @@ export const testOrderApi = baseApi.injectEndpoints({
       CreateTestOrderRequest
     >({
       query: (data) => ({
-        url: "/test-order",
+        url: "/test-orders",
         method: "POST",
         body: data,
       }),
@@ -45,7 +45,7 @@ export const testOrderApi = baseApi.injectEndpoints({
     }),
     getDetailTestOrder: builder.query<APIResponse<TestOrder>, { id: string }>({
       query: ({ id }) => ({
-        url: `/test-order/${id}`,
+        url: `/test-orders/${id}`,
         method: "GET",
       }),
       keepUnusedDataFor: 0,
@@ -56,7 +56,7 @@ export const testOrderApi = baseApi.injectEndpoints({
       { id: string } & UpdateTestOrderRequest
     >({
       query: ({ id, ...data }) => ({
-        url: `/test-order/${id}`,
+        url: `/test-orders/${id}`,
         method: "PUT",
         body: data,
       }),
@@ -64,7 +64,7 @@ export const testOrderApi = baseApi.injectEndpoints({
     }),
     deleteTestOrder: builder.mutation<APIResponse<TestOrder>, string>({
       query: (id) => ({
-        url: `/test-order/${id}`,
+        url: `/test-orders/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["testOrder"],

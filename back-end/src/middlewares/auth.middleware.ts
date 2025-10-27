@@ -34,7 +34,8 @@ export const authMiddleware = async (req: Request, _res: Response, next: NextFun
     ;(req as any).authUserId = userObjectId
     const roles = getRolesCollection()
     const role = user.roleId ? await roles.findOne({ _id: user.roleId } as any) : null
-    ;(req as any).authUserRole = role?.code || 'user'
+    ;(req as any).authUserRole = role?.code || 'custom'
+    ;(req as any).authUserPrivileges = role?.privileges || ['read_only']
     next()
   } catch (_e) {
     next(new HttpError(401, 'Unauthorized'))
