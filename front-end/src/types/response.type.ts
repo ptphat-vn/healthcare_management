@@ -1,4 +1,5 @@
 import type { Roles } from "./roles.type";
+import type { TestOrder } from "./testOrder.type";
 import type { User } from "./user.type";
 
 export interface ErrorResponse {
@@ -35,5 +36,9 @@ export interface Pagination {
 
 export interface GetAllRoleResponse {
   role: Roles[];
+  pagination: Pagination;
+}
+export interface GetAllTestOrderResponse {
+  testOrder: TestOrder[];
   pagination: Pagination;
 }
