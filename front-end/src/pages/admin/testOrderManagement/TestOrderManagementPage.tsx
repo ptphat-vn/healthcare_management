@@ -33,7 +33,6 @@ export default function TestOrderManagementPage() {
             onClick={() => setIsAddOrderModalOpen(true)}
             className="flex items-center gap-2 btn-primary"
           >
-            Ư
             <Plus size={18} />
             <span>Add New Test Order</span>
           </Button>

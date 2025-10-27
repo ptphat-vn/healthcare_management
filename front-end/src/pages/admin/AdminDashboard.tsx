@@ -206,7 +206,6 @@ export default function AdminDashboard() {
 
     const users = usersData?.data?.user || [];
     const allRoles = rolesData.data.role;
-
     const roleCounts: Record<string, number> = {};
     users.forEach((user) => {
       const roleName = user.roleName || user.roleCode || "Unknown";
