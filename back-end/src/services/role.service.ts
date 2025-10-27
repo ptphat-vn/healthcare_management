@@ -91,10 +91,10 @@ export const ensureDefaultRoles = async () => {
   const now = new Date()
   const defaults: Array<Partial<RoleDocument> & { name: string; code: string }> = [
     { name: 'Administrator', code: 'admin', description: 'Access all features', privileges: ['*'] },
-    { name: 'Laboratory Manager', code: 'manager', description: 'Manage lab and users', privileges: ['view_role', 'create_role', 'update_role', 'view_config', 'create_config', 'modify_config', 'delete_config', 'view_user', 'modify_user', 'delete_user', 'lock_unlock_user', 'add_comment', 'modify_comment', 'delete_comment', 'review_test_order', 'modify_test_order'] },
+    { name: 'Lab Manager', code: 'lab_manager', description: 'Manage lab and users', privileges: ['view_role', 'create_role', 'update_role', 'view_config', 'create_config', 'modify_config', 'delete_config', 'view_user', 'modify_user', 'delete_user', 'lock_unlock_user', 'add_comment', 'modify_comment', 'delete_comment', 'review_test_order', 'modify_test_order'] },
     { name: 'Service', code: 'service', description: 'Operational and maintenance', privileges: ['view_role', 'create_role', 'view_config', 'create_config', 'modify_config', 'delete_config', 'view_instrument', 'activate_instrument', 'deactivate_instrument', 'view_event_logs'] },
-    { name: 'Lab users', code: 'lab_user', description: 'Conduct tests and manage samples', privileges: ['read_only', 'create_test_order', 'delete_test_order', 'view_config', 'add_comment', 'execute_blood_testing', 'view_instrument'] },
-    { name: 'Normal user', code: 'user', description: 'Patient views test results', privileges: ['read_only'] },
+    { name: 'Lab User', code: 'lab_user', description: 'Conduct tests and manage samples', privileges: ['read_only', 'create_test_order', 'delete_test_order', 'view_config', 'add_comment', 'execute_blood_testing', 'view_instrument'] },
+    { name: 'Custom User', code: 'custom', description: 'Default user role', privileges: ['read_only'] },
   ]
   for (const def of defaults) {
     const exists = await roles.findOne({ code: def.code } as any)
