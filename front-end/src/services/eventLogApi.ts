@@ -1,11 +1,11 @@
 import type { APIResponse } from "@/types/response.type";
 import { baseApi } from "./baseApi";
-import type { EventLog } from "@/types/monitor.type";
+import type { EventLogListResponse } from "@/types/monitor.type";
 
 export const eventLogApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getEventLogs: builder.query<
-      APIResponse<EventLog[]>,
+      APIResponse<EventLogListResponse>,
       { page?: number; limit?: number } | void
     >({
       query: (params) => ({
