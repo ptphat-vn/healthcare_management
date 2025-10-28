@@ -21,6 +21,9 @@ import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringSer
 import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
 import RoleManagementPage from "@/pages/admin/roleManagement/RoleManagementPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
+import LabUserDashboard from "@/pages/labUser/LabUserDashboard";
+import LabUserMedicalRecordPage from "@/pages/labUser/medicalRecords/MedicalRecordPage";
+import LabUserMedicalRecordDetail from "@/pages/labUser/medicalRecords/medicalRecordDetail/MedicalRecordDetail";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -92,6 +95,23 @@ export const router = createBrowserRouter([
     ),
     children: [{ path: "dashboard", element: "Dang lam" }],
   },
+
+  // LAB USER ROUTE
+  {
+    path: "/lab_user",
+    element: (
+      <ProtectedRoute allowedRoles={["lab_user"]}>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { path: "dashboard", element: <LabUserDashboard /> },
+      { path: "medical-records", element: <LabUserMedicalRecordPage /> },
+      { path: "medical-records/:id", element: <LabUserMedicalRecordDetail /> },
+      { path: "profile", element: <ProfilePage /> },
+    ],
+  },
+
   // USER ROUTE
   { 
     path: "/user",
