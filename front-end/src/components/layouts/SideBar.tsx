@@ -7,6 +7,7 @@ import {
   ShieldUser,
   TestTubeDiagonal,
   UserCog,
+  Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -55,6 +56,11 @@ export default function SideBar() {
         label: "Dashboard",
         to: "/manager/dashboard",
         icon: <LayoutDashboard />,
+      },
+      {
+        label: "User Management",
+        to: "/manager/user-management",
+        icon: <Users />,
       },
       { label: "Reports", to: "/manager/reports" },
     ],

@@ -27,7 +27,7 @@ export const createRole = async (payload: CreateRolePayload): Promise<WithId<Rol
     description: payload.description,
     privileges: payload.privileges && payload.privileges.length > 0 ? payload.privileges : ['read_only'],
     createdAt: now,
-    updatedAt: now,
+    updatedAt: now
   }
   const result = await roles.insertOne(doc as any)
   const created = await roles.findOne({ _id: result.insertedId } as any)
@@ -37,7 +37,11 @@ export const createRole = async (payload: CreateRolePayload): Promise<WithId<Rol
 
 export const updateRole = async (id: string, payload: UpdateRolePayload): Promise<WithId<RoleDocument>> => {
   let objectId: ObjectId
-  try { objectId = new ObjectId(id) } catch { throw new HttpError(422, 'Invalid role id') }
+  try {
+    objectId = new ObjectId(id)
+  } catch {
+    throw new HttpError(422, 'Invalid role id')
+  }
   const roles = getRolesCollection()
   const update: Partial<RoleDocument> = { ...payload, updatedAt: new Date() }
   await roles.updateOne({ _id: objectId } as any, { $set: update })
@@ -65,24 +69,25 @@ export const listRoles = async (params: ListRolesParams) => {
     filter.$or = [
       { name: { $regex: q, $options: 'i' } },
       { code: { $regex: q, $options: 'i' } },
-      { description: { $regex: q, $options: 'i' } },
+      { description: { $regex: q, $options: 'i' } }
     ]
   }
   const sortField = params.sortBy || 'name'
   const sortOrder = params.sortOrder || 1
-  const cursor = roles.find(filter as any).sort({ [sortField]: sortOrder } as any).skip(skip).limit(limit)
-  const [items, total] = await Promise.all([
-    cursor.toArray(),
-    roles.countDocuments(filter as any),
-  ])
+  const cursor = roles
+    .find(filter as any)
+    .sort({ [sortField]: sortOrder } as any)
+    .skip(skip)
+    .limit(limit)
+  const [items, total] = await Promise.all([cursor.toArray(), roles.countDocuments(filter as any)])
   return {
     roles: items,
     pagination: {
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit) || 1,
-    },
+      totalPages: Math.ceil(total / limit) || 1
+    }
   }
 }
 
@@ -91,10 +96,69 @@ export const ensureDefaultRoles = async () => {
   const now = new Date()
   const defaults: Array<Partial<RoleDocument> & { name: string; code: string }> = [
     { name: 'Administrator', code: 'admin', description: 'Access all features', privileges: ['*'] },
-    { name: 'Lab Manager', code: 'lab_manager', description: 'Manage lab and users', privileges: ['view_role', 'create_role', 'update_role', 'view_config', 'create_config', 'modify_config', 'delete_config', 'view_user', 'modify_user', 'delete_user', 'lock_unlock_user', 'add_comment', 'modify_comment', 'delete_comment', 'review_test_order', 'modify_test_order'] },
-    { name: 'Service', code: 'service', description: 'Operational and maintenance', privileges: ['view_role', 'create_role', 'view_config', 'create_config', 'modify_config', 'delete_config', 'view_instrument', 'activate_instrument', 'deactivate_instrument', 'view_event_logs'] },
-    { name: 'Lab User', code: 'lab_user', description: 'Conduct tests and manage samples', privileges: ['read_only', 'create_test_order', 'delete_test_order', 'view_config', 'add_comment', 'execute_blood_testing', 'view_instrument'] },
-    { name: 'Custom User', code: 'custom', description: 'Default user role', privileges: ['read_only'] },
+    {
+      name: 'Lab Manager',
+      code: 'lab_manager',
+      description: 'Manage lab and users',
+      privileges: [
+        'view_role',
+        'create_role',
+        'update_role',
+        'view_config',
+        'create_config',
+        'modify_config',
+        'delete_config',
+        'view_user',
+        'modify_user',
+        'delete_user',
+        'lock_unlock_user',
+        'add_comment',
+        'modify_comment',
+        'delete_comment',
+        'review_test_order',
+        'modify_test_order',
+        'create_medical_record',
+        'delete_medical_record',
+        'review_medical_record',
+        'modify_medical_record'
+      ]
+    },
+    {
+      name: 'Service',
+      code: 'service',
+      description: 'Operational and maintenance',
+      privileges: [
+        'view_role',
+        'create_role',
+        'view_config',
+        'create_config',
+        'modify_config',
+        'delete_config',
+        'view_instrument',
+        'activate_instrument',
+        'deactivate_instrument',
+        'view_event_logs'
+      ]
+    },
+    {
+      name: 'Lab User',
+      code: 'lab_user',
+      description: 'Conduct tests and manage samples',
+      privileges: [
+        'read_only',
+        'create_test_order',
+        'delete_test_order',
+        'view_config',
+        'add_comment',
+        'execute_blood_testing',
+        'view_instrument',
+        'create_medical_record',
+        'delete_medical_record',
+        'review_medical_record',
+        'modify_medical_record'
+      ]
+    },
+    { name: 'Patient ', code: 'patient', description: 'Default user role', privileges: ['read_only'] }
   ]
   for (const def of defaults) {
     const exists = await roles.findOne({ code: def.code } as any)
@@ -105,16 +169,19 @@ export const ensureDefaultRoles = async () => {
         description: def.description,
         privileges: (def.privileges as string[]) || ['read_only'],
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       } as any)
     }
   }
 }
 
-
 export const deleteRole = async (id: string): Promise<WithId<RoleDocument>> => {
   let objectId: ObjectId
-  try { objectId = new ObjectId(id) } catch { throw new HttpError(422, 'Invalid role id') }
+  try {
+    objectId = new ObjectId(id)
+  } catch {
+    throw new HttpError(422, 'Invalid role id')
+  }
 
   const roles = getRolesCollection()
   const users = getUsersCollection()
@@ -130,4 +197,3 @@ export const deleteRole = async (id: string): Promise<WithId<RoleDocument>> => {
   if (!deleted) throw new HttpError(404, 'Role not found')
   return deleted as WithId<RoleDocument>
 }
-

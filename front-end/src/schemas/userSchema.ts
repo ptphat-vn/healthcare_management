@@ -6,18 +6,18 @@ export const createUserSchema = z.object({
   dateOfBirth: z
     .string()
     .min(1, "Date of birth is required")
-    .regex(
-      /^\d{4}-\d{2}-\d{2}$/,
-      "Date of birth must be in YYYY-MM-DD format"
-    ),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date of birth must be in YYYY-MM-DD format"),
   phone: z
     .string()
     .regex(/^[0-9]{10,11}$/, "Phone number must be 10-11 digits"),
-  gender: z.enum(["Male", "Female"], { 
-    message: "Choose your gender",
-  }).optional().refine((value) => value !== undefined, {
-    message: "Choose your gender",
-  }),
+  gender: z
+    .enum(["male", "female"], {
+      message: "Choose your gender",
+    })
+    .optional()
+    .refine((value) => value !== undefined, {
+      message: "Choose your gender",
+    }),
   identifyNumber: z
     .string()
     .regex(/^[0-9]{9,12}$/, "Identification number must be 9-12 digits"),

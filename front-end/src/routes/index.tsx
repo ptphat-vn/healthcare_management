@@ -21,6 +21,7 @@ import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringSer
 import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
 import RoleManagementPage from "@/pages/admin/roleManagement/RoleManagementPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
+import UserManagement from "@/pages/manager/UserManagement/UserManagementPage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -90,10 +91,13 @@ export const router = createBrowserRouter([
         <MainLayout />
       </ProtectedRoute>
     ),
-    children: [{ path: "dashboard", element: "Dang lam" }],
+    children: [
+      { path: "dashboard", element: "Dang lam" },
+      { path: "user-management", element: <UserManagement /> },
+    ],
   },
   // USER ROUTE
-  { 
+  {
     path: "/user",
     element: (
       <ProtectedRoute allowedRoles={["user"]}>
