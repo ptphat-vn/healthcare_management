@@ -64,6 +64,14 @@ export default function SideBar() {
       },
       { label: "Reports", to: "/manager/reports" },
     ],
+    lab_user: [
+      { label: "Dashboard", to: "/lab_user/dashboard", icon: <LayoutDashboard /> },
+      {
+        label: "Medical Records",
+        to: "/lab_user/medical-records",
+        icon: <ClipboardPlus />,
+      },
+    ],
     consultant: [
       {
         label: "Dashboard",
