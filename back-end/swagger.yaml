@@ -18,7 +18,7 @@ info:
     - `lab_manager`: Lab Manager with management privileges
     - `service`: Service provider with operational privileges  
     - `lab_user`: Lab User with testing privileges
-    - `custom`: Default user role with read-only access
+    - `patient`: Default user role with read-only access
     
     ### Privileges
     The system supports granular privileges for different operations:
@@ -2878,7 +2878,7 @@ components:
           example: "Lab Manager"
         code:
           type: string
-          enum: [admin, lab_manager, service, lab_user, custom]
+          enum: [admin, lab_manager, service, lab_user, patient]
           example: "lab_manager"
         description:
           type: string

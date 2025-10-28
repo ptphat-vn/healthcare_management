@@ -24,6 +24,8 @@ export const MESSAGES = {
   USERS_NOT_FOUND: 'Không tìm thấy người dùng nào',
   GET_USER_DETAIL_SUCCESS: 'Lấy thông tin người dùng thành công',
   USER_NOT_FOUND: 'Không tìm thấy người dùng',
+  ACCOUNT_INACTIVE: 'Tài khoản đã bị vô hiệu hóa',
+  ACCOUNT_LOCKED: 'Tài khoản đã bị khóa',
   // Test Order Messages
   TEST_ORDER_CREATED_SUCCESS: 'Tạo đơn xét nghiệm thành công',
   TEST_ORDER_UPDATED_SUCCESS: 'Cập nhật đơn xét nghiệm thành công',
