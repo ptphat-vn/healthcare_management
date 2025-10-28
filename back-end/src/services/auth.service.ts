@@ -34,9 +34,9 @@ export async function register(payload: {
   const passwordHash = await bcrypt.hash(payload.password, 10)
   const now = new Date()
   const roles = getRolesCollection()
-  let defaultRole = await roles.findOne({ code: 'custom' } as any)
+  let defaultRole = await roles.findOne({ code: 'patient' } as any)
   if (!defaultRole) {
-    const insertRole = await roles.insertOne({ name: 'Custom User', code: 'custom', description: 'Default user role', privileges: ['read_only'], createdAt: now, updatedAt: now } as any)
+    const insertRole = await roles.insertOne({ name: 'Patient', code: 'patient', description: 'Default user role', privileges: ['read_only'], createdAt: now, updatedAt: now } as any)
     defaultRole = await roles.findOne({ _id: insertRole.insertedId } as any)
   }
   const insert = await users.insertOne({
@@ -89,6 +89,12 @@ export async function login(payload: { email: string; password: string }) {
   const users = getUsersCollection()
   const user = await users.findOne({ email: payload.email })
   if (!user) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
+  if (user.status === 0) {
+    throw new HttpError(403, MESSAGES.ACCOUNT_INACTIVE)
+  }
+  if (user.status === 2) {
+    throw new HttpError(403, MESSAGES.ACCOUNT_LOCKED)
+  }
   const ok = await bcrypt.compare(payload.password, user.passwordHash)
   if (!ok) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
 

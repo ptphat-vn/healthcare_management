@@ -22,7 +22,7 @@ router.use(authMiddleware)
 
 router.post(
   '/patient-records',
-  privilegeMiddleware(['create_test_order']),
+  privilegeMiddleware(['create_medical_record']),
   validateCreatePatientRecord,
   createPatientRecordController
 )
@@ -38,12 +38,12 @@ router.get('/patient-records/:id', privilegeMiddleware(['read_only']), getPatien
 
 router.put(
   '/patient-records/:id',
-  privilegeMiddleware(['modify_test_order']),
+  privilegeMiddleware(['modify_medical_record']),
   validateUpdatePatientRecord,
   updatePatientRecordController
 )
 
-router.delete('/patient-records/:id', privilegeMiddleware(['delete_test_order']), deletePatientRecordController)
+router.delete('/patient-records/:id', privilegeMiddleware(['delete_medical_record']), deletePatientRecordController)
 
 router.post(
   '/patient-records/:id/clinical-notes',

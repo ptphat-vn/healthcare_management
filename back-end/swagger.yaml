@@ -18,7 +18,7 @@ info:
     - `lab_manager`: Lab Manager with management privileges
     - `service`: Service provider with operational privileges  
     - `lab_user`: Lab User with testing privileges
-    - `custom`: Default user role with read-only access
+    - `patient`: Default user role with read-only access
     
     ### Privileges
     The system supports granular privileges for different operations:
@@ -72,9 +72,9 @@ info:
     Admin users (with `*` privilege) have access to all endpoints.
     
     ## User Status
-    - `0`: Inactive (soft deleted)
-    - `1`: Active
-    - `2`: Locked
+    - `0`: Inactive (soft deleted) - Cannot login
+    - `1`: Active - Can login normally
+    - `2`: Locked - Cannot login
   version: 1.0.0
   license:
     name: MIT
@@ -502,6 +502,24 @@ paths:
                         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         '401':
           description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Thông tin đăng nhập không hợp lệ"
+        '403':
+          description: Account inactive or locked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Tài khoản đã bị vô hiệu hóa"
         '422':
           description: Validation error
 
@@ -2878,7 +2896,7 @@ components:
           example: "Lab Manager"
         code:
           type: string
-          enum: [admin, lab_manager, service, lab_user, custom]
+          enum: [admin, lab_manager, service, lab_user, patient]
           example: "lab_manager"
         description:
           type: string
