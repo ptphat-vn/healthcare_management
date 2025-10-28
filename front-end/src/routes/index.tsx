@@ -21,6 +21,7 @@ import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringSer
 import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
 import RoleManagementPage from "@/pages/admin/roleManagement/RoleManagementPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
+import UserManagement from "@/pages/manager/UserManagement/UserManagementPage";
 import LabUserDashboard from "@/pages/labUser/LabUserDashboard";
 import LabUserMedicalRecordPage from "@/pages/labUser/medicalRecords/MedicalRecordPage";
 import LabUserMedicalRecordDetail from "@/pages/labUser/medicalRecords/medicalRecordDetail/MedicalRecordDetail";
@@ -93,7 +94,10 @@ export const router = createBrowserRouter([
         <MainLayout />
       </ProtectedRoute>
     ),
-    children: [{ path: "dashboard", element: "Dang lam" }],
+    children: [
+      { path: "dashboard", element: "Dang lam" },
+      { path: "user-management", element: <UserManagement /> },
+    ],
   },
 
   // LAB USER ROUTE
@@ -113,7 +117,7 @@ export const router = createBrowserRouter([
   },
 
   // USER ROUTE
-  { 
+  {
     path: "/user",
     element: (
       <ProtectedRoute allowedRoles={["user"]}>
