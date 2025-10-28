@@ -76,7 +76,7 @@ export default function MedicalRecordList() {
   };
 
   const handleView = (record: MedicalRecord) => {
-    navigate(`/admin/medical-records/${record._id || record.id}`);
+    navigate(`/lab_user/medical-records/${record._id || record.id}`);
   };
 
   const handleEdit = (record: MedicalRecord) => {
