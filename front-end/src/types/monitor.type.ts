@@ -20,7 +20,7 @@ export interface EventLog {
 }
 
 export interface EventLogListResponse {
-  data: EventLog[];
+  eventLogs: EventLog[];
   pagination?: {
     page: number;
     limit: number;
