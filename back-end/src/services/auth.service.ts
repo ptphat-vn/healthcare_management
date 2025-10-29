@@ -7,11 +7,20 @@ import { getUsersCollection, type UserDocument } from '~/models/user.model'
 import { getRolesCollection } from '~/models/role.model'
 import { getPasswordResetCollection, type PasswordResetDocument } from '~/models/password-reset.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
+import { getNextSequence } from '~/models/counter.model'
+
+const revokedRefreshTokens = new Set<string>()
 
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET
   if (!secret) throw new Error('JWT_SECRET is not set')
   return secret
+}
+
+const generateNextPatientId = async (): Promise<string> => {
+  const seq = await getNextSequence('patientId')
+  const padded = String(seq).padStart(6, '0')
+  return `P${padded}`
 }
 
 export async function register(payload: {
@@ -40,6 +49,7 @@ export async function register(payload: {
     defaultRole = await roles.findOne({ _id: insertRole.insertedId } as any)
   }
   const insert = await users.insertOne({
+    patientId: await generateNextPatientId(),
     fullName: payload.fullName,
     email: payload.email,
     phoneNumber: payload.phoneNumber,
@@ -68,6 +78,7 @@ export async function register(payload: {
 
   return {
     id: insert.insertedId,
+    patientId: (await users.findOne({ _id: insert.insertedId } as any))?.patientId,
     fullName: payload.fullName,
     email: payload.email,
     phoneNumber: payload.phoneNumber,
@@ -80,7 +91,6 @@ export async function register(payload: {
 }
 
 export async function createUserByAdmin(payload: Parameters<typeof register>[0]) {
-  // Same as register for now; could set different role later
   const created = await register(payload)
   return created
 }
@@ -174,6 +184,8 @@ export async function changePassword(payload: { userId: string | ObjectId; oldPa
 }
 
 export async function refreshAccessToken(refreshToken: string) {
+  if (!refreshToken) throw new HttpError(400, 'Refresh token is required')
+  if (revokedRefreshTokens.has(refreshToken)) throw new HttpError(401, 'Refresh token has been revoked')
   const payload = jwt.verify(refreshToken, getJwtSecret()) as { sub: string; type: string }
   if (payload.type !== 'refresh') throw new HttpError(401, 'Invalid refresh token')
 
@@ -189,6 +201,20 @@ export async function refreshAccessToken(refreshToken: string) {
   if (!user) throw new HttpError(401, 'User not found')
   const newAccessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
   return { accessToken: newAccessToken }
+}
+
+export async function logout(refreshToken?: string) {
+  if (refreshToken) {
+    try {
+      const payload = jwt.verify(refreshToken, getJwtSecret()) as { type: string }
+      if (payload.type === 'refresh') {
+        revokedRefreshTokens.add(refreshToken)
+      }
+    } catch {
+      // ignore invalid token on logout; goal is to clear any server references
+    }
+  }
+  return { revoked: Boolean(refreshToken) }
 }
 
 export async function getProfile(userId: string | ObjectId) {

@@ -2186,43 +2186,12 @@ paths:
             schema:
               type: object
               required:
-                - patientId
-                - fullName
-                - dateOfBirth
-                - gender
-                - phoneNumber
-                - address
+                - userId
               properties:
-                patientId:
+                userId:
                   type: string
-                  example: 'P001234'
-                  description: Unique patient identifier
-                fullName:
-                  type: string
-                  example: 'Nguyễn Văn A'
-                dateOfBirth:
-                  type: string
-                  format: date
-                  example: '1990-01-15'
-                gender:
-                  type: string
-                  enum: [male, female]
-                  example: 'male'
-                phoneNumber:
-                  type: string
-                  pattern: '^[0-9]{10,11}$'
-                  example: '0123456789'
-                email:
-                  type: string
-                  format: email
-                  example: 'patient@email.com'
-                address:
-                  type: string
-                  example: '123 Đường ABC, Quận 1, TP.HCM'
-                identifyNumber:
-                  type: string
-                  pattern: '^[0-9]{9,12}$'
-                  example: '123456789'
+                  example: '507f1f77bcf86cd799439011'
+                  description: MongoDB user _id of an existing user with role patient
                 emergencyContact:
                   type: object
                   properties:
@@ -2716,6 +2685,10 @@ components:
         _id:
           type: string
           example: "507f1f77bcf86cd799439011"
+        patientId:
+          type: string
+          example: "P001234"
+          description: Auto-generated patient identifier for users with role patient
         fullName:
           type: string
           example: "Nguyễn Văn A"
