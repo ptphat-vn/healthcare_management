@@ -4,6 +4,7 @@ import { MESSAGES } from '~/constants/message.constant'
 import { getTestOrdersCollection, TestOrderDocument, TestResult, Comment } from '~/models/test-order.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
+import { getRolesCollection } from '~/models/role.model'
 
 export interface CreateTestOrderData {
   patientName: string
@@ -293,7 +294,7 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(addedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(addedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -346,7 +347,7 @@ export async function addComment(id: string, content: string, addedBy: string) {
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(addedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(addedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -422,7 +423,7 @@ export async function reviewTestOrderResults(id: string, reviewedBy: string, res
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(reviewedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(reviewedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -508,7 +509,7 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(reviewedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(reviewedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -584,7 +585,7 @@ export async function updateComment(testOrderId: string, commentId: string, cont
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(updatedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(updatedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -659,7 +660,7 @@ export async function deleteComment(testOrderId: string, commentId: string, dele
   // Log the event
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(deletedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(deletedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
