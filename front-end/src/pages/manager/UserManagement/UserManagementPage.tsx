@@ -1,11 +1,13 @@
 import UserList from "@/components/features/admin/userManagement/UserList";
 import AddUserDialog from "@/components/features/manager/UserManagement/AddUserDialog";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
 
 export default function UserManagementPage() {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen rounded-[20px]">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">

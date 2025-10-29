@@ -1,6 +1,10 @@
 import { ObjectId, WithId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
-import { getPatientMedicalRecordsCollection, type PatientMedicalRecordDocument, type ClinicalNote } from '~/models/patient-medical-record.model'
+import {
+  getPatientMedicalRecordsCollection,
+  type PatientMedicalRecordDocument,
+  type ClinicalNote
+} from '~/models/patient-medical-record.model'
 import { getTestOrdersCollection } from '~/models/test-order.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getUsersCollection } from '~/models/user.model'
@@ -69,7 +73,10 @@ export interface ListPatientRecordsParams {
   limit?: number
 }
 
-export const createPatientRecord = async (payload: CreatePatientRecordPayload, createdBy: string): Promise<WithId<PatientMedicalRecordDocument>> => {
+export const createPatientRecord = async (
+  payload: CreatePatientRecordPayload,
+  createdBy: string
+): Promise<WithId<PatientMedicalRecordDocument>> => {
   const patientRecords = getPatientMedicalRecordsCollection()
   const users = getUsersCollection()
   const roles = getRolesCollection()
@@ -113,12 +120,12 @@ export const createPatientRecord = async (payload: CreatePatientRecordPayload, c
     isDeleted: false,
     createdAt: now,
     updatedAt: now,
-    createdBy: createdByObjectId,
+    createdBy: createdByObjectId
   }
 
   const result = await patientRecords.insertOne(doc as any)
   const created = await patientRecords.findOne({ _id: result.insertedId } as any)
-  
+
   if (!created) {
     throw new HttpError(500, 'Failed to create patient record')
   }
@@ -131,8 +138,8 @@ export const createPatientRecord = async (payload: CreatePatientRecordPayload, c
     await eventLogs.insertOne({
       operator: { id: createdByObjectId, name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
       action: 'CREATE_PATIENT_RECORD',
-      details: `Created patient record: ${doc.fullName}`,
-      timestamp: now,
+      details: `Created patient record: ID: ${doc.fullName}`,
+      timestamp: now
     } as any)
   } catch {
     // swallow logging errors
@@ -141,7 +148,11 @@ export const createPatientRecord = async (payload: CreatePatientRecordPayload, c
   return created as WithId<PatientMedicalRecordDocument>
 }
 
-export const updatePatientRecord = async (id: string, payload: UpdatePatientRecordPayload, updatedBy: string): Promise<WithId<PatientMedicalRecordDocument>> => {
+export const updatePatientRecord = async (
+  id: string,
+  payload: UpdatePatientRecordPayload,
+  updatedBy: string
+): Promise<WithId<PatientMedicalRecordDocument>> => {
   let patientObjectId: ObjectId
   try {
     patientObjectId = new ObjectId(id)
@@ -150,15 +161,15 @@ export const updatePatientRecord = async (id: string, payload: UpdatePatientReco
   }
 
   const patientRecords = getPatientMedicalRecordsCollection()
-  
+
   const existingRecord = await patientRecords.findOne({ _id: patientObjectId, isDeleted: { $ne: true } } as any)
   if (!existingRecord) {
     throw new HttpError(404, 'Patient record not found')
   }
 
   if (payload.identifyNumber && payload.identifyNumber !== existingRecord.identifyNumber) {
-    const duplicateIdentify = await patientRecords.findOne({ 
-      identifyNumber: payload.identifyNumber, 
+    const duplicateIdentify = await patientRecords.findOne({
+      identifyNumber: payload.identifyNumber,
       _id: { $ne: patientObjectId },
       isDeleted: { $ne: true }
     } as any)
@@ -185,7 +196,7 @@ export const updatePatientRecord = async (id: string, payload: UpdatePatientReco
     version: (existingRecord.versionHistory?.length || 0) + 1,
     changes,
     changedBy: updatedByObjectId,
-    timestamp: now,
+    timestamp: now
   }
 
   const updateData = {
@@ -196,7 +207,7 @@ export const updatePatientRecord = async (id: string, payload: UpdatePatientReco
 
   const result = await patientRecords.findOneAndUpdate(
     { _id: patientObjectId } as any,
-    { 
+    {
       $set: updateData,
       $push: { versionHistory: versionEntry }
     },
@@ -217,7 +228,7 @@ export const updatePatientRecord = async (id: string, payload: UpdatePatientReco
       operator: { id: updatedByObjectId, name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
       action: 'UPDATE_PATIENT_RECORD',
       details: `Updated patient record: ${updated.fullName} (ID: ${updated.patientId})`,
-      timestamp: now,
+      timestamp: now
     } as any)
   } catch {
     // swallow logging errors
@@ -226,7 +237,10 @@ export const updatePatientRecord = async (id: string, payload: UpdatePatientReco
   return updated as WithId<PatientMedicalRecordDocument>
 }
 
-export const deletePatientRecord = async (id: string, deletedBy: string): Promise<WithId<PatientMedicalRecordDocument>> => {
+export const deletePatientRecord = async (
+  id: string,
+  deletedBy: string
+): Promise<WithId<PatientMedicalRecordDocument>> => {
   let patientObjectId: ObjectId
   try {
     patientObjectId = new ObjectId(id)
@@ -236,7 +250,7 @@ export const deletePatientRecord = async (id: string, deletedBy: string): Promis
 
   const patientRecords = getPatientMedicalRecordsCollection()
   const testOrders = getTestOrdersCollection()
-  
+
   const existingRecord = await patientRecords.findOne({ _id: patientObjectId, isDeleted: { $ne: true } } as any)
   if (!existingRecord) {
     throw new HttpError(404, 'Patient record not found')
@@ -256,8 +270,8 @@ export const deletePatientRecord = async (id: string, deletedBy: string): Promis
 
   const result = await patientRecords.findOneAndUpdate(
     { _id: patientObjectId } as any,
-    { 
-      $set: { 
+    {
+      $set: {
         isDeleted: true,
         deletedAt: now,
         deletedBy: deletedByObjectId,
@@ -281,7 +295,7 @@ export const deletePatientRecord = async (id: string, deletedBy: string): Promis
       operator: { id: deletedByObjectId, name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
       action: 'DELETE_PATIENT_RECORD',
       details: `Deleted patient record: ${deleted.fullName} (ID: ${deleted.patientId})`,
-      timestamp: now,
+      timestamp: now
     } as any)
   } catch {
     // swallow logging errors
@@ -294,13 +308,13 @@ export const listPatientRecords = async (params: ListPatientRecordsParams) => {
   const patientRecords = getPatientMedicalRecordsCollection()
   const testOrders = getTestOrdersCollection()
   const users = getUsersCollection()
-  
+
   const page = params.page && params.page > 0 ? params.page : 1
   const limit = params.limit && params.limit > 0 ? params.limit : 10
   const skip = (page - 1) * limit
-  
+
   const filter: Record<string, any> = { isDeleted: { $ne: true } }
-  
+
   if (params.search) {
     const q = params.search
     filter.$or = [
@@ -310,7 +324,7 @@ export const listPatientRecords = async (params: ListPatientRecordsParams) => {
       { phoneNumber: { $regex: q, $options: 'i' } }
     ]
   }
-  
+
   if (params.gender) {
     filter.gender = params.gender
   }
@@ -323,39 +337,45 @@ export const listPatientRecords = async (params: ListPatientRecordsParams) => {
       filter.dateOfBirth.$lte = params.dateOfBirthTo
     }
   }
-  
+
   const sortField = params.sortBy || 'createdAt'
   const sortOrder = params.sortOrder || -1
-  
-  const cursor = patientRecords.find(filter as any).sort({ [sortField]: sortOrder } as any).skip(skip).limit(limit)
-  const [patientItems, total] = await Promise.all([
-    cursor.toArray(),
-    patientRecords.countDocuments(filter as any),
-  ])
-  
-  const patientIds = patientItems.map(p => p.patientId)
-  const testOrderDocs = patientIds.length ? await testOrders.find({ 
-    patientId: { $in: patientIds },
-    status: { $ne: 'cancelled' }
-  }).sort({ createdDate: -1 }).toArray() : []
-  
+
+  const cursor = patientRecords
+    .find(filter as any)
+    .sort({ [sortField]: sortOrder } as any)
+    .skip(skip)
+    .limit(limit)
+  const [patientItems, total] = await Promise.all([cursor.toArray(), patientRecords.countDocuments(filter as any)])
+
+  const patientIds = patientItems.map((p) => p.patientId)
+  const testOrderDocs = patientIds.length
+    ? await testOrders
+        .find({
+          patientId: { $in: patientIds },
+          status: { $ne: 'cancelled' }
+        })
+        .sort({ createdDate: -1 })
+        .toArray()
+    : []
+
   const lastTestByPatient = new Map<string, any>()
   for (const testOrder of testOrderDocs as any[]) {
     if (!lastTestByPatient.has(testOrder.patientId)) {
       lastTestByPatient.set(testOrder.patientId, testOrder)
     }
   }
-  const userIds = Array.from(new Set(patientItems.map(p => p.createdBy).filter(Boolean))) as ObjectId[]
+  const userIds = Array.from(new Set(patientItems.map((p) => p.createdBy).filter(Boolean))) as ObjectId[]
   const userDocs = userIds.length ? await users.find({ _id: { $in: userIds } }).toArray() : []
   const idToUser = new Map<string, { fullName?: string; email?: string }>()
   for (const u of userDocs as any[]) {
     idToUser.set(String(u._id), { fullName: u.fullName, email: u.email })
   }
-  
+
   const enrichedPatients = patientItems.map((patient: any) => {
     const lastTest = lastTestByPatient.get(patient.patientId)
     const createdByUser = idToUser.get(String(patient.createdBy))
-    
+
     return {
       ...patient,
       lastTestDate: lastTest?.createdDate,
@@ -363,15 +383,15 @@ export const listPatientRecords = async (params: ListPatientRecordsParams) => {
       createdByUser
     }
   })
-  
+
   return {
     patients: enrichedPatients,
     pagination: {
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit) || 1,
-    },
+      totalPages: Math.ceil(total / limit) || 1
+    }
   }
 }
 
@@ -386,24 +406,31 @@ export const getPatientRecordDetail = async (id: string) => {
   const patientRecords = getPatientMedicalRecordsCollection()
   const testOrders = getTestOrdersCollection()
   const users = getUsersCollection()
-  
+
   const patient = await patientRecords.findOne({ _id: patientObjectId, isDeleted: { $ne: true } } as any)
   if (!patient) {
     throw new HttpError(404, 'Patient record not found')
   }
 
-  const patientTestOrders = await testOrders.find({ 
-    patientId: patient.patientId,
-    status: { $ne: 'cancelled' }
-  }).sort({ createdDate: -1 }).toArray()
+  const patientTestOrders = await testOrders
+    .find({
+      patientId: patient.patientId,
+      status: { $ne: 'cancelled' }
+    })
+    .sort({ createdDate: -1 })
+    .toArray()
 
-  const userIds = Array.from(new Set([
-    patient.createdBy,
-    patient.lastModifiedBy,
-    ...patientTestOrders.map(to => to.createdBy).filter(Boolean),
-    ...patientTestOrders.map(to => to.runBy).filter(Boolean)
-  ].filter(Boolean))) as ObjectId[]
-  
+  const userIds = Array.from(
+    new Set(
+      [
+        patient.createdBy,
+        patient.lastModifiedBy,
+        ...patientTestOrders.map((to) => to.createdBy).filter(Boolean),
+        ...patientTestOrders.map((to) => to.runBy).filter(Boolean)
+      ].filter(Boolean)
+    )
+  ) as ObjectId[]
+
   const userDocs = userIds.length ? await users.find({ _id: { $in: userIds } }).toArray() : []
   const idToUser = new Map<string, { fullName?: string; email?: string }>()
   for (const u of userDocs as any[]) {
@@ -413,7 +440,7 @@ export const getPatientRecordDetail = async (id: string) => {
   const enrichedTestOrders = patientTestOrders.map((testOrder: any) => {
     const createdByUser = testOrder.createdBy ? idToUser.get(String(testOrder.createdBy)) : null
     const runByUser = testOrder.runBy ? idToUser.get(String(testOrder.runBy)) : null
-    
+
     return {
       ...testOrder,
       createdByUser,
@@ -432,7 +459,11 @@ export const getPatientRecordDetail = async (id: string) => {
   }
 }
 
-export const addClinicalNote = async (patientId: string, note: Omit<ClinicalNote, '_id' | 'createdAt'>, addedBy: string): Promise<WithId<PatientMedicalRecordDocument>> => {
+export const addClinicalNote = async (
+  patientId: string,
+  note: Omit<ClinicalNote, '_id' | 'createdAt'>,
+  addedBy: string
+): Promise<WithId<PatientMedicalRecordDocument>> => {
   let patientObjectId: ObjectId
   try {
     patientObjectId = new ObjectId(patientId)
@@ -441,7 +472,7 @@ export const addClinicalNote = async (patientId: string, note: Omit<ClinicalNote
   }
 
   const patientRecords = getPatientMedicalRecordsCollection()
-  
+
   const existingRecord = await patientRecords.findOne({ _id: patientObjectId, isDeleted: { $ne: true } } as any)
   if (!existingRecord) {
     throw new HttpError(404, 'Patient record not found')
@@ -449,17 +480,17 @@ export const addClinicalNote = async (patientId: string, note: Omit<ClinicalNote
 
   const now = new Date()
   const addedByObjectId = new ObjectId(addedBy)
-  
+
   const newNote: ClinicalNote = {
     _id: new ObjectId(),
     ...note,
     createdBy: addedByObjectId,
-    createdAt: now,
+    createdAt: now
   }
 
   const result = await patientRecords.findOneAndUpdate(
     { _id: patientObjectId } as any,
-    { 
+    {
       $push: { clinicalNotes: newNote },
       $set: { updatedAt: now, lastModifiedBy: addedByObjectId }
     },
@@ -481,7 +512,7 @@ export const addClinicalNote = async (patientId: string, note: Omit<ClinicalNote
       operator: { id: addedByObjectId, name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
       action: 'ADD_CLINICAL_NOTE',
       details: `Added clinical note to patient: ${updated.fullName} (ID: ${updated.patientId})`,
-      timestamp: now,
+      timestamp: now
     } as any)
   } catch {
     // swallow logging errors
