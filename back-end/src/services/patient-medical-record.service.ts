@@ -4,17 +4,11 @@ import { getPatientMedicalRecordsCollection, type PatientMedicalRecordDocument, 
 import { getTestOrdersCollection } from '~/models/test-order.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getUsersCollection } from '~/models/user.model'
+import { getRolesCollection } from '~/models/role.model'
 
 export interface CreatePatientRecordPayload {
-  patientId: string
-  fullName: string
-  dateOfBirth: string
-  gender: 'male' | 'female'
+  userId: string
   bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
-  phoneNumber: string
-  email?: string
-  address: string
-  identifyNumber?: string
   emergencyContact?: {
     name: string
     phoneNumber: string
@@ -77,24 +71,42 @@ export interface ListPatientRecordsParams {
 
 export const createPatientRecord = async (payload: CreatePatientRecordPayload, createdBy: string): Promise<WithId<PatientMedicalRecordDocument>> => {
   const patientRecords = getPatientMedicalRecordsCollection()
-  
-  const existingPatient = await patientRecords.findOne({ patientId: payload.patientId, isDeleted: { $ne: true } } as any)
-  if (existingPatient) {
-    throw new HttpError(409, 'Patient ID already exists')
+  const users = getUsersCollection()
+  const roles = getRolesCollection()
+
+  let userObjectId: ObjectId
+  try {
+    userObjectId = new ObjectId(payload.userId)
+  } catch {
+    throw new HttpError(422, 'Invalid user id')
   }
 
-  if (payload.identifyNumber) {
-    const existingIdentify = await patientRecords.findOne({ identifyNumber: payload.identifyNumber, isDeleted: { $ne: true } } as any)
-    if (existingIdentify) {
-      throw new HttpError(409, 'Identity number already exists')
-    }
-  }
+  const user = await users.findOne({ _id: userObjectId } as any)
+  if (!user) throw new HttpError(404, 'User not found')
+  if (!user.patientId) throw new HttpError(409, 'User does not have a patientId')
+
+  const roleDoc = user.roleId ? await roles.findOne({ _id: user.roleId } as any) : null
+  if (roleDoc?.code !== 'patient') throw new HttpError(409, 'Selected user is not a patient')
+
+  const existingRecord = await patientRecords.findOne({ patientId: user.patientId, isDeleted: { $ne: true } } as any)
+  if (existingRecord) throw new HttpError(409, 'Medical record already exists for this patient')
 
   const now = new Date()
   const createdByObjectId = new ObjectId(createdBy)
-  
+
   const doc: PatientMedicalRecordDocument = {
-    ...payload,
+    patientId: user.patientId,
+    fullName: (user as any).fullName,
+    dateOfBirth: (user as any).dateOfBirth,
+    gender: (user as any).gender,
+    phoneNumber: (user as any).phoneNumber,
+    email: (user as any).email,
+    address: (user as any).address,
+    identifyNumber: (user as any).identifyNumber,
+    bloodType: payload.bloodType,
+    emergencyContact: payload.emergencyContact,
+    medicalHistory: payload.medicalHistory,
+    insuranceInfo: payload.insuranceInfo,
     testOrders: [],
     clinicalNotes: [],
     versionHistory: [],
@@ -106,15 +118,13 @@ export const createPatientRecord = async (payload: CreatePatientRecordPayload, c
 
   const result = await patientRecords.insertOne(doc as any)
   const created = await patientRecords.findOne({ _id: result.insertedId } as any)
-  
-  if (!created) {
-    throw new HttpError(500, 'Failed to create patient record')
-  }
+  if (!created) throw new HttpError(500, 'Failed to create patient record')
+
   const eventLogs = getEventLogsCollection()
   await eventLogs.insertOne({
     userId: createdByObjectId,
     action: 'CREATE_PATIENT_RECORD',
-    details: `Created patient record for ${payload.fullName} (ID: ${payload.patientId})`,
+    details: `Created patient record for ${doc.fullName} (ID: ${doc.patientId})`,
     timestamp: now,
   } as any)
 

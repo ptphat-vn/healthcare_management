@@ -3,11 +3,15 @@ import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getTestOrdersCollection, TestOrderDocument, TestResult, Comment } from '~/models/test-order.model'
 import { getUsersCollection } from '~/models/user.model'
-import { getRolesCollection } from '~/models/role.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 
 export interface CreateTestOrderData {
-  patientId: string
+  patientName: string
+  dateOfBirth: string
+  gender: 'male' | 'female'
+  address: string
+  phoneNumber: string
+  email: string
 }
 
 export interface UpdateTestOrderData {
@@ -31,7 +35,6 @@ export interface ListTestOrdersParams {
 export async function createTestOrder(data: CreateTestOrderData, createdBy: string) {
   const testOrders = getTestOrdersCollection()
   const users = getUsersCollection()
-  const roles = getRolesCollection()
   const eventLogs = getEventLogsCollection()
 
   // Verify the creator exists
@@ -40,23 +43,9 @@ export async function createTestOrder(data: CreateTestOrderData, createdBy: stri
     throw new HttpError(404, 'User not found')
   }
 
-  // Resolve patient from existing user by patientId code and verify role is patient
-  const patientUser = await users.findOne({ patientId: data.patientId } as any)
-  if (!patientUser) throw new HttpError(404, 'Patient not found')
-
-  const patientRole = patientUser.roleId ? await roles.findOne({ _id: patientUser.roleId } as any) : null
-  if (!patientRole || (patientRole as any).code !== 'patient') {
-    throw new HttpError(400, 'Selected user is not a patient')
-  }
-
   const now = new Date()
   const testOrder: Omit<TestOrderDocument, '_id'> = {
-    patientName: (patientUser as any).fullName,
-    dateOfBirth: (patientUser as any).dateOfBirth,
-    gender: (patientUser as any).gender,
-    address: (patientUser as any).address,
-    phoneNumber: (patientUser as any).phoneNumber,
-    email: (patientUser as any).email,
+    ...data,
     status: 'pending',
     createdDate: now,
     createdBy: new ObjectId(createdBy),
@@ -74,7 +63,7 @@ export async function createTestOrder(data: CreateTestOrderData, createdBy: stri
     await eventLogs.insertOne({
       operator: { id: new ObjectId(createdBy), name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
       action: 'TEST_ORDER_CREATED',
-      details: `Created test order for patient: ${testOrder.patientName}`,
+      details: `Created test order for patient: ${data.patientName}`,
       timestamp: now
     } as any)
   } catch {

@@ -1,16 +1,26 @@
-import type { Collection, ObjectId } from 'mongodb'
+import type { Collection, Document } from 'mongodb'
 import { getDb } from '~/configs/mongodb.config'
 
 export const COUNTERS_COLLECTION = 'counters'
 
-export interface CounterDocument {
-  _id?: ObjectId
-  key: string
+export interface CounterDocument extends Document {
+  _id: string
   seq: number
 }
 
 export const getCountersCollection = (): Collection<CounterDocument> => {
   return getDb().collection<CounterDocument>(COUNTERS_COLLECTION)
+}
+
+export const getNextSequence = async (key: string): Promise<number> => {
+  const counters = getCountersCollection()
+  const result = await counters.findOneAndUpdate(
+    { _id: key } as any,
+    { $inc: { seq: 1 } },
+    { upsert: true, returnDocument: 'after' }
+  )
+  const seq: number = ((result as any)?.value?.seq) ?? 1
+  return seq
 }
 
 

@@ -4,10 +4,10 @@ import type { ObjectId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getUsersCollection, type UserDocument } from '~/models/user.model'
-import { getCountersCollection } from '~/models/counter.model'
 import { getRolesCollection } from '~/models/role.model'
 import { getPasswordResetCollection, type PasswordResetDocument } from '~/models/password-reset.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
+import { getNextSequence } from '~/models/counter.model'
 
 const revokedRefreshTokens = new Set<string>()
 
@@ -15,6 +15,12 @@ const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET
   if (!secret) throw new Error('JWT_SECRET is not set')
   return secret
+}
+
+const generateNextPatientId = async (): Promise<string> => {
+  const seq = await getNextSequence('patientId')
+  const padded = String(seq).padStart(6, '0')
+  return `P${padded}`
 }
 
 export async function register(payload: {
@@ -42,22 +48,8 @@ export async function register(payload: {
     const insertRole = await roles.insertOne({ name: 'Patient', code: 'patient', description: 'Default user role', privileges: ['read_only'], createdAt: now, updatedAt: now } as any)
     defaultRole = await roles.findOne({ _id: insertRole.insertedId } as any)
   }
-  // Assign patientId if role is patient
-  let patientId: string | undefined
-  if ((defaultRole as any).code === 'patient') {
-    const counters = getCountersCollection()
-    const counter = await counters.findOneAndUpdate(
-      { key: 'patient' } as any,
-      { $inc: { seq: 1 } },
-      { upsert: true, returnDocument: 'after' }
-    )
-    const seqNum = ((counter as any)?.value?.seq) ?? (counter as any)?.seq
-    const num = typeof seqNum === 'number' ? seqNum : 1
-    patientId = `P${String(num).padStart(6, '0')}`
-  }
-
   const insert = await users.insertOne({
-    patientId,
+    patientId: await generateNextPatientId(),
     fullName: payload.fullName,
     email: payload.email,
     phoneNumber: payload.phoneNumber,
@@ -86,6 +78,7 @@ export async function register(payload: {
 
   return {
     id: insert.insertedId,
+    patientId: (await users.findOne({ _id: insert.insertedId } as any))?.patientId,
     fullName: payload.fullName,
     email: payload.email,
     phoneNumber: payload.phoneNumber,
@@ -98,7 +91,6 @@ export async function register(payload: {
 }
 
 export async function createUserByAdmin(payload: Parameters<typeof register>[0]) {
-  // Same as register for now; could set different role later
   const created = await register(payload)
   return created
 }

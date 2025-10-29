@@ -10,7 +10,12 @@ const isValidDate = (s: string): boolean => {
 }
 
 const createTestOrderSchema = z.object({
-  patientId: z.string().min(1, 'Bệnh nhân là bắt buộc')
+  patientName: z.string().min(1, 'Tên bệnh nhân không được để trống'),
+  dateOfBirth: z.string().refine(isValidDate, 'Ngày sinh phải đúng định dạng MM/DD/YYYY'),
+  gender: z.enum(['male', 'female'], { message: 'Giới tính phải là nam hoặc nữ' }),
+  address: z.string().min(1, 'Địa chỉ không được để trống'),
+  phoneNumber: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
+  email: z.string().email('Email không đúng định dạng')
 })
 
 const updateTestOrderSchema = z.object({
