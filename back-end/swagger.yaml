@@ -528,8 +528,30 @@ paths:
       tags:
         - Authentication
       summary: User logout
-      description: Clear user session
+      description: |
+        Logout user. Server will revoke the provided refresh token and clear cookies.
+        
+        You can provide the refresh token in either:
+        - Request body: { "refreshToken": "<token>" }
+        - Header: x-refresh-token: <token>
       operationId: logout
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: Refresh token to revoke
+      parameters:
+        - name: x-refresh-token
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Refresh token to revoke (alternative to request body)
       responses:
         '200':
           description: Logout successful
@@ -545,6 +567,9 @@ paths:
                     type: object
                     properties:
                       sessionCleared:
+                        type: boolean
+                        example: true
+                      refreshRevoked:
                         type: boolean
                         example: true
 
@@ -1397,7 +1422,7 @@ paths:
       tags:
         - Test Orders
       summary: Create a new test order
-      description: Create a new patient test order with required information
+      description: Create a new test order by selecting an existing patient user via patientId code (e.g., P001234)
       security:
         - bearerAuth: []
       requestBody:
@@ -1407,35 +1432,12 @@ paths:
             schema:
               type: object
               required:
-                - patientName
-                - dateOfBirth
-                - gender
-                - address
-                - phoneNumber
-                - email
+                - patientId
               properties:
-                patientName:
+                patientId:
                   type: string
-                  example: 'Nguyễn Văn A'
-                dateOfBirth:
-                  type: string
-                  format: date
-                  example: '1990-01-15'
-                gender:
-                  type: string
-                  enum: [male, female]
-                  example: 'male'
-                address:
-                  type: string
-                  example: '123 Đường ABC, Quận 1, TP.HCM'
-                phoneNumber:
-                  type: string
-                  pattern: '^[0-9]{10,11}$'
-                  example: '0123456789'
-                email:
-                  type: string
-                  format: email
-                  example: 'patient@email.com'
+                  description: Patient code assigned on user creation
+                  example: 'P001234'
       responses:
         '201':
           description: Test order created successfully
@@ -2841,6 +2843,10 @@ components:
         _id:
           type: string
           example: "507f1f77bcf86cd799439011"
+        patientId:
+          type: string
+          description: Auto-generated patient code for users with role 'patient'
+          example: 'P001234'
         fullName:
           type: string
           example: "Nguyễn Văn A"

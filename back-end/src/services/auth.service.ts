@@ -4,9 +4,12 @@ import type { ObjectId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getUsersCollection, type UserDocument } from '~/models/user.model'
+import { getCountersCollection } from '~/models/counter.model'
 import { getRolesCollection } from '~/models/role.model'
 import { getPasswordResetCollection, type PasswordResetDocument } from '~/models/password-reset.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
+
+const revokedRefreshTokens = new Set<string>()
 
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET
@@ -39,7 +42,22 @@ export async function register(payload: {
     const insertRole = await roles.insertOne({ name: 'Patient', code: 'patient', description: 'Default user role', privileges: ['read_only'], createdAt: now, updatedAt: now } as any)
     defaultRole = await roles.findOne({ _id: insertRole.insertedId } as any)
   }
+  // Assign patientId if role is patient
+  let patientId: string | undefined
+  if ((defaultRole as any).code === 'patient') {
+    const counters = getCountersCollection()
+    const counter = await counters.findOneAndUpdate(
+      { key: 'patient' } as any,
+      { $inc: { seq: 1 } },
+      { upsert: true, returnDocument: 'after' }
+    )
+    const seqNum = ((counter as any)?.value?.seq) ?? (counter as any)?.seq
+    const num = typeof seqNum === 'number' ? seqNum : 1
+    patientId = `P${String(num).padStart(6, '0')}`
+  }
+
   const insert = await users.insertOne({
+    patientId,
     fullName: payload.fullName,
     email: payload.email,
     phoneNumber: payload.phoneNumber,
@@ -174,6 +192,8 @@ export async function changePassword(payload: { userId: string | ObjectId; oldPa
 }
 
 export async function refreshAccessToken(refreshToken: string) {
+  if (!refreshToken) throw new HttpError(400, 'Refresh token is required')
+  if (revokedRefreshTokens.has(refreshToken)) throw new HttpError(401, 'Refresh token has been revoked')
   const payload = jwt.verify(refreshToken, getJwtSecret()) as { sub: string; type: string }
   if (payload.type !== 'refresh') throw new HttpError(401, 'Invalid refresh token')
 
@@ -189,6 +209,20 @@ export async function refreshAccessToken(refreshToken: string) {
   if (!user) throw new HttpError(401, 'User not found')
   const newAccessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
   return { accessToken: newAccessToken }
+}
+
+export async function logout(refreshToken?: string) {
+  if (refreshToken) {
+    try {
+      const payload = jwt.verify(refreshToken, getJwtSecret()) as { type: string }
+      if (payload.type === 'refresh') {
+        revokedRefreshTokens.add(refreshToken)
+      }
+    } catch {
+      // ignore invalid token on logout; goal is to clear any server references
+    }
+  }
+  return { revoked: Boolean(refreshToken) }
 }
 
 export async function getProfile(userId: string | ObjectId) {

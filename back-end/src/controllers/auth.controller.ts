@@ -32,11 +32,13 @@ export const loginController = async (req: Request, res: Response, next: NextFun
 
 export const logoutController = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const refreshToken = (req.body as { refreshToken?: string })?.refreshToken || (req.headers['x-refresh-token'] as string | undefined)
+    await authService.logout(refreshToken)
     res.clearCookie('token')
     res.clearCookie('session')
     return res.status(200).json({
       message: MESSAGES.LOGOUT_SUCCESS,
-      data: { sessionCleared: true }
+      data: { sessionCleared: true, refreshRevoked: Boolean(refreshToken) }
     })
   } catch (err) {
     next(err)

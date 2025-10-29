@@ -5,6 +5,7 @@ export const USERS_COLLECTION = 'users'
 
 export interface UserDocument {
   _id?: ObjectId
+  patientId?: string
   fullName: string
   email: string
   phoneNumber: string
