@@ -95,9 +95,16 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { path: "dashboard", element: "Dang lam" },
+      { path: "dashboard", element: <div>Đang làm</div> },
       { path: "user-management", element: <UserManagement /> },
       { path: "roles-management", element: <RoleManagementPage /> },
+      { path: "user-management/:id", element: <UserDetail /> },
+      { path: "profile", element: <ProfilePage /> },
+      { path: "medical-record", element: <MedicalRecordPage /> },
+      { path: "medical-records/:id", element: <MedicalRecordDetail /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
+      { path: "event-log", element: <MonitoringServicePage /> },
     ],
   },
 

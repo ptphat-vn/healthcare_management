@@ -17,7 +17,7 @@ export interface User {
 export type RoleUser =
   | "user"
   | "admin"
-  | "manager"
+  | "lab_manager"
   | "consultant"
   | "service"
   | "lab_user";

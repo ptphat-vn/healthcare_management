@@ -14,10 +14,10 @@ import {
   Edit,
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
 import { useGetAllUserQuery } from "@/services/userApi";
 import { useGetAllRoleQuery } from "@/services/roleApi";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardStats {
   totalUsers: number;
@@ -45,6 +45,7 @@ interface RoleDistribution {
 }
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -308,7 +309,7 @@ export default function AdminDashboard() {
       <div className="mb-8">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            Quản Lý Tài Khoản
+            Welcome, Administrator {user?.data.fullName}
           </h1>
           <p className="text-gray-600">
             Tổng quan về tất cả người dùng trong hệ thống

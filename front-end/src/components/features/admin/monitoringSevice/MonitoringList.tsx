@@ -8,17 +8,18 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, MoreHorizontal } from "lucide-react";
 import { formatDate } from "@/utils/formatDate";
-import type {
-  EventLog,
-  MonitoringStatus,
-} from "../../../../types/monitor.type";
+import type { EventLog } from "../../../../types/monitor.type";
 import MonitoringDetail from "./MonitoringDetail";
 import { useGetEventLogsQuery } from "@/services/eventLogApi";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
-
-
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DropdownMenuContent } from "@radix-ui/react-dropdown-menu";
 
 export default function MonitoringList() {
   const [selectedLog, setSelectedLog] = useState<EventLog | null>(null);
@@ -27,7 +28,7 @@ export default function MonitoringList() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const { data, isLoading, error } = useGetEventLogsQuery({
     page: currentPage,
-    limit: 20,
+    limit: 10,
   });
 
   // Map backend MongoDB data sang frontend format
@@ -219,17 +220,30 @@ export default function MonitoringList() {
                     </span>
                   </TableCell> */}
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => {
-                        setSelectedLog(log);
-                        setDetailOpen(true);
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 hover:bg-blue-100 transition-colors"
+                          aria-label="Actions"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedLog(log);
+                            setDetailOpen(true);
+                          }}
+                          className="cursor-pointer hover:bg-blue-50"
+                        >
+                          <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                          <span className="text-gray-700">View detail</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))

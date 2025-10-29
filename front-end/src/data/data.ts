@@ -15,4 +15,8 @@ export const privilegeList = [
   "delete_comment",
   "review_test_order",
   "modify_test_order",
+  "create_medical_record",
+  "delete_medical_record",
+  "review_medical_record",
+  "modify_medical_record",
 ];

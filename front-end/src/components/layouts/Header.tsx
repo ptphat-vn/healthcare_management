@@ -18,6 +18,7 @@ export default function Header() {
     user?.data?.roleCode ||
     "User"
   ).toString();
+  // console.log(user?.data);
 
   return (
     <header className="sticky top-0 z-50">
@@ -90,7 +91,10 @@ export default function Header() {
 
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem>
-                  <Link to="/admin/profile" className="w-full block">
+                  <Link
+                    to={`/${user?.data.roleCode}/profile`}
+                    className="w-full block"
+                  >
                     Profile
                   </Link>
                 </DropdownMenuItem>
