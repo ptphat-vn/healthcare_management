@@ -11,6 +11,7 @@ const EnvSchema = z.object({
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
   FRONTEND_URL: z.string().optional(),
   FRONTEND_URLS: z.string().optional(), 
+  GEMINI_API_KEY: z.string().optional(),
 })
 
 const parsed = EnvSchema.safeParse(process.env)
