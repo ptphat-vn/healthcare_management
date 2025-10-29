@@ -1919,44 +1919,6 @@ paths:
         '404':
           description: Test order not found
 
-  /test-orders/{id}/ai-review:
-    post:
-      tags:
-        - Test Order Review
-      summary: AI auto review test order
-      description: Perform AI-driven automatic review of a completed test order
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Test order ID
-          schema:
-            type: string
-            example: '507f1f77bcf86cd799439011'
-      responses:
-        '200':
-          description: AI review completed successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'AI review completed successfully'
-                  data:
-                    $ref: '#/components/schemas/TestOrder'
-        '400':
-          description: Test order not completed
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden (insufficient role)
-        '404':
-          description: Test order not found
-
   # Comment Management
   /test-orders/{id}/comments:
     post:
@@ -2870,6 +2832,123 @@ paths:
         '404':
           description: Patient record not found
 
+  /test-orders/{id}/ai-review:
+    post:
+      tags:
+        - Test Order Review
+      summary: AI auto review a completed test order
+      description: |
+        Trigger AI-assisted review on a completed test order. The system evaluates results, applies minor adjustments if appropriate, clamps values within configured acceptable ranges, and updates status to `ai_reviewed`.
+        
+        Required privilege: `review_test_order`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{24}$"
+      responses:
+        '200':
+          description: AI review completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'AI review completed successfully'
+                  data:
+                    type: object
+                    properties:
+                      testOrder:
+                        $ref: '#/components/schemas/TestOrder'
+                      aiSuggestions:
+                        type: array
+                        description: Raw AI suggestion items returned by Gemini
+                        items:
+                          type: object
+                          properties:
+                            testName:
+                              type: string
+                              example: 'Glucose'
+                            suggestedResult:
+                              type: number
+                              example: 101.5
+                      aiDiagnosis:
+                        type: string
+                        nullable: true
+                        description: JSON string of AI diagnoses (diagnoses[], notes)
+                        example: '{"diagnoses":[{"name":"Diabetes Mellitus","confidence":0.72,"rationale":"Elevated fasting glucose"}],"notes":"Suggest confirmatory testing"}'
+        '400':
+          description: Bad request (invalid id, insufficient data, or wrong status)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Test order must be completed before AI review'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - missing privilege `review_test_order`
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Bạn không có quyền thực hiện hành động này'
+                  required:
+                    type: array
+                    items:
+                      type: string
+                    example: ['review_test_order']
+        '404':
+          description: Test order not found
+
+  /ai/diagnostics:
+    get:
+      tags:
+        - Test Order Review
+      summary: Ping Gemini AI to verify API key and model reachability
+      description: Calls the configured Gemini model with a trivial prompt and returns a short text sample
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: AI diagnostics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'AI diagnostics'
+                  data:
+                    type: object
+                    properties:
+                      ok:
+                        type: boolean
+                        example: true
+                      model:
+                        type: string
+                        example: 'gemini-2.5-pro'
+                      sample:
+                        type: string
+                        nullable: true
+                        example: 'OK - gemini-2.5-pro'
+        '401':
+          description: Unauthorized
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3196,6 +3275,12 @@ components:
             configApplied:
               type: string
               example: '507f1f77bcf86cd799439015'
+            aiDiagnosisSummary:
+              type: array
+              items:
+                type: string
+              description: Short list of AI-suggested diagnosis names
+              example: ['Diabetes Mellitus']
         createdAt:
           type: string
           format: date-time
