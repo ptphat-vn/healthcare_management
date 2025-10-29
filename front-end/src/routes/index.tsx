@@ -116,6 +116,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: "dashboard", element: <LabUserDashboard /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
       { path: "medical-records", element: <MedicalRecordPage /> },
       { path: "medical-records/:id", element: <MedicalRecordDetail /> },
       { path: "profile", element: <ProfilePage /> },

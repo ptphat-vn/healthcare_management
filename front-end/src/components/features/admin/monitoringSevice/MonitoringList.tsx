@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Eye, MoreHorizontal } from "lucide-react";
-import { formatDate } from "@/utils/formatDate";
+import dayjs from "dayjs";
 import type { EventLog } from "../../../../types/monitor.type";
 import MonitoringDetail from "./MonitoringDetail";
 import { useGetEventLogsQuery } from "@/services/eventLogApi";
@@ -24,54 +24,36 @@ import { DropdownMenuContent } from "@radix-ui/react-dropdown-menu";
 export default function MonitoringList() {
   const [selectedLog, setSelectedLog] = useState<EventLog | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [mappedLogs, setMappedLogs] = useState<EventLog[]>([]);
+  const [eventLogs, setEventLogs] = useState<EventLog[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const { data, isLoading, error } = useGetEventLogsQuery({
     page: currentPage,
     limit: 10,
   });
 
-  // Map backend MongoDB data sang frontend format
+  
   useEffect(() => {
-    if (data?.data?.eventLogs) {
-      const backendLogs = data.data.eventLogs;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mapped: EventLog[] = backendLogs.map((log: any) => {
-        // Parse MongoDB _id
-        const id = log._id?.$oid || log._id || "";
-
-        // Parse MongoDB timestamp
-        let timestamp = "";
-        if (log.timestamp?.$date?.$numberLong) {
-          timestamp = new Date(
-            parseInt(log.timestamp.$date.$numberLong)
-          ).toISOString();
-        } else if (log.timestamp instanceof Date) {
-          timestamp = log.timestamp.toISOString();
-        } else if (typeof log.timestamp === "string") {
-          timestamp = log.timestamp;
-        }
-
-        // Parse operator: {id, name, role} → lấy name
-        const operator =
-          typeof log.operator === "object" && log.operator !== null
-            ? log.operator.name || "Unknown"
-            : log.operator || "System";
-
-        return {
-          id,
-          timestamp,
-          // status: (log.status as MonitoringStatus) || "", // Lấy từ backend, fallback "info"
-          action: log.action,
-          message: log.details || log.message || "",
-          operator,
-          // service: log.service || "", // Lấy từ backend, fallback "System"
-        };
-      });
-      setMappedLogs(mapped);
-    } else {
-      setMappedLogs([]);
+    if (!data?.data?.eventLogs) {
+      setEventLogs([]);
+      return;
     }
+
+    const formattedEventLogs: EventLog[] = data.data.eventLogs.map(
+      (rawLog: any) => ({
+        id: rawLog._id || "",
+        timestamp: rawLog.timestamp || "",
+        action: rawLog.action || "",
+        message: rawLog.details || rawLog.message || "",
+        operator:
+          typeof rawLog.operator === "object"
+            ? rawLog.operator?.name
+            : rawLog.operator || "System",
+        status: "info", 
+        service: "System", 
+      })
+    );
+
+    setEventLogs(formattedEventLogs);
   }, [data]);
 
   const pagination = data?.data?.pagination;
@@ -91,9 +73,12 @@ export default function MonitoringList() {
       </div>
     );
   }
+
   if (error) {
-    const errMsg =
-      typeof error === "string" ? error : "Error loading event logs";
+    const errorMessage =
+      (error as any)?.data?.message ||
+      (error as any)?.message ||
+      "Error loading event logs";
     return (
       <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
         <div className="flex items-center">
@@ -110,7 +95,7 @@ export default function MonitoringList() {
           </svg>
           <div>
             <p className="font-semibold text-red-800">Error loading data</p>
-            <p className="text-sm text-red-600">{errMsg}</p>
+            <p className="text-sm text-red-600">{errorMessage}</p>
           </div>
         </div>
       </div>
@@ -129,7 +114,6 @@ export default function MonitoringList() {
               <TableHead className="font-semibold text-gray-700 min-w-[100px]">
                 Time
               </TableHead>
-              {/* <TableHead className="font-semibold">Status</TableHead> */}
               <TableHead className="font-semibold text-gray-700 min-w-[200px]">
                 Action
               </TableHead>
@@ -139,7 +123,6 @@ export default function MonitoringList() {
               <TableHead className="font-semibold text-gray-700 min-w-[100px]">
                 Operator
               </TableHead>
-              {/* <TableHead className="font-semibold">Service</TableHead> */}
               <TableHead className="text-right font-semibold text-gray-700 w-20">
                 Actions
               </TableHead>
@@ -161,7 +144,7 @@ export default function MonitoringList() {
                   Lỗi khi tải dữ liệu!
                 </TableCell>
               </TableRow>
-            ) : mappedLogs.length === 0 ? (
+            ) : eventLogs.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={6}
@@ -171,38 +154,19 @@ export default function MonitoringList() {
                 </TableCell>
               </TableRow>
             ) : (
-              mappedLogs.map((log: EventLog, idx) => (
+              eventLogs.map((log: EventLog, idx) => (
                 <TableRow key={log.id} className="hover:bg-gray-50">
                   <TableCell className="text-left font-medium text-gray-600">
                     {(currentPage - 1) * 10 + idx + 1}
                   </TableCell>
                   <TableCell>
                     <div className="font-medium">
-                      {formatDate(log.timestamp)}
+                      {dayjs(log.timestamp).format("DD/MM/YYYY")}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {new Date(log.timestamp).toLocaleTimeString()}
+                      {dayjs(log.timestamp).format("h:mm:ss A")}
                     </div>
                   </TableCell>
-                  {/* <TableCell>
-                    {log.status === "success" ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Success
-                      </span>
-                    ) : log.status === "info" ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        Info
-                      </span>
-                    ) : log.status === "warning" ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Warning
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        Error
-                      </span>
-                    )}
-                  </TableCell> */}
                   <TableCell>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded bg-gray-100 text-xs font-medium">
                       {log.action}
@@ -214,11 +178,6 @@ export default function MonitoringList() {
                     </div>
                   </TableCell>
                   <TableCell>{log.operator}</TableCell>
-                  {/* <TableCell>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-50 text-pink-700">
-                      {log.service}
-                    </span>
-                  </TableCell> */}
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -255,7 +214,7 @@ export default function MonitoringList() {
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
-          {mappedLogs.length > 0 ? (
+          {eventLogs.length > 0 ? (
             <>
               Showing{" "}
               <span className="font-semibold">
