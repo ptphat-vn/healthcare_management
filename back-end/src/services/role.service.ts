@@ -120,7 +120,8 @@ export const ensureDefaultRoles = async () => {
         'create_medical_record',
         'delete_medical_record',
         'review_medical_record',
-        'modify_medical_record'
+        'modify_medical_record',
+        'view_event_logs'
       ]
     },
     {

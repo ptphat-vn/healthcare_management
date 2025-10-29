@@ -8,7 +8,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import ErrorAlert from "@/components/ui/error/ErrorAlert";
@@ -24,7 +24,10 @@ import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
 import type { MedicalRecord } from "@/types/medicalRecord.type";
 import EditMedicalRecordModal from "./EditMedicalRecordModal";
 import DeleteMedicalRecordModal from "./DeleteMedicalRecordModal";
-import { useGetMedicalRecordsQuery, useDeleteMedicalRecordMutation } from "@/services/medicalRecordApi";
+import {
+  useGetMedicalRecordsQuery,
+  useDeleteMedicalRecordMutation,
+} from "@/services/medicalRecordApi";
 import { toast } from "sonner";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
@@ -37,19 +40,28 @@ interface ApiError {
 
 export default function MedicalRecordList() {
   const navigate = useNavigate();
-  const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(
+    null
+  );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<number | "">("");
-  const [sortBy, setSortBy] = useState<'fullName' | 'dateOfBirth' | 'createdAt'>('createdAt');
+  const [sortBy, setSortBy] = useState<
+    "fullName" | "dateOfBirth" | "createdAt"
+  >("createdAt");
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
 
   // API hooks
-  const { data: recordsData, isLoading, error, refetch } = useGetMedicalRecordsQuery({
+  const {
+    data: recordsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetMedicalRecordsQuery({
     search: search || undefined,
-    gender: status === 1 ? 'male' : status === 0 ? 'female' : undefined,
+    gender: status === 1 ? "male" : status === 0 ? "female" : undefined,
     sortBy,
     sortOrder,
     page: currentPage,
@@ -91,7 +103,7 @@ export default function MedicalRecordList() {
 
   const handleDeleteConfirm = async () => {
     if (!selectedRecord) return;
-    
+
     try {
       const recordId = selectedRecord._id || selectedRecord.id;
       if (!recordId) {
@@ -105,14 +117,18 @@ export default function MedicalRecordList() {
       refetch();
     } catch (error: unknown) {
       console.error("Error deleting medical record:", error);
-      
+
       // Handle validation errors from backend
-      const errorData = error as ApiError & { data?: { errors?: Record<string, string> } };
+      const errorData = error as ApiError & {
+        data?: { errors?: Record<string, string> };
+      };
       if (errorData?.data?.errors) {
-        const errorMessages = Object.values(errorData.data.errors).join('\n');
+        const errorMessages = Object.values(errorData.data.errors).join("\n");
         toast.error(`Validation errors:\n${errorMessages}`);
       } else {
-        toast.error(errorData?.data?.message || "Failed to delete medical record");
+        toast.error(
+          errorData?.data?.message || "Failed to delete medical record"
+        );
       }
     }
   };
@@ -124,8 +140,10 @@ export default function MedicalRecordList() {
 
   if (error) {
     return (
-      <ErrorAlert 
-        message={(error as ApiError)?.data?.message || 'An unexpected error occurred'}
+      <ErrorAlert
+        message={
+          (error as ApiError)?.data?.message || "An unexpected error occurred"
+        }
         title="Error loading medical records"
       />
     );
@@ -134,40 +152,39 @@ export default function MedicalRecordList() {
   return (
     <div className="w-full space-y-4">
       {/* Search and Filter */}
-      <Card>
-        <CardContent className="p-4">
-          <SearchAndFilter
-            searchTerm={search}
-            onSearchChange={setSearch}
-            gender={status}
-            onGenderChange={setStatus}
-            sortOptions={[
-              { value: "fullName", label: "Full Name" },
-              { value: "dateOfBirth", label: "Date of Birth" },
-              { value: "createdAt", label: "Created At" }
-            ]}
-            sortByValue={sortBy}
-            onSortByChange={(value) => setSortBy(value as 'fullName' | 'dateOfBirth' | 'createdAt')}
-            sortOrder={sortOrder}
-            onSortOrderChange={setSortOrder}
-            searchPlaceholder="Search medical records..."
-            onClearFilters={() => {
-              setSearch("");
-              setStatus("");
-              setSortBy('createdAt');
-              setSortOrder(-1);
-              setCurrentPage(1);
-            }}
-            showClearFilters={true}
-          />
-        </CardContent>
-      </Card>
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <SearchAndFilter
+          searchTerm={search}
+          onSearchChange={setSearch}
+          gender={status}
+          onGenderChange={setStatus}
+          sortOptions={[
+            { value: "fullName", label: "Full Name" },
+            { value: "dateOfBirth", label: "Date of Birth" },
+            { value: "createdAt", label: "Created At" },
+          ]}
+          sortByValue={sortBy}
+          onSortByChange={(value) =>
+            setSortBy(value as "fullName" | "dateOfBirth" | "createdAt")
+          }
+          sortOrder={sortOrder}
+          onSortOrderChange={setSortOrder}
+          searchPlaceholder="Search medical records..."
+          onClearFilters={() => {
+            setSearch("");
+            setStatus("");
+            setSortBy("createdAt");
+            setSortOrder(-1);
+            setCurrentPage(1);
+          }}
+          showClearFilters={true}
+        />
+      </div>
 
       {/* Table */}
-      <Card className="overflow-hidden">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
             <TableHeader>
               <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
                 <TableHead className="font-semibold text-gray-700 w-16 px-3">
@@ -249,15 +266,18 @@ export default function MedicalRecordList() {
                       {record.gender}
                     </TableCell>
                     <TableCell className="px-3">
-                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                        {record.bloodType || '-'}
+                      <Badge
+                        variant="outline"
+                        className="bg-red-50 text-red-700 border-red-200"
+                      >
+                        {record.bloodType || "-"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-gray-600 px-4">
                       {record.phoneNumber}
                     </TableCell>
                     <TableCell className="text-gray-600 px-4">
-                      {record.email || '-'}
+                      {record.email || "-"}
                     </TableCell>
                     <TableCell className="text-gray-600 px-4">
                       {new Date(record.dateOfBirth).toLocaleDateString()}
@@ -305,13 +325,11 @@ export default function MedicalRecordList() {
             </TableBody>
           </Table>
         </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Pagination */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
           {records.length > 0 ? (
             <>
@@ -319,9 +337,15 @@ export default function MedicalRecordList() {
               <span className="font-semibold">{(currentPage - 1) * 8 + 1}</span>{" "}
               to{" "}
               <span className="font-semibold">
-                {Math.min(currentPage * 8, recordsData?.data?.pagination?.total || 0)}
+                {Math.min(
+                  currentPage * 8,
+                  recordsData?.data?.pagination?.total || 0
+                )}
               </span>{" "}
-              of <span className="font-semibold">{recordsData?.data?.pagination?.total || 0}</span>{" "}
+              of{" "}
+              <span className="font-semibold">
+                {recordsData?.data?.pagination?.total || 0}
+              </span>{" "}
               medical records
             </>
           ) : (
@@ -329,17 +353,16 @@ export default function MedicalRecordList() {
           )}
         </div>
         <div className="w-full sm:w-auto flex justify-center sm:justify-end">
-          {recordsData?.data?.pagination && recordsData.data.pagination.totalPages > 1 && (
-            <PaginationUI
-              currentPage={currentPage}
-              totalPages={recordsData.data.pagination.totalPages}
-              onPageChange={handleChangePage}
-            />
-          )}
+          {recordsData?.data?.pagination &&
+            recordsData.data.pagination.totalPages > 1 && (
+              <PaginationUI
+                currentPage={currentPage}
+                totalPages={recordsData.data.pagination.totalPages}
+                onPageChange={handleChangePage}
+              />
+            )}
         </div>
-          </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Modals */}
       <EditMedicalRecordModal

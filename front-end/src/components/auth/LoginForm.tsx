@@ -37,7 +37,8 @@ export default function LoginForm() {
       console.log("error login", error);
 
       toast.error(
-        error.data?.message || "Đăng nhập thất bại, vui lòng thử lại"
+        error.data?.message || "Đăng nhập thất bại, vui lòng thử lại",
+        { duration: 4000 }
       );
     }
   };

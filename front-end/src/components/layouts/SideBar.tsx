@@ -65,12 +65,31 @@ export default function SideBar() {
       {
         label: "Roles Management",
         to: "/lab_manager/roles-management",
-        icon: <Users />,
+        icon: <ShieldUser />,
       },
-      { label: "Reports", to: "/manager/reports" },
+      {
+        label: "Medical Record",
+        to: "/lab_manager/medical-record",
+        icon: <ClipboardPlus />,
+      },
+      {
+        label: "Test Order",
+        to: "/lab_manager/test-order",
+        icon: <TestTubeDiagonal />,
+      },
+      {
+        label: "Event Log",
+        to: "/lab_manager/event-log",
+        icon: <History />,
+      },
+      { label: "Reports", to: "/lab_manager/reports" },
     ],
     lab_user: [
-      { label: "Dashboard", to: "/lab_user/dashboard", icon: <LayoutDashboard /> },
+      {
+        label: "Dashboard",
+        to: "/lab_user/dashboard",
+        icon: <LayoutDashboard />,
+      },
       {
         label: "Medical Records",
         to: "/lab_user/medical-records",

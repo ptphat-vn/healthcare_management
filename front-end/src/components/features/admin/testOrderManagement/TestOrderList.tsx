@@ -21,6 +21,7 @@ import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
 import { formatDate } from "@/utils/formatDate";
+import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 
 export interface TestOrder {
   _id: string;
@@ -76,13 +77,24 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
   const [deletingOrder, setDeletingOrder] = useState<TestOrder | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<
+    "patientName" | "createdDate" | "runDate" | "status"
+  >("createdDate");
+  const [status, setStatus] = useState<
+    "pending" | "cancelled" | "completed" | "reviewed" | "ai_reviewed" | ""
+  >("");
+  const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
 
   const itemsPerPage = 8;
 
   const { data, isLoading, error } = useGetAllTestOrderQuery({
+    search: searchTerm,
+    sortBy,
+    status: status || undefined,
+    sortOrder,
     page: currentPage,
     limit: itemsPerPage,
-    sortOrder: -1,
   });
 
   const testOrders: TestOrder[] = (data as any)?.data?.testOrder || [];
@@ -124,18 +136,47 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800 font-medium">Error loading test orders</p>
           <p className="text-red-600 text-sm">
-            {typeof error === "string" ? error : "An error occurred while loading data"}
+            {typeof error === "string"
+              ? error
+              : "An error occurred while loading data"}
           </p>
         </div>
       )}
-
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <SearchAndFilter
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          sortOptions={[
+            { value: "patientName", label: "Patient Name" },
+            { value: "createdDate", label: "Created Date" },
+            { value: "runDate", label: "Run Date" },
+            { value: "status", label: "Status" },
+          ]}
+          sortByValue={sortBy}
+          onSortByChange={setSortBy}
+          sortOrder={sortOrder}
+          onSortOrderChange={setSortOrder}
+          statusOptions={[
+            { value: "", label: "All" },
+            { value: "pending", label: "Pending" },
+            { value: "completed", label: "Completed" },
+            { value: "reviewed", label: "Reviewed" },
+            { value: "ai_reviewed", label: "AI Reviewed" },
+            { value: "cancelled", label: "Cancelled" },
+          ]}
+          statusValue={status}
+          onStatusChange={setStatus}
+        />
+      </div>
       {!isLoading && !error && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
-                  <TableHead className="font-semibold text-gray-700 w-16">No</TableHead>
+                  <TableHead className="font-semibold text-gray-700 w-16">
+                    No
+                  </TableHead>
                   <TableHead className="font-semibold text-gray-700 min-w-[150px]">
                     Patient Name
                   </TableHead>
@@ -174,14 +215,21 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
                             d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                           />
                         </svg>
-                        <p className="text-lg font-medium">No test orders found</p>
-                        <p className="text-sm">Try adjusting your search or filter criteria</p>
+                        <p className="text-lg font-medium">
+                          No test orders found
+                        </p>
+                        <p className="text-sm">
+                          Try adjusting your search or filter criteria
+                        </p>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   testOrders.map((order: TestOrder, idx: number) => (
-                    <TableRow key={order._id} className="hover:bg-blue-50/50 transition-colors">
+                    <TableRow
+                      key={order._id}
+                      className="hover:bg-blue-50/50 transition-colors"
+                    >
                       <TableCell className="text-start font-medium text-gray-600">
                         {(currentPage - 1) * itemsPerPage + idx + 1}
                       </TableCell>
@@ -190,12 +238,20 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
                       </TableCell>
                       <TableCell className="text-gray-600">
                         <div>
-                          <div className="text-sm text-gray-900">{order.phoneNumber}</div>
-                          <div className="text-xs text-gray-500">{order.email}</div>
+                          <div className="text-sm text-gray-900">
+                            {order.phoneNumber}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {order.email}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-600">
-                        {formatDate(typeof order.createdDate === "string" ? order.createdDate : order.createdDate.toString())}
+                        {formatDate(
+                          typeof order.createdDate === "string"
+                            ? order.createdDate
+                            : order.createdDate.toString()
+                        )}
                       </TableCell>
                       <TableCell className="text-gray-600">
                         <div>
@@ -275,8 +331,8 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
                 <span className="font-semibold">
                   {Math.min(currentPage * itemsPerPage, pagination.total)}
                 </span>{" "}
-                of{" "}
-                <span className="font-semibold">{pagination.total}</span> results
+                of <span className="font-semibold">{pagination.total}</span>{" "}
+                results
               </>
             ) : (
               "No results"

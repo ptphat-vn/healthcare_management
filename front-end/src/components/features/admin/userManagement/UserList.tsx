@@ -33,7 +33,7 @@ export default function UserList() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<number | "">("");
   const [sortBy, setSortBy] = useState<
-    "fullName" | "email" | "createdAt" | "updatedAt"
+    "fullName" | "email" | "createdAt" | "updatedAt" | undefined
   >("");
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
   const navigate = useNavigate();
@@ -49,7 +49,8 @@ export default function UserList() {
 
   useEffect(() => {
     if (data?.data.user) {
-      setUsers(data.data.user);
+      const dataUser = data.data.user.filter((user) => user.status !== 0);
+      setUsers(dataUser);
     }
   }, [data]);
   // console.log(data);
@@ -136,7 +137,7 @@ export default function UserList() {
           onClearFilters={() => {
             setSearch("");
             setStatus("");
-            setSortBy("");
+            setSortBy(undefined);
             setSortOrder(-1);
             setCurrentPage(1);
           }}
@@ -268,7 +269,7 @@ export default function UserList() {
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem
                             onClick={() =>
-                              navigate(`/admin/user-management/${user._id}`)
+                              navigate(`/manager/user-management/${user._id}`)
                             }
                             className="cursor-pointer hover:bg-blue-50"
                           >
