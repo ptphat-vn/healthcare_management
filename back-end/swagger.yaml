@@ -8,73 +8,18 @@ info:
     
     ## Authentication
     Most endpoints require authentication using JWT tokens. Include the token in the Authorization header:
-    `Authorization: Bearer <your-token>`
-    
-    ## Role-Based Access Control (RBAC)
-    The system uses a privilege-based authorization model where users are assigned roles with specific privileges.
-    
-    ### User Roles
-    - `admin`: Administrator with full system access (privilege: `*`)
-    - `lab_manager`: Lab Manager with management privileges
-    - `service`: Service provider with operational privileges  
-    - `lab_user`: Lab User with testing privileges
-    - `patient`: Default user role with read-only access
-    
-    ### Privileges
-    The system supports granular privileges for different operations:
-    
-    **Role Management:**
-    - `view_role`: View roles
-    - `create_role`: Create new roles
-    - `update_role`: Update existing roles
-    - `delete_role`: Delete roles
-    
-    **Configuration Management:**
-    - `view_config`: View configurations
-    - `create_config`: Create configurations
-    - `modify_config`: Modify configurations
-    - `delete_config`: Delete configurations
-    
-    **User Management:**
-    - `view_user`: View users
-    - `modify_user`: Modify user information
-    - `delete_user`: Delete users
-    - `lock_unlock_user`: Lock/unlock user accounts
-    
-    **Comments:**
-    - `add_comment`: Add comments
-    - `modify_comment`: Modify comments
-    - `delete_comment`: Delete comments
-    
-    **Test Orders:**
-    - `create_test_order`: Create test orders
-    - `delete_test_order`: Delete test orders
-    - `review_test_order`: Review test orders
-    - `modify_test_order`: Modify test orders
-    
-    **Blood Testing:**
-    - `execute_blood_testing`: Execute blood testing procedures
-    
-    **Instruments:**
-    - `view_instrument`: View instruments
-    - `activate_instrument`: Activate instruments
-    - `deactivate_instrument`: Deactivate instruments
-    
-    **Event Logs:**
-    - `view_event_logs`: View event logs
-    
-    **Basic Access:**
-    - `read_only`: Basic read access
-    - `*`: Admin privilege (access to everything)
-    
-    ## Authorization
-    Each endpoint requires specific privileges. Users must have the required privileges to access the endpoint.
-    Admin users (with `*` privilege) have access to all endpoints.
+   
+    ## User Roles
+    - `admin`: Full system access
+    - `manager`: Management access
+    - `user`: Basic user access
+    - `service`: Service provider access
+    - `consultant`: Consultant access
     
     ## User Status
-    - `0`: Inactive (soft deleted) - Cannot login
-    - `1`: Active - Can login normally
-    - `2`: Locked - Cannot login
+    - `0`: Inactive (soft deleted)
+    - `1`: Active
+    - `2`: Locked
   version: 1.0.0
   license:
     name: MIT
@@ -113,12 +58,7 @@ paths:
       tags:
         - Roles
       summary: List roles
-      description: |
-        Get a paginated list of roles.
-        
-        **Required Privilege:** `view_role`
-        
-        **Access:** Admin, Lab Manager, Service
+      description: Get a paginated list of roles
       operationId: listRoles
       security:
         - bearerAuth: []
@@ -173,37 +113,12 @@ paths:
                           $ref: '#/components/schemas/Role'
                       pagination:
                         $ref: '#/components/schemas/Pagination'
-        '403':
-          description: Insufficient privileges
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Bạn không có quyền thực hiện hành động này"
-                  required:
-                    type: array
-                    items:
-                      type: string
-                    example: ["view_role"]
-                  current:
-                    type: array
-                    items:
-                      type: string
-                    example: ["read_only"]
 
     post:
       tags:
         - Roles
       summary: Create role
-      description: |
-        Create a new role with specified privileges.
-        
-        **Required Privilege:** `create_role`
-        
-        **Access:** Admin, Lab Manager
+      description: Create a new role
       operationId: createRole
       security:
         - bearerAuth: []
@@ -219,18 +134,16 @@ paths:
               properties:
                 name:
                   type: string
-                  example: "Lab Manager"
+                  example: "Laboratory Manager"
                 code:
                   type: string
-                  example: "lab_manager"
+                  example: "manager"
                 description:
                   type: string
-                  example: "Manage lab and users"
                 privileges:
                   type: array
                   items:
                     type: string
-                  example: ["view_role", "create_role", "update_role", "view_config", "create_config", "modify_config", "delete_config", "view_user", "modify_user", "delete_user", "lock_unlock_user", "add_comment", "modify_comment", "delete_comment", "review_test_order", "modify_test_order"]
       responses:
         '201':
           description: Role created successfully
@@ -244,26 +157,6 @@ paths:
                     example: "Role created successfully"
                   data:
                     $ref: '#/components/schemas/Role'
-        '403':
-          description: Insufficient privileges
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Bạn không có quyền thực hiện hành động này"
-                  required:
-                    type: array
-                    items:
-                      type: string
-                    example: ["create_role"]
-                  current:
-                    type: array
-                    items:
-                      type: string
-                    example: ["read_only"]
         '409':
           description: Role code already exists
         '422':
@@ -502,24 +395,6 @@ paths:
                         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         '401':
           description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Thông tin đăng nhập không hợp lệ"
-        '403':
-          description: Account inactive or locked
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Tài khoản đã bị vô hiệu hóa"
         '422':
           description: Validation error
 
@@ -2893,20 +2768,18 @@ components:
           example: "507f1f77bcf86cd799439022"
         name:
           type: string
-          example: "Lab Manager"
+          example: "Administrator"
         code:
           type: string
-          enum: [admin, lab_manager, service, lab_user, patient]
-          example: "lab_manager"
+          example: "admin"
         description:
           type: string
-          example: "Manage lab and users"
+          example: "Access all features"
         privileges:
           type: array
           items:
             type: string
-            enum: ["*", read_only, view_role, create_role, update_role, delete_role, view_config, create_config, modify_config, delete_config, view_user, modify_user, delete_user, lock_unlock_user, add_comment, modify_comment, delete_comment, create_test_order, delete_test_order, review_test_order, modify_test_order, execute_blood_testing, view_instrument, activate_instrument, deactivate_instrument, view_event_logs]
-          example: ["view_role", "create_role", "update_role", "view_config", "create_config", "modify_config", "delete_config", "view_user", "modify_user", "delete_user", "lock_unlock_user", "add_comment", "modify_comment", "delete_comment", "review_test_order", "modify_test_order"]
+          example: ["read_only"]
         createdAt:
           type: string
           format: date-time

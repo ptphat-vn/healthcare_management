@@ -2,6 +2,7 @@ import { ObjectId, WithId } from 'mongodb'
 import { getRolesCollection, type RoleDocument } from '~/models/role.model'
 import { HttpError } from '~/models/error.model'
 import { getUsersCollection } from '~/models/user.model'
+import { getEventLogsCollection } from '~/models/event-log.model'
 
 export interface CreateRolePayload {
   name: string
@@ -16,7 +17,7 @@ export interface UpdateRolePayload {
   privileges?: string[]
 }
 
-export const createRole = async (payload: CreateRolePayload): Promise<WithId<RoleDocument>> => {
+export const createRole = async (payload: CreateRolePayload, performedBy?: string): Promise<WithId<RoleDocument>> => {
   const roles = getRolesCollection()
   const exists = await roles.findOne({ code: payload.code } as any)
   if (exists) throw new HttpError(409, 'Role code already exists')
@@ -32,10 +33,26 @@ export const createRole = async (payload: CreateRolePayload): Promise<WithId<Rol
   const result = await roles.insertOne(doc as any)
   const created = await roles.findOne({ _id: result.insertedId } as any)
   if (!created) throw new HttpError(500, 'Failed to create role')
+  // Event log: record performer as operator when available
+  try {
+    const eventLogs = getEventLogsCollection()
+    const users = getUsersCollection()
+    const actor = performedBy ? await users.findOne({ _id: new ObjectId(performedBy) } as any) : null
+    const roleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: actor?._id || 'system', name: actor?.fullName || 'system', role: actorRoleDoc?.code || 'system' },
+      action: 'CREATE_ROLE',
+      details: `Created role: ${created.name}`,
+      timestamp: new Date()
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
   return created as WithId<RoleDocument>
 }
 
-export const updateRole = async (id: string, payload: UpdateRolePayload): Promise<WithId<RoleDocument>> => {
+export const updateRole = async (id: string, payload: UpdateRolePayload, performedBy?: string): Promise<WithId<RoleDocument>> => {
   let objectId: ObjectId
   try {
     objectId = new ObjectId(id)
@@ -47,6 +64,22 @@ export const updateRole = async (id: string, payload: UpdateRolePayload): Promis
   await roles.updateOne({ _id: objectId } as any, { $set: update })
   const updated = await roles.findOne({ _id: objectId } as any)
   if (!updated) throw new HttpError(404, 'Role not found')
+  // Event log
+  try {
+    const eventLogs = getEventLogsCollection()
+    const users = getUsersCollection()
+    const actor = performedBy ? await users.findOne({ _id: new ObjectId(performedBy) } as any) : null
+    const roleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: actor?._id || 'system', name: actor?.fullName || 'system', role: actorRoleDoc?.code || 'system' },
+      action: 'UPDATE_ROLE',
+      details: `Updated role: ${updated.name}`,
+      timestamp: new Date()
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
   return updated as WithId<RoleDocument>
 }
 
@@ -176,7 +209,7 @@ export const ensureDefaultRoles = async () => {
   }
 }
 
-export const deleteRole = async (id: string): Promise<WithId<RoleDocument>> => {
+export const deleteRole = async (id: string, performedBy?: string): Promise<WithId<RoleDocument>> => {
   let objectId: ObjectId
   try {
     objectId = new ObjectId(id)
@@ -196,5 +229,21 @@ export const deleteRole = async (id: string): Promise<WithId<RoleDocument>> => {
   const result = await roles.findOneAndDelete({ _id: objectId } as any)
   const deleted: any = (result as any)?.value ?? result
   if (!deleted) throw new HttpError(404, 'Role not found')
+  // Event log
+  try {
+    const eventLogs = getEventLogsCollection()
+    const users = getUsersCollection()
+    const actor = performedBy ? await users.findOne({ _id: new ObjectId(performedBy) } as any) : null
+    const roleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: actor?._id || 'system', name: actor?.fullName || 'system', role: actorRoleDoc?.code || 'system' },
+      action: 'DELETE_ROLE',
+      details: `Deleted role: ${deleted.name}`,
+      timestamp: new Date()
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
   return deleted as WithId<RoleDocument>
 }
