@@ -45,7 +45,14 @@ export async function register(payload: {
   const roles = getRolesCollection()
   let defaultRole = await roles.findOne({ code: 'patient' } as any)
   if (!defaultRole) {
-    const insertRole = await roles.insertOne({ name: 'Patient', code: 'patient', description: 'Default user role', privileges: ['read_only'], createdAt: now, updatedAt: now } as any)
+    const insertRole = await roles.insertOne({
+      name: 'Patient',
+      code: 'patient',
+      description: 'Default user role',
+      privileges: ['read_only'],
+      createdAt: now,
+      updatedAt: now
+    } as any)
     defaultRole = await roles.findOne({ _id: insertRole.insertedId } as any)
   }
   const insert = await users.insertOne({
@@ -105,10 +112,13 @@ export async function login(payload: { email: string; password: string }) {
   if (user.status === 2) {
     throw new HttpError(403, MESSAGES.ACCOUNT_LOCKED)
   }
+  if (!user.passwordHash) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
   const ok = await bcrypt.compare(payload.password, user.passwordHash)
   if (!ok) throw new HttpError(401, MESSAGES.INVALID_CREDENTIALS)
 
-  const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
+  const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), {
+    expiresIn: '30m'
+  })
   const refreshToken = jwt.sign({ sub: String(user._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
   return { accessToken, refreshToken }
 }
@@ -124,7 +134,13 @@ export async function forgotPassword(email: string) {
   const token = jwt.sign({ userId: user._id, type: 'password_reset' }, getJwtSecret(), { expiresIn: '1h' })
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000)
 
-  await resetTokens.insertOne({ userId: user._id, token, expiresAt, createdAt: new Date(), used: false } as PasswordResetDocument)
+  await resetTokens.insertOne({
+    userId: user._id,
+    token,
+    expiresAt,
+    createdAt: new Date(),
+    used: false
+  } as PasswordResetDocument)
   return { email }
 }
 
@@ -135,7 +151,10 @@ export async function resetPassword(payload: { token: string; newPassword: strin
 
   const users = getUsersCollection()
   const newPasswordHash = await bcrypt.hash(payload.newPassword, 10)
-  await users.updateOne({ _id: resetRecord.userId as any }, { $set: { passwordHash: newPasswordHash, updatedAt: new Date() } })
+  await users.updateOne(
+    { _id: resetRecord.userId as any },
+    { $set: { passwordHash: newPasswordHash, updatedAt: new Date() } }
+  )
   await resetTokens.updateOne({ _id: resetRecord._id }, { $set: { used: true } })
 
   const updatedUser = await users.findOne({ _id: resetRecord.userId as any })
@@ -149,17 +168,24 @@ export async function resetPassword(payload: { token: string; newPassword: strin
     timestamp: new Date()
   } as any)
 
-  const accessToken = jwt.sign({ sub: String(updatedUser?._id), email: updatedUser?.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
+  const accessToken = jwt.sign(
+    { sub: String(updatedUser?._id), email: updatedUser?.email, type: 'access' },
+    getJwtSecret(),
+    { expiresIn: '30m' }
+  )
   const refreshToken = jwt.sign({ sub: String(updatedUser?._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
   return { accessToken, refreshToken }
 }
 
 export async function changePassword(payload: { userId: string | ObjectId; oldPassword: string; newPassword: string }) {
-  if (payload.oldPassword === payload.newPassword) throw new HttpError(400, 'New password must be different from old password')
+  if (payload.oldPassword === payload.newPassword)
+    throw new HttpError(400, 'New password must be different from old password')
   const users = getUsersCollection()
-  const targetId = typeof payload.userId === 'string' ? new (require('mongodb').ObjectId)(payload.userId) : payload.userId
+  const targetId =
+    typeof payload.userId === 'string' ? new (require('mongodb').ObjectId)(payload.userId) : payload.userId
   const user = await users.findOne({ _id: targetId } as any)
   if (!user) throw new HttpError(401, 'Unauthorized')
+  if (!user.passwordHash) throw new HttpError(400, 'User does not have a password set')
   const ok = await bcrypt.compare(payload.oldPassword, user.passwordHash)
   if (!ok) throw new HttpError(400, 'Old password is incorrect')
   const newHash = await bcrypt.hash(payload.newPassword, 10)
@@ -178,7 +204,9 @@ export async function changePassword(payload: { userId: string | ObjectId; oldPa
     // swallow logging errors
   }
 
-  const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
+  const accessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), {
+    expiresIn: '30m'
+  })
   const refreshToken = jwt.sign({ sub: String(user._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
   return { accessToken, refreshToken }
 }
@@ -199,7 +227,9 @@ export async function refreshAccessToken(refreshToken: string) {
   const users = getUsersCollection()
   const user = await users.findOne({ _id: userObjectId })
   if (!user) throw new HttpError(401, 'User not found')
-  const newAccessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), { expiresIn: '30m' })
+  const newAccessToken = jwt.sign({ sub: String(user._id), email: user.email, type: 'access' }, getJwtSecret(), {
+    expiresIn: '30m'
+  })
   return { accessToken: newAccessToken }
 }
 
@@ -232,4 +262,46 @@ export async function getProfile(userId: string | ObjectId) {
   }
 }
 
- 
+export async function loginWithGoogle({ email, fullName }: { email: string; fullName: string }) {
+  const users = getUsersCollection()
+  let user = await users.findOne({ email })
+  if (!user) {
+    const now = new Date()
+    const roles = getRolesCollection()
+    let defaultRole = await roles.findOne({ code: 'patient' } as any)
+    if (!defaultRole) {
+      const insertRole = await roles.insertOne({
+        name: 'Patient',
+        code: 'patient',
+        description: 'Default user role',
+        privileges: ['read_only'],
+        createdAt: now,
+        updatedAt: now
+      } as any)
+      defaultRole = await roles.findOne({ _id: insertRole.insertedId } as any)
+    }
+    const insert = await users.insertOne({
+      fullName,
+      email,
+      roleId: (defaultRole as any)._id,
+      status: 1,
+      createdAt: now,
+      updatedAt: now
+    })
+    user = await users.findOne({ _id: insert.insertedId })
+  }
+  if (user?.status === 0) throw new HttpError(403, MESSAGES.ACCOUNT_INACTIVE)
+  if (user?.status === 2) throw new HttpError(403, MESSAGES.ACCOUNT_LOCKED)
+
+  const accessToken = jwt.sign(
+    {
+      sub: String(user?._id),
+      email: user?.email,
+      type: 'access'
+    },
+    getJwtSecret(),
+    { expiresIn: '30m' }
+  )
+  const refreshToken = jwt.sign({ sub: String(user?._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
+  return { accessToken, refreshToken }
+}

@@ -23,9 +23,13 @@ import { formatDate } from "@/utils/formatDate";
 import { useNavigate } from "react-router-dom";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
+  const { user } = useAuth();
+  const roles = user?.data.roleCode;
+
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -269,7 +273,7 @@ export default function UserList() {
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem
                             onClick={() =>
-                              navigate(`/manager/user-management/${user._id}`)
+                              navigate(`/${roles}/user-management/${user._id}`)
                             }
                             className="cursor-pointer hover:bg-blue-50"
                           >

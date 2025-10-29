@@ -6,6 +6,7 @@ export const MESSAGES = {
   INVALID_CREDENTIALS: 'Thông tin đăng nhập không hợp lệ',
   UNAUTHORIZED: 'Không có quyền truy cập',
   VALIDATION_ERROR: 'Dữ liệu không hợp lệ',
+  BAD_REQUEST: 'Yêu cầu không hợp lệ',
   FORGOT_PASSWORD_SUCCESS: 'Email đặt lại mật khẩu đã được gửi',
   RESET_PASSWORD_SUCCESS: 'Mật khẩu đã được đặt lại thành công',
   EMAIL_NOT_FOUND: 'Email không tồn tại trong hệ thống',

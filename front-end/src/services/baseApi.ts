@@ -125,6 +125,16 @@ export const baseApi = createApi({
         method: "POST",
       }),
     }),
+    loginGoogle: builder.mutation<
+      APIResponse<AuthResponse>,
+      { tokenGoogle: string }
+    >({
+      query: (tokenGoogle) => ({
+        url: "auth/login-google",
+        method: "POST",
+        body: tokenGoogle,
+      }),
+    }),
   }),
 });
 export const {
@@ -132,5 +142,6 @@ export const {
   useRegisterMutation,
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useLoginGoogleMutation,
   useLogoutMutation,
 } = baseApi;

@@ -8,12 +8,12 @@ export interface UserDocument {
   patientId?: string
   fullName: string
   email: string
-  phoneNumber: string
-  identifyNumber: string
-  gender: 'male' | 'female'
-  address: string
-  dateOfBirth: string
-  passwordHash: string
+  phoneNumber?: string
+  identifyNumber?: string
+  gender?: 'male' | 'female'
+  address?: string
+  dateOfBirth?: string
+  passwordHash?: string
   roleId: ObjectId
   status?: 0 | 1 | 2
   createdAt: Date

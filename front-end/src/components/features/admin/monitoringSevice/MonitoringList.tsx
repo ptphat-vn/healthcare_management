@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuContent } from "@radix-ui/react-dropdown-menu";
+import formatPrivilege from "@/utils/formatPrivilege";
 
 export default function MonitoringList() {
   const [selectedLog, setSelectedLog] = useState<EventLog | null>(null);
@@ -31,7 +32,6 @@ export default function MonitoringList() {
     limit: 10,
   });
 
-  
   useEffect(() => {
     if (!data?.data?.eventLogs) {
       setEventLogs([]);
@@ -48,8 +48,8 @@ export default function MonitoringList() {
           typeof rawLog.operator === "object"
             ? rawLog.operator?.name
             : rawLog.operator || "System",
-        status: "info", 
-        service: "System", 
+        status: "info",
+        service: "System",
       })
     );
 
@@ -169,7 +169,7 @@ export default function MonitoringList() {
                   </TableCell>
                   <TableCell>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded bg-gray-100 text-xs font-medium">
-                      {log.action}
+                      {formatPrivilege(log.action)}
                     </span>
                   </TableCell>
                   <TableCell>
