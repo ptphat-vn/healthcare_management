@@ -118,15 +118,25 @@ export const createPatientRecord = async (payload: CreatePatientRecordPayload, c
 
   const result = await patientRecords.insertOne(doc as any)
   const created = await patientRecords.findOne({ _id: result.insertedId } as any)
-  if (!created) throw new HttpError(500, 'Failed to create patient record')
-
-  const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({
-    userId: createdByObjectId,
-    action: 'CREATE_PATIENT_RECORD',
-    details: `Created patient record for ${doc.fullName} (ID: ${doc.patientId})`,
-    timestamp: now,
-  } as any)
+  
+  if (!created) {
+    throw new HttpError(500, 'Failed to create patient record')
+  }
+  try {
+    const eventLogs = getEventLogsCollection()
+    const usersCol = getUsersCollection()
+    const actor = await usersCol.findOne({ _id: createdByObjectId })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await actorRoleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: createdByObjectId, name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'CREATE_PATIENT_RECORD',
+      details: `Created patient record: ${payload.fullName} (ID: ${payload.patientId})`,
+      timestamp: now,
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return created as WithId<PatientMedicalRecordDocument>
 }
@@ -197,13 +207,21 @@ export const updatePatientRecord = async (id: string, payload: UpdatePatientReco
   if (!updated) {
     throw new HttpError(500, 'Failed to update patient record')
   }
-  const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({
-    userId: updatedByObjectId,
-    action: 'UPDATE_PATIENT_RECORD',
-    details: `Updated patient record for ${updated.fullName} (ID: ${updated.patientId})`,
-    timestamp: now,
-  } as any)
+  try {
+    const eventLogs = getEventLogsCollection()
+    const usersCol = getUsersCollection()
+    const actor = await usersCol.findOne({ _id: updatedByObjectId })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await actorRoleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: updatedByObjectId, name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'UPDATE_PATIENT_RECORD',
+      details: `Updated patient record: ${updated.fullName} (ID: ${updated.patientId})`,
+      timestamp: now,
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return updated as WithId<PatientMedicalRecordDocument>
 }
@@ -253,13 +271,21 @@ export const deletePatientRecord = async (id: string, deletedBy: string): Promis
   if (!deleted) {
     throw new HttpError(500, 'Failed to delete patient record')
   }
-  const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({
-    userId: deletedByObjectId,
-    action: 'DELETE_PATIENT_RECORD',
-    details: `Deleted patient record for ${deleted.fullName} (ID: ${deleted.patientId})`,
-    timestamp: now,
-  } as any)
+  try {
+    const eventLogs = getEventLogsCollection()
+    const usersCol = getUsersCollection()
+    const actor = await usersCol.findOne({ _id: deletedByObjectId })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await actorRoleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: deletedByObjectId, name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'DELETE_PATIENT_RECORD',
+      details: `Deleted patient record: ${deleted.fullName} (ID: ${deleted.patientId})`,
+      timestamp: now,
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return deleted as WithId<PatientMedicalRecordDocument>
 }
@@ -445,13 +471,21 @@ export const addClinicalNote = async (patientId: string, note: Omit<ClinicalNote
     throw new HttpError(500, 'Failed to add clinical note')
   }
 
-  const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({
-    userId: addedByObjectId,
-    action: 'ADD_CLINICAL_NOTE',
-    details: `Added clinical note to patient ${updated.fullName} (ID: ${updated.patientId})`,
-    timestamp: now,
-  } as any)
+  try {
+    const eventLogs = getEventLogsCollection()
+    const usersCol = getUsersCollection()
+    const actor = await usersCol.findOne({ _id: addedByObjectId })
+    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await actorRoleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: addedByObjectId, name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
+      action: 'ADD_CLINICAL_NOTE',
+      details: `Added clinical note to patient: ${updated.fullName} (ID: ${updated.patientId})`,
+      timestamp: now,
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
 
   return updated as WithId<PatientMedicalRecordDocument>
 }

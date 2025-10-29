@@ -23,8 +23,6 @@ import RoleManagementPage from "@/pages/admin/roleManagement/RoleManagementPage"
 import ProfilePage from "@/pages/profile/ProfilePage";
 import UserManagement from "@/pages/manager/UserManagement/UserManagementPage";
 import LabUserDashboard from "@/pages/labUser/LabUserDashboard";
-import LabUserMedicalRecordPage from "@/pages/labUser/medicalRecords/MedicalRecordPage";
-import LabUserMedicalRecordDetail from "@/pages/labUser/medicalRecords/medicalRecordDetail/MedicalRecordDetail";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -118,8 +116,9 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: "dashboard", element: <LabUserDashboard /> },
-      { path: "medical-records", element: <LabUserMedicalRecordPage /> },
-      { path: "medical-records/:id", element: <LabUserMedicalRecordDetail /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "medical-records", element: <MedicalRecordPage /> },
+      { path: "medical-records/:id", element: <MedicalRecordDetail /> },
       { path: "profile", element: <ProfilePage /> },
     ],
   },
