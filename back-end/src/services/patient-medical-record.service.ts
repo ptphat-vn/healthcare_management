@@ -131,7 +131,7 @@ export const createPatientRecord = async (payload: CreatePatientRecordPayload, c
     await eventLogs.insertOne({
       operator: { id: createdByObjectId, name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
       action: 'CREATE_PATIENT_RECORD',
-      details: `Created patient record: ${payload.fullName} (ID: ${payload.patientId})`,
+      details: `Created patient record: ${doc.fullName}`,
       timestamp: now,
     } as any)
   } catch {
