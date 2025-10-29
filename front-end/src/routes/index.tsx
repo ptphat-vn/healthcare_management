@@ -88,15 +88,16 @@ export const router = createBrowserRouter([
 
   // Manager
   {
-    path: "manager",
+    path: "lab_manager",
     element: (
-      <ProtectedRoute allowedRoles={["manager"]}>
+      <ProtectedRoute allowedRoles={["lab_manager"]}>
         <MainLayout />
       </ProtectedRoute>
     ),
     children: [
       { path: "dashboard", element: "Dang lam" },
       { path: "user-management", element: <UserManagement /> },
+      { path: "roles-management", element: <RoleManagementPage /> },
     ],
   },
 

@@ -51,15 +51,20 @@ export default function SideBar() {
         icon: <History />,
       },
     ],
-    manager: [
+    lab_manager: [
       {
         label: "Dashboard",
-        to: "/manager/dashboard",
+        to: "/lab_manager/dashboard",
         icon: <LayoutDashboard />,
       },
       {
         label: "User Management",
-        to: "/manager/user-management",
+        to: "/lab_manager/user-management",
+        icon: <Users />,
+      },
+      {
+        label: "Roles Management",
+        to: "/lab_manager/roles-management",
         icon: <Users />,
       },
       { label: "Reports", to: "/manager/reports" },
