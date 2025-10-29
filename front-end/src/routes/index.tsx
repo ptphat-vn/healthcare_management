@@ -120,6 +120,7 @@ export const router = createBrowserRouter([
       { path: "dashboard", element: <LabUserDashboard /> },
       { path: "medical-records", element: <LabUserMedicalRecordPage /> },
       { path: "medical-records/:id", element: <LabUserMedicalRecordDetail /> },
+       { path: "test-order", element: <TestOrderManagementPage /> },
       { path: "profile", element: <ProfilePage /> },
     ],
   },
