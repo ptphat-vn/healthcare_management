@@ -376,9 +376,6 @@ export default function MedicalRecordList() {
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         medicalRecord={selectedRecord}
-        onSuccess={() => {
-          alert("Medical record updated successfully!");
-        }}
       />
 
       <DeleteMedicalRecordModal
