@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Table,
   TableHeader,
@@ -40,6 +41,7 @@ interface ApiError {
 
 export default function MedicalRecordList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(
     null
   );
@@ -88,7 +90,12 @@ export default function MedicalRecordList() {
   };
 
   const handleView = (record: MedicalRecord) => {
-    navigate(`/admin/medical-records/${record._id || record.id}`);
+    const roleCode = user?.data?.roleCode;
+    if (roleCode === "admin") {
+      navigate(`/admin/medical-records/${record._id || record.id}`);
+    } else {
+      navigate(`/lab_user/medical-records/${record._id || record.id}`);
+    }
   };
 
   const handleEdit = (record: MedicalRecord) => {
