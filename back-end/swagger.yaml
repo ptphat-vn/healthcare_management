@@ -973,7 +973,7 @@ paths:
       tags:
         - User Management
       summary: Create user (Admin only)
-      description: Create a new user account (admin operation)
+      description: Create a new user account (admin operation). After creation, the system sends an email to the user's address containing their login credentials (email and the password set by admin). Users should change their password on first login.
       operationId: createUser
       security:
         - bearerAuth: []

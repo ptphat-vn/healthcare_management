@@ -101,6 +101,20 @@ export async function register(payload: {
 
 export async function createUserByAdmin(payload: Parameters<typeof register>[0]) {
   const created = await register(payload)
+  // gửi tkhoan mkhau cho user
+  try {
+    await sendMail({
+      to: payload.email,
+      subject: 'Tài khoản của bạn đã được tạo',
+      text: `Xin chào ${payload.fullName},\n\nTài khoản của bạn đã được tạo trên hệ thống.\n\nThông tin đăng nhập:\n- Email: ${payload.email}\n- Mật khẩu: ${payload.password}\n\nVui lòng đăng nhập và đổi mật khẩu sau khi sử dụng lần đầu.`,
+      html: `<p>Xin chào <b>${payload.fullName}</b>,</p>
+<p>Tài khoản của bạn đã được tạo trên hệ thống.</p>
+<p><b>Thông tin đăng nhập:</b><br/>Email: <code>${payload.email}</code><br/>Mật khẩu: <code>${payload.password}</code></p>
+<p>Vui lòng đăng nhập và <b>đổi mật khẩu</b> sau khi sử dụng lần đầu.</p>`
+    })
+  } catch (err) {
+    console.error('Failed to send credentials email to new user:', err)
+  }
   return created
 }
 
@@ -133,18 +147,19 @@ export async function forgotPassword(email: string) {
   const resetTokens = getPasswordResetCollection()
   await resetTokens.deleteMany({ userId: user._id, used: false } as any)
 
+  // tạo otp
+  
   const otp = crypto.randomInt(100000, 999999).toString()
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000) 
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
 
   await resetTokens.insertOne({
     userId: user._id,
-    token: otp, 
+    token: otp,
     expiresAt,
     createdAt: new Date(),
     used: false
   } as PasswordResetDocument)
 
- 
   await sendMail({
     to: email,
     subject: 'Mã OTP đặt lại mật khẩu',
@@ -163,10 +178,7 @@ export async function resetPassword(payload: { otp: string; email: string; newPa
   if (!resetRecord || resetRecord.expiresAt < new Date()) throw new HttpError(400, MESSAGES.INVALID_RESET_TOKEN)
 
   const newPasswordHash = await bcrypt.hash(payload.newPassword, 10)
-  await users.updateOne(
-    { _id: user._id },
-    { $set: { passwordHash: newPasswordHash, updatedAt: new Date() } }
-  )
+  await users.updateOne({ _id: user._id }, { $set: { passwordHash: newPasswordHash, updatedAt: new Date() } })
   await resetTokens.updateOne({ _id: resetRecord._id }, { $set: { used: true } })
 
   return { email: payload.email }
@@ -235,9 +247,7 @@ export async function logout(refreshToken?: string) {
       if (payload.type === 'refresh') {
         revokedRefreshTokens.add(refreshToken)
       }
-    } catch {
-      // ignore invalid token on logout; goal is to clear any server references
-    }
+    } catch {}
   }
   return { revoked: Boolean(refreshToken) }
 }
