@@ -129,6 +129,16 @@ export const baseApi = createApi({
         method: "POST",
       }),
     }),
+    loginGoogle: builder.mutation<
+    APIResponse<AuthResponse>,
+    { tokenGoogle: string }
+  >({
+    query: (tokenGoogle) => ({
+      url: "auth/login-google",
+      method: "POST",
+      body: tokenGoogle,
+    }),
+  }),
     forgotPassword: builder.mutation<APIResponse<{ email: string }>, ForgotPasswordRequest>({
       query: (body) => ({
         url: "/auth/forgot-password",
@@ -158,6 +168,7 @@ export const {
   useRegisterMutation,
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useLoginGoogleMutation,
   useLogoutMutation,
   useForgotPasswordMutation,  
   useResetPasswordMutation,

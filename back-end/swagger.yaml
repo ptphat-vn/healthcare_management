@@ -3,74 +3,74 @@ info:
   title: Healthcare Management API
   description: |
     API documentation for Healthcare Management System
-    
+
     This API provides endpoints for user authentication, user management, and healthcare-related operations.
-    
+
     ## Authentication
     Most endpoints require authentication using JWT tokens. Include the token in the Authorization header:
     `Authorization: Bearer <your-token>`
-    
+
     ## Role-Based Access Control (RBAC)
     The system uses a privilege-based authorization model where users are assigned roles with specific privileges.
-    
+
     ### User Roles
     - `admin`: Administrator with full system access (privilege: `*`)
     - `lab_manager`: Lab Manager with management privileges
     - `service`: Service provider with operational privileges  
     - `lab_user`: Lab User with testing privileges
-    - `custom`: Default user role with read-only access
-    
+    - `patient`: Default user role with read-only access
+
     ### Privileges
     The system supports granular privileges for different operations:
-    
+
     **Role Management:**
     - `view_role`: View roles
     - `create_role`: Create new roles
     - `update_role`: Update existing roles
     - `delete_role`: Delete roles
-    
+
     **Configuration Management:**
     - `view_config`: View configurations
     - `create_config`: Create configurations
     - `modify_config`: Modify configurations
     - `delete_config`: Delete configurations
-    
+
     **User Management:**
     - `view_user`: View users
     - `modify_user`: Modify user information
     - `delete_user`: Delete users
     - `lock_unlock_user`: Lock/unlock user accounts
-    
+
     **Comments:**
     - `add_comment`: Add comments
     - `modify_comment`: Modify comments
     - `delete_comment`: Delete comments
-    
+
     **Test Orders:**
     - `create_test_order`: Create test orders
     - `delete_test_order`: Delete test orders
     - `review_test_order`: Review test orders
     - `modify_test_order`: Modify test orders
-    
+
     **Blood Testing:**
     - `execute_blood_testing`: Execute blood testing procedures
-    
+
     **Instruments:**
     - `view_instrument`: View instruments
     - `activate_instrument`: Activate instruments
     - `deactivate_instrument`: Deactivate instruments
-    
+
     **Event Logs:**
     - `view_event_logs`: View event logs
-    
+
     **Basic Access:**
     - `read_only`: Basic read access
     - `*`: Admin privilege (access to everything)
-    
+
     ## Authorization
     Each endpoint requires specific privileges. Users must have the required privileges to access the endpoint.
     Admin users (with `*` privilege) have access to all endpoints.
-    
+
     ## User Status
     - `0`: Inactive (soft deleted)
     - `1`: Active
@@ -115,9 +115,9 @@ paths:
       summary: List roles
       description: |
         Get a paginated list of roles.
-        
+
         **Required Privilege:** `view_role`
-        
+
         **Access:** Admin, Lab Manager, Service
       operationId: listRoles
       security:
@@ -163,7 +163,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Get roles successfully"
+                    example: 'Get roles successfully'
                   data:
                     type: object
                     properties:
@@ -182,17 +182,17 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Bạn không có quyền thực hiện hành động này"
+                    example: 'Bạn không có quyền thực hiện hành động này'
                   required:
                     type: array
                     items:
                       type: string
-                    example: ["view_role"]
+                    example: ['view_role']
                   current:
                     type: array
                     items:
                       type: string
-                    example: ["read_only"]
+                    example: ['read_only']
 
     post:
       tags:
@@ -200,9 +200,9 @@ paths:
       summary: Create role
       description: |
         Create a new role with specified privileges.
-        
+
         **Required Privilege:** `create_role`
-        
+
         **Access:** Admin, Lab Manager
       operationId: createRole
       security:
@@ -219,18 +219,36 @@ paths:
               properties:
                 name:
                   type: string
-                  example: "Lab Manager"
+                  example: 'Lab Manager'
                 code:
                   type: string
-                  example: "lab_manager"
+                  example: 'lab_manager'
                 description:
                   type: string
-                  example: "Manage lab and users"
+                  example: 'Manage lab and users'
                 privileges:
                   type: array
                   items:
                     type: string
-                  example: ["view_role", "create_role", "update_role", "view_config", "create_config", "modify_config", "delete_config", "view_user", "modify_user", "delete_user", "lock_unlock_user", "add_comment", "modify_comment", "delete_comment", "review_test_order", "modify_test_order"]
+                  example:
+                    [
+                      'view_role',
+                      'create_role',
+                      'update_role',
+                      'view_config',
+                      'create_config',
+                      'modify_config',
+                      'delete_config',
+                      'view_user',
+                      'modify_user',
+                      'delete_user',
+                      'lock_unlock_user',
+                      'add_comment',
+                      'modify_comment',
+                      'delete_comment',
+                      'review_test_order',
+                      'modify_test_order'
+                    ]
       responses:
         '201':
           description: Role created successfully
@@ -241,7 +259,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Role created successfully"
+                    example: 'Role created successfully'
                   data:
                     $ref: '#/components/schemas/Role'
         '403':
@@ -253,17 +271,17 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Bạn không có quyền thực hiện hành động này"
+                    example: 'Bạn không có quyền thực hiện hành động này'
                   required:
                     type: array
                     items:
                       type: string
-                    example: ["create_role"]
+                    example: ['create_role']
                   current:
                     type: array
                     items:
                       type: string
-                    example: ["read_only"]
+                    example: ['read_only']
         '409':
           description: Role code already exists
         '422':
@@ -309,14 +327,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Role updated successfully"
+                    example: 'Role updated successfully'
                   data:
                     $ref: '#/components/schemas/Role'
         '404':
           description: Role not found
         '422':
           description: Validation error
-
 
     delete:
       tags:
@@ -333,7 +350,7 @@ paths:
           description: Role ID
           schema:
             type: string
-            pattern: "^[0-9a-fA-F]{24}$"
+            pattern: '^[0-9a-fA-F]{24}$'
       responses:
         '200':
           description: Role deleted successfully
@@ -344,7 +361,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Role deleted successfully"
+                    example: 'Role deleted successfully'
                   data:
                     $ref: '#/components/schemas/Role'
         '400':
@@ -382,34 +399,34 @@ paths:
               properties:
                 fullName:
                   type: string
-                  example: "Nguyễn Văn A"
+                  example: 'Nguyễn Văn A'
                 email:
                   type: string
                   format: email
-                  example: "user@example.com"
+                  example: 'user@example.com'
                 phoneNumber:
                   type: string
-                  pattern: "^[0-9]{10,11}$"
-                  example: "0123456789"
+                  pattern: '^[0-9]{10,11}$'
+                  example: '0123456789'
                 identifyNumber:
                   type: string
-                  pattern: "^[0-9]{9,12}$"
-                  example: "123456789"
+                  pattern: '^[0-9]{9,12}$'
+                  example: '123456789'
                 gender:
                   type: string
                   enum: [male, female]
-                  example: "male"
+                  example: 'male'
                 address:
                   type: string
-                  example: "123 Main Street, City"
+                  example: '123 Main Street, City'
                 dateOfBirth:
                   type: string
                   format: date
-                  example: "1990-01-01"
+                  example: '1990-01-01'
                 password:
                   type: string
                   minLength: 8
-                  example: "password123"
+                  example: 'password123'
       responses:
         '200':
           description: Registration successful
@@ -420,37 +437,37 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Đăng ký thành công"
+                    example: 'Đăng ký thành công'
                   data:
                     type: object
                     properties:
                       id:
                         type: string
-                        example: "507f1f77bcf86cd799439011"
+                        example: '507f1f77bcf86cd799439011'
                       fullName:
                         type: string
-                        example: "Nguyễn Văn A"
+                        example: 'Nguyễn Văn A'
                       email:
                         type: string
-                        example: "user@example.com"
+                        example: 'user@example.com'
                       phoneNumber:
                         type: string
-                        example: "0123456789"
+                        example: '0123456789'
                       identifyNumber:
                         type: string
-                        example: "123456789"
+                        example: '123456789'
                       gender:
                         type: string
-                        example: "male"
+                        example: 'male'
                       address:
                         type: string
-                        example: "123 Main Street, City"
+                        example: '123 Main Street, City'
                       dateOfBirth:
                         type: string
-                        example: "1990-01-01"
+                        example: '1990-01-01'
                       role:
                         type: string
-                        example: "user"
+                        example: 'user'
         '409':
           description: Conflict - Email, phone, or identify number already exists
         '422':
@@ -476,10 +493,10 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: "user@example.com"
+                  example: 'user@example.com'
                 password:
                   type: string
-                  example: "password123"
+                  example: 'password123'
       responses:
         '200':
           description: Login successful
@@ -490,21 +507,98 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Đăng nhập thành công"
+                    example: 'Đăng nhập thành công'
                   data:
                     type: object
                     properties:
                       accessToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
                       refreshToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         '401':
           description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Thông tin đăng nhập không hợp lệ'
+        '403':
+          description: Account inactive or locked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Tài khoản đã bị vô hiệu hóa'
         '422':
           description: Validation error
-
+  /auth/login-google:
+    post:
+      tags:
+        - Authentication
+      summary: Login with Google OAuth
+      description: |
+        Authenticate user using Google OAuth token.  
+        Returns JWT accessToken and refreshToken if successful.
+      operationId: loginGoogle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tokenGoogle
+              properties:
+                tokenGoogle:
+                  type: string
+                  description: Google OAuth ID token
+                  example: 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Đăng nhập thành công'
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                      refreshToken:
+                        type: string
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+        '400':
+          description: Missing or invalid Google token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid Google token or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Account inactive or locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /auth/logout:
     post:
       tags:
@@ -522,7 +616,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Đăng xuất thành công"
+                    example: 'Đăng xuất thành công'
                   data:
                     type: object
                     properties:
@@ -549,7 +643,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: "user@example.com"
+                  example: 'user@example.com'
       responses:
         '200':
           description: Password reset email sent
@@ -560,13 +654,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Email đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn"
+                    example: 'Email đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn'
                   data:
                     type: object
                     properties:
                       email:
                         type: string
-                        example: "user@example.com"
+                        example: 'user@example.com'
         '404':
           description: Email not found
         '422':
@@ -591,11 +685,11 @@ paths:
               properties:
                 token:
                   type: string
-                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
                 newPassword:
                   type: string
                   minLength: 8
-                  example: "newpassword123"
+                  example: 'newpassword123'
       responses:
         '200':
           description: Password reset successful
@@ -606,16 +700,16 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Mật khẩu đã được đặt lại thành công"
+                    example: 'Mật khẩu đã được đặt lại thành công'
                   data:
                     type: object
                     properties:
                       accessToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
                       refreshToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         '400':
           description: Invalid or expired token
         '422':
@@ -642,11 +736,11 @@ paths:
               properties:
                 oldPassword:
                   type: string
-                  example: "oldpassword123"
+                  example: 'oldpassword123'
                 newPassword:
                   type: string
                   minLength: 8
-                  example: "newpassword123"
+                  example: 'newpassword123'
       responses:
         '200':
           description: Password changed successfully
@@ -657,16 +751,16 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Password changed successfully"
+                    example: 'Password changed successfully'
                   data:
                     type: object
                     properties:
                       accessToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
                       refreshToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         '400':
           description: Invalid old password or same password
         '401':
@@ -737,7 +831,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Event logs retrieved"
+                    example: 'Event logs retrieved'
                   data:
                     type: object
                     properties:
@@ -772,7 +866,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[0-9a-fA-F]{24}$"
+            pattern: '^[0-9a-fA-F]{24}$'
       responses:
         '200':
           description: Event log retrieved successfully
@@ -783,7 +877,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Event log retrieved"
+                    example: 'Event log retrieved'
                   data:
                     $ref: '#/components/schemas/EventLog'
         '400':
@@ -813,7 +907,7 @@ paths:
               properties:
                 refreshToken:
                   type: string
-                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
       responses:
         '200':
           description: Token refreshed successfully
@@ -824,13 +918,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Token refreshed successfully"
+                    example: 'Token refreshed successfully'
                   data:
                     type: object
                     properties:
                       accessToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         '401':
           description: Invalid refresh token
         '422':
@@ -855,7 +949,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Lấy thông tin người dùng thành công"
+                    example: 'Lấy thông tin người dùng thành công'
                   data:
                     allOf:
                       - $ref: '#/components/schemas/User'
@@ -863,10 +957,10 @@ paths:
                         properties:
                           roleCode:
                             type: string
-                            example: "admin"
+                            example: 'admin'
                           roleName:
                             type: string
-                            example: "Administrator"
+                            example: 'Administrator'
         '401':
           description: Unauthorized
         '404':
@@ -897,34 +991,34 @@ paths:
               properties:
                 fullName:
                   type: string
-                  example: "Nguyễn Văn B"
+                  example: 'Nguyễn Văn B'
                 email:
                   type: string
                   format: email
-                  example: "admin@example.com"
+                  example: 'admin@example.com'
                 phoneNumber:
                   type: string
-                  pattern: "^[0-9]{10,11}$"
-                  example: "0987654321"
+                  pattern: '^[0-9]{10,11}$'
+                  example: '0987654321'
                 identifyNumber:
                   type: string
-                  pattern: "^[0-9]{9,12}$"
-                  example: "987654321"
+                  pattern: '^[0-9]{9,12}$'
+                  example: '987654321'
                 gender:
                   type: string
                   enum: [male, female]
-                  example: "female"
+                  example: 'female'
                 address:
                   type: string
-                  example: "456 Oak Street, City"
+                  example: '456 Oak Street, City'
                 dateOfBirth:
                   type: string
                   format: date
-                  example: "1985-05-15"
+                  example: '1985-05-15'
                 password:
                   type: string
                   minLength: 8
-                  example: "password123"
+                  example: 'password123'
       responses:
         '200':
           description: User created successfully
@@ -935,34 +1029,34 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Đăng ký thành công"
+                    example: 'Đăng ký thành công'
                   data:
                     type: object
                     properties:
                       id:
                         type: string
-                        example: "507f1f77bcf86cd799439012"
+                        example: '507f1f77bcf86cd799439012'
                       fullName:
                         type: string
-                        example: "Nguyễn Văn B"
+                        example: 'Nguyễn Văn B'
                       email:
                         type: string
-                        example: "admin@example.com"
+                        example: 'admin@example.com'
                       phoneNumber:
                         type: string
-                        example: "0987654321"
+                        example: '0987654321'
                       identifyNumber:
                         type: string
-                        example: "987654321"
+                        example: '987654321'
                       gender:
                         type: string
-                        example: "female"
+                        example: 'female'
                       address:
                         type: string
-                        example: "456 Oak Street, City"
+                        example: '456 Oak Street, City'
                       dateOfBirth:
                         type: string
-                        example: "1985-05-15"
+                        example: '1985-05-15'
         '409':
           description: Conflict - Email, phone, or identify number already exists
         '422':
@@ -984,7 +1078,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       requestBody:
         required: true
         content:
@@ -994,22 +1088,22 @@ paths:
               properties:
                 fullName:
                   type: string
-                  example: "Nguyễn Văn A Updated"
+                  example: 'Nguyễn Văn A Updated'
                 dateOfBirth:
                   type: string
                   format: date
-                  example: "1990-01-01"
+                  example: '1990-01-01'
                 gender:
                   type: string
                   enum: [male, female]
-                  example: "male"
+                  example: 'male'
                 address:
                   type: string
-                  example: "123 Updated Street, City"
+                  example: '123 Updated Street, City'
                 email:
                   type: string
                   format: email
-                  example: "updated@example.com"
+                  example: 'updated@example.com'
                 phoneNumber:
                   type: string
                   pattern: '^[0-9]{10,11}$'
@@ -1033,7 +1127,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "User updated successfully"
+                    example: 'User updated successfully'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1063,7 +1157,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       requestBody:
         required: true
         content:
@@ -1091,7 +1185,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "User status updated"
+                    example: 'User status updated'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1100,7 +1194,7 @@ paths:
           description: Unauthorized
         '404':
           description: User not found
-        '422':  
+        '422':
           description: Validation error
   /admin/users/delete/{id}:
     delete:
@@ -1118,7 +1212,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       responses:
         '200':
           description: User deleted successfully
@@ -1129,7 +1223,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "User deleted (status=0)"
+                    example: 'User deleted (status=0)'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1157,7 +1251,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       responses:
         '200':
           description: User blocked successfully
@@ -1168,7 +1262,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "User blocked successfully"
+                    example: 'User blocked successfully'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1195,7 +1289,7 @@ paths:
           description: Search term for email, fullName, or phoneNumber
           schema:
             type: string
-            example: "john"
+            example: 'john'
         - name: status
           in: query
           required: false
@@ -1211,7 +1305,7 @@ paths:
           schema:
             type: string
             enum: [fullName, email, createdAt, updatedAt]
-            example: "createdAt"
+            example: 'createdAt'
         - name: sortOrder
           in: query
           required: false
@@ -1247,7 +1341,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Lấy danh sách người dùng thành công"
+                    example: 'Lấy danh sách người dùng thành công'
                   data:
                     type: array
                     items:
@@ -1257,10 +1351,10 @@ paths:
                           properties:
                             roleCode:
                               type: string
-                              example: "user"
+                              example: 'user'
                             roleName:
                               type: string
-                              example: "Normal user"
+                              example: 'Normal user'
                   pagination:
                     type: object
                     properties:
@@ -1279,7 +1373,6 @@ paths:
         '404':
           description: No users found
 
-
   /user/{id}:
     get:
       tags:
@@ -1294,7 +1387,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       responses:
         '200':
           description: User retrieved successfully
@@ -1305,7 +1398,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Lấy thông tin người dùng thành công"
+                    example: 'Lấy thông tin người dùng thành công'
                   data:
                     $ref: '#/components/schemas/User'
         '404':
@@ -1329,26 +1422,26 @@ paths:
               properties:
                 fullName:
                   type: string
-                  example: "Nguyễn Văn A Updated"
+                  example: 'Nguyễn Văn A Updated'
                 dateOfBirth:
                   type: string
                   format: date
-                  example: "1990-01-01"
+                  example: '1990-01-01'
                 gender:
                   type: string
                   enum: [male, female]
-                  example: "male"
+                  example: 'male'
                 address:
                   type: string
-                  example: "123 Updated Street, City"
+                  example: '123 Updated Street, City'
                 email:
                   type: string
                   format: email
-                  example: "updated@example.com"   
+                  example: 'updated@example.com'
                 phoneNumber:
                   type: string
-                  pattern: "^[0-9]{10,11}$"
-                  example: "0123456789"
+                  pattern: '^[0-9]{10,11}$'
+                  example: '0123456789'
       responses:
         '200':
           description: Profile updated successfully
@@ -1359,7 +1452,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Profile updated successfully"
+                    example: 'Profile updated successfully'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1826,44 +1919,6 @@ paths:
         '404':
           description: Test order not found
 
-  /test-orders/{id}/ai-review:
-    post:
-      tags:
-        - Test Order Review
-      summary: AI auto review test order
-      description: Perform AI-driven automatic review of a completed test order
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Test order ID
-          schema:
-            type: string
-            example: '507f1f77bcf86cd799439011'
-      responses:
-        '200':
-          description: AI review completed successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'AI review completed successfully'
-                  data:
-                    $ref: '#/components/schemas/TestOrder'
-        '400':
-          description: Test order not completed
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden (insufficient role)
-        '404':
-          description: Test order not found
-
   # Comment Management
   /test-orders/{id}/comments:
     post:
@@ -2293,43 +2348,12 @@ paths:
             schema:
               type: object
               required:
-                - patientId
-                - fullName
-                - dateOfBirth
-                - gender
-                - phoneNumber
-                - address
+                - userId
               properties:
-                patientId:
+                userId:
                   type: string
-                  example: 'P001234'
-                  description: Unique patient identifier
-                fullName:
-                  type: string
-                  example: 'Nguyễn Văn A'
-                dateOfBirth:
-                  type: string
-                  format: date
-                  example: '1990-01-15'
-                gender:
-                  type: string
-                  enum: [male, female]
-                  example: 'male'
-                phoneNumber:
-                  type: string
-                  pattern: '^[0-9]{10,11}$'
-                  example: '0123456789'
-                email:
-                  type: string
-                  format: email
-                  example: 'patient@email.com'
-                address:
-                  type: string
-                  example: '123 Đường ABC, Quận 1, TP.HCM'
-                identifyNumber:
-                  type: string
-                  pattern: '^[0-9]{9,12}$'
-                  example: '123456789'
+                  example: '507f1f77bcf86cd799439011'
+                  description: MongoDB user _id of an existing user with role patient
                 emergencyContact:
                   type: object
                   properties:
@@ -2808,6 +2832,123 @@ paths:
         '404':
           description: Patient record not found
 
+  /test-orders/{id}/ai-review:
+    post:
+      tags:
+        - Test Order Review
+      summary: AI auto review a completed test order
+      description: |
+        Trigger AI-assisted review on a completed test order. The system evaluates results, applies minor adjustments if appropriate, clamps values within configured acceptable ranges, and updates status to `ai_reviewed`.
+        
+        Required privilege: `review_test_order`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{24}$"
+      responses:
+        '200':
+          description: AI review completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'AI review completed successfully'
+                  data:
+                    type: object
+                    properties:
+                      testOrder:
+                        $ref: '#/components/schemas/TestOrder'
+                      aiSuggestions:
+                        type: array
+                        description: Raw AI suggestion items returned by Gemini
+                        items:
+                          type: object
+                          properties:
+                            testName:
+                              type: string
+                              example: 'Glucose'
+                            suggestedResult:
+                              type: number
+                              example: 101.5
+                      aiDiagnosis:
+                        type: string
+                        nullable: true
+                        description: JSON string of AI diagnoses (diagnoses[], notes)
+                        example: '{"diagnoses":[{"name":"Diabetes Mellitus","confidence":0.72,"rationale":"Elevated fasting glucose"}],"notes":"Suggest confirmatory testing"}'
+        '400':
+          description: Bad request (invalid id, insufficient data, or wrong status)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Test order must be completed before AI review'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - missing privilege `review_test_order`
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Bạn không có quyền thực hiện hành động này'
+                  required:
+                    type: array
+                    items:
+                      type: string
+                    example: ['review_test_order']
+        '404':
+          description: Test order not found
+
+  /ai/diagnostics:
+    get:
+      tags:
+        - Test Order Review
+      summary: Ping Gemini AI to verify API key and model reachability
+      description: Calls the configured Gemini model with a trivial prompt and returns a short text sample
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: AI diagnostics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'AI diagnostics'
+                  data:
+                    type: object
+                    properties:
+                      ok:
+                        type: boolean
+                        example: true
+                      model:
+                        type: string
+                        example: 'gemini-2.5-pro'
+                      sample:
+                        type: string
+                        nullable: true
+                        example: 'OK - gemini-2.5-pro'
+        '401':
+          description: Unauthorized
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2822,34 +2963,34 @@ components:
       properties:
         _id:
           type: string
-          example: "507f1f77bcf86cd799439011"
+          example: '507f1f77bcf86cd799439011'
         fullName:
           type: string
-          example: "Nguyễn Văn A"
+          example: 'Nguyễn Văn A'
         email:
           type: string
           format: email
-          example: "user@example.com"
+          example: 'user@example.com'
         phoneNumber:
           type: string
-          example: "0123456789"
+          example: '0123456789'
         identifyNumber:
           type: string
-          example: "123456789"
+          example: '123456789'
         gender:
           type: string
           enum: [male, female]
-          example: "male"
+          example: 'male'
         address:
           type: string
-          example: "123 Main Street, City"
+          example: '123 Main Street, City'
         dateOfBirth:
           type: string
           format: date
-          example: "1990-01-01"
+          example: '1990-01-01'
         roleId:
           type: string
-          example: "507f1f77bcf86cd799439099"
+          example: '507f1f77bcf86cd799439099'
         status:
           type: integer
           enum: [0, 1, 2]
@@ -2861,98 +3002,144 @@ components:
         createdAt:
           type: string
           format: date-time
-          example: "2023-01-01T00:00:00.000Z"
+          example: '2023-01-01T00:00:00.000Z'
         updatedAt:
           type: string
           format: date-time
-          example: "2023-01-01T00:00:00.000Z"
+          example: '2023-01-01T00:00:00.000Z'
 
     Role:
       type: object
       properties:
         _id:
           type: string
-          example: "507f1f77bcf86cd799439022"
+          example: '507f1f77bcf86cd799439022'
         name:
           type: string
-          example: "Lab Manager"
+          example: 'Lab Manager'
         code:
           type: string
-          enum: [admin, lab_manager, service, lab_user, custom]
-          example: "lab_manager"
+          enum: [admin, lab_manager, service, lab_user, patient]
+          example: 'lab_manager'
         description:
           type: string
-          example: "Manage lab and users"
+          example: 'Manage lab and users'
         privileges:
           type: array
           items:
             type: string
-            enum: ["*", read_only, view_role, create_role, update_role, delete_role, view_config, create_config, modify_config, delete_config, view_user, modify_user, delete_user, lock_unlock_user, add_comment, modify_comment, delete_comment, create_test_order, delete_test_order, review_test_order, modify_test_order, execute_blood_testing, view_instrument, activate_instrument, deactivate_instrument, view_event_logs]
-          example: ["view_role", "create_role", "update_role", "view_config", "create_config", "modify_config", "delete_config", "view_user", "modify_user", "delete_user", "lock_unlock_user", "add_comment", "modify_comment", "delete_comment", "review_test_order", "modify_test_order"]
+            enum:
+              [
+                '*',
+                read_only,
+                view_role,
+                create_role,
+                update_role,
+                delete_role,
+                view_config,
+                create_config,
+                modify_config,
+                delete_config,
+                view_user,
+                modify_user,
+                delete_user,
+                lock_unlock_user,
+                add_comment,
+                modify_comment,
+                delete_comment,
+                create_test_order,
+                delete_test_order,
+                review_test_order,
+                modify_test_order,
+                execute_blood_testing,
+                view_instrument,
+                activate_instrument,
+                deactivate_instrument,
+                view_event_logs
+              ]
+          example:
+            [
+              'view_role',
+              'create_role',
+              'update_role',
+              'view_config',
+              'create_config',
+              'modify_config',
+              'delete_config',
+              'view_user',
+              'modify_user',
+              'delete_user',
+              'lock_unlock_user',
+              'add_comment',
+              'modify_comment',
+              'delete_comment',
+              'review_test_order',
+              'modify_test_order'
+            ]
         createdAt:
           type: string
           format: date-time
-          example: "2023-01-01T00:00:00.000Z"
+          example: '2023-01-01T00:00:00.000Z'
         updatedAt:
           type: string
           format: date-time
-          example: "2023-01-01T00:00:00.000Z"
+          example: '2023-01-01T00:00:00.000Z'
 
     Error:
       type: object
       properties:
         message:
           type: string
-          example: "Error message"
+          example: 'Error message'
         errors:
           type: object
           additionalProperties:
             type: string
           example:
-            email: "Email is required"
-            password: "Password must be at least 8 characters"
+            email: 'Email is required'
+            password: 'Password must be at least 8 characters'
 
     ValidationError:
       type: object
       properties:
         message:
           type: string
-          example: "Dữ liệu không hợp lệ"
+          example: 'Dữ liệu không hợp lệ'
         errors:
           type: object
           additionalProperties:
             type: string
           example:
-            email: "Email không đúng định dạng"
-            password: "Mật khẩu phải có ít nhất 8 ký tự"
+            email: 'Email không đúng định dạng'
+            password: 'Mật khẩu phải có ít nhất 8 ký tự'
     Operator:
       type: object
       properties:
         id:
           type: string
-          example: "507f1f77bcf86cd799439011"
+          example: '507f1f77bcf86cd799439011'
         name:
           type: string
-          example: "Nguyễn Văn A"
+          example: 'Nguyễn Văn A'
         role:
           type: string
-          example: "manager"
+          example: 'manager'
 
     EventLog:
       type: object
       properties:
         _id:
           type: string
-          example: "60d5f9b2b60a3c6f1c9e8b7a"
+          example: '60d5f9b2b60a3c6f1c9e8b7a'
         userId:
           type: string
-          example: "507f1f77bcf86cd799439011"
+          example: '507f1f77bcf86cd799439011'
         action:
           type: string
-          example: "USER_UPDATED"
+          example: 'USER_UPDATED'
         details:
           type: string
-          example: "Updated user profile information"
+          example: 'Updated user profile information'
         timestamp:
           type: string
           format: date-time
@@ -2963,7 +3150,7 @@ components:
       properties:
         _id:
           type: string
-          example: "507f1f77bcf86cd799439011"
+          example: '507f1f77bcf86cd799439011'
         patientName:
           type: string
           example: 'Nguyễn Văn A'
@@ -3049,7 +3236,7 @@ components:
       properties:
         _id:
           type: string
-          example: "60d5f9b2b60a3c6f1c9e8b7a"
+          example: '60d5f9b2b60a3c6f1c9e8b7a'
         testName:
           type: string
           example: 'Hemoglobin'
@@ -3088,6 +3275,12 @@ components:
             configApplied:
               type: string
               example: '507f1f77bcf86cd799439015'
+            aiDiagnosisSummary:
+              type: array
+              items:
+                type: string
+              description: Short list of AI-suggested diagnosis names
+              example: ['Diabetes Mellitus']
         createdAt:
           type: string
           format: date-time

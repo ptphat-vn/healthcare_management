@@ -3,10 +3,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch } from "react-redux";
 import { loginSchema, type loginFormData } from "@/schemas/authSchema";
 import { useForm } from "react-hook-form";
-import { useLoginMutation } from "@/services/baseApi";
+import { useLoginGoogleMutation, useLoginMutation } from "@/services/baseApi";
 import { setAuth } from "@/stores/authSlice";
 import { toast } from "sonner";
 import Input from "../ui/input/Input";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+
 export default function LoginForm() {
   const dispatch = useDispatch();
   const {
@@ -19,6 +21,7 @@ export default function LoginForm() {
   // useForm bao gom register, handleSubmit, setError
 
   const [login, { isLoading }] = useLoginMutation();
+  const [loginGoogle] = useLoginGoogleMutation();
   const navigate = useNavigate();
 
   const onSubmit = async (formData: loginFormData) => {
@@ -37,7 +40,31 @@ export default function LoginForm() {
       console.log("error login", error);
 
       toast.error(
-        error.data?.message || "Đăng nhập thất bại, vui lòng thử lại"
+        error.data?.message || "Đăng nhập thất bại, vui lòng thử lại",
+        { duration: 4000 }
+      );
+    }
+  };
+  const handleSuccess = async (response: any) => {
+    const { credential } = response; //Nhận ID token từ Google
+    console.log(credential);
+
+    try {
+      const result = await loginGoogle({ tokenGoogle: credential }).unwrap();
+      dispatch(
+        setAuth({
+          accessToken: result.data.accessToken,
+          refreshToken: result.data.refreshToken,
+        })
+      );
+      toast.success(result?.message || "Đăng nhập thành công");
+      navigate("/");
+    } catch (error: any) {
+      console.log("error login", error);
+
+      toast.error(
+        error.data?.message || "Đăng nhập thất bại, vui lòng thử lại",
+        { duration: 4000 }
       );
     }
   };
@@ -73,6 +100,11 @@ export default function LoginForm() {
         <span className="text-red-400 text-xs">{errors.root?.message}</span>
       )}
       <p className="mt-2 text-center text-sm text-gray-600">
+        <Link className="font-medium text-blue-600 hover:text-blue-500" to="/auth/forgot-password">
+          Forgot password?
+        </Link>
+      </p>
+      <p className="mt-2 text-center text-sm text-gray-600">
         Don't have an account?{" "}
         <Link
           className="font-medium text-blue-600 hover:text-blue-500"
@@ -82,11 +114,14 @@ export default function LoginForm() {
           Sign up
         </Link>
       </p>
-      <p className="mt-2 text-center text-sm text-gray-600">
-        <Link className="font-medium text-blue-600 hover:text-blue-500" to="/auth/forgot-password">
-         Forgot password?
-       </Link>
-       </p>
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GG_CLIENT_ID}>
+        <GoogleLogin
+          onSuccess={handleSuccess}
+          onError={() => {
+            console.log("Login Failed");
+          }}
+        />
+      </GoogleOAuthProvider>
     </form>
   );
 }

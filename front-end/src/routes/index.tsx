@@ -21,6 +21,8 @@ import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringSer
 import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
 import RoleManagementPage from "@/pages/admin/roleManagement/RoleManagementPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
+import UserManagement from "@/pages/manager/UserManagement/UserManagementPage";
+import LabUserDashboard from "@/pages/labUser/LabUserDashboard";
 
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 
@@ -89,16 +91,45 @@ export const router = createBrowserRouter([
 
   // Manager
   {
-    path: "manager",
+    path: "lab_manager",
     element: (
-      <ProtectedRoute allowedRoles={["manager"]}>
+      <ProtectedRoute allowedRoles={["lab_manager"]}>
         <MainLayout />
       </ProtectedRoute>
     ),
-    children: [{ path: "dashboard", element: "Dang lam" }],
+    children: [
+      { path: "dashboard", element: <div>Đang làm</div> },
+      { path: "user-management", element: <UserManagement /> },
+      { path: "roles-management", element: <RoleManagementPage /> },
+      { path: "user-management/:id", element: <UserDetail /> },
+      { path: "profile", element: <ProfilePage /> },
+      { path: "medical-record", element: <MedicalRecordPage /> },
+      { path: "medical-records/:id", element: <MedicalRecordDetail /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
+      { path: "event-log", element: <MonitoringServicePage /> },
+    ],
   },
+
+  // LAB USER ROUTE
+  {
+    path: "/lab_user",
+    element: (
+      <ProtectedRoute allowedRoles={["lab_user"]}>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { path: "dashboard", element: <LabUserDashboard /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "medical-records", element: <MedicalRecordPage /> },
+      { path: "medical-records/:id", element: <MedicalRecordDetail /> },
+      { path: "profile", element: <ProfilePage /> },
+    ],
+  },
+
   // USER ROUTE
-  { 
+  {
     path: "/user",
     element: (
       <ProtectedRoute allowedRoles={["user"]}>

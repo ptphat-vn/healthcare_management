@@ -7,6 +7,7 @@ import {
   ShieldUser,
   TestTubeDiagonal,
   UserCog,
+  Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -50,13 +51,50 @@ export default function SideBar() {
         icon: <History />,
       },
     ],
-    manager: [
+    lab_manager: [
       {
         label: "Dashboard",
-        to: "/manager/dashboard",
+        to: "/lab_manager/dashboard",
         icon: <LayoutDashboard />,
       },
-      { label: "Reports", to: "/manager/reports" },
+      {
+        label: "User Management",
+        to: "/lab_manager/user-management",
+        icon: <Users />,
+      },
+      {
+        label: "Roles Management",
+        to: "/lab_manager/roles-management",
+        icon: <ShieldUser />,
+      },
+      {
+        label: "Medical Record",
+        to: "/lab_manager/medical-record",
+        icon: <ClipboardPlus />,
+      },
+      {
+        label: "Test Order",
+        to: "/lab_manager/test-order",
+        icon: <TestTubeDiagonal />,
+      },
+      {
+        label: "Event Log",
+        to: "/lab_manager/event-log",
+        icon: <History />,
+      },
+      { label: "Reports", to: "/lab_manager/reports" },
+    ],
+    lab_user: [
+      {
+        label: "Dashboard",
+        to: "/lab_user/dashboard",
+        icon: <LayoutDashboard />,
+      },
+      {
+        label: "Medical Records",
+        to: "/lab_user/medical-records",
+        icon: <ClipboardPlus />,
+      },
     ],
     consultant: [
       {

@@ -6,6 +6,7 @@ export const MESSAGES = {
   INVALID_CREDENTIALS: 'Thông tin đăng nhập không hợp lệ',
   UNAUTHORIZED: 'Không có quyền truy cập',
   VALIDATION_ERROR: 'Dữ liệu không hợp lệ',
+  BAD_REQUEST: 'Yêu cầu không hợp lệ',
   FORGOT_PASSWORD_SUCCESS: 'Email đặt lại mật khẩu đã được gửi',
   RESET_PASSWORD_SUCCESS: 'Mật khẩu đã được đặt lại thành công',
   EMAIL_NOT_FOUND: 'Email không tồn tại trong hệ thống',
@@ -24,6 +25,8 @@ export const MESSAGES = {
   USERS_NOT_FOUND: 'Không tìm thấy người dùng nào',
   GET_USER_DETAIL_SUCCESS: 'Lấy thông tin người dùng thành công',
   USER_NOT_FOUND: 'Không tìm thấy người dùng',
+  ACCOUNT_INACTIVE: 'Tài khoản đã bị vô hiệu hóa',
+  ACCOUNT_LOCKED: 'Tài khoản đã bị khóa',
   // Test Order Messages
   TEST_ORDER_CREATED_SUCCESS: 'Tạo đơn xét nghiệm thành công',
   TEST_ORDER_UPDATED_SUCCESS: 'Cập nhật đơn xét nghiệm thành công',

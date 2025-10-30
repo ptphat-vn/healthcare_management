@@ -10,19 +10,12 @@ const isValidDate = (s: string): boolean => {
 }
 
 const createPatientRecordSchema = z.object({
-  patientId: z.string().min(1, 'Patient ID is required'),
-  fullName: z.string().min(1, 'Full name is required'),
-  dateOfBirth: z.string().refine(isValidDate, 'Date of birth must be in MM/DD/YYYY or YYYY-MM-DD format'),
-  gender: z.enum(['male', 'female'], { message: 'Gender must be male or female' }),
-  bloodType: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], { message: 'Invalid blood type' }).optional(),
-  phoneNumber: z.string().regex(/^[0-9]{10,11}$/, 'Phone number must be 10-11 digits'),
-  email: z.string().email('Invalid email format').optional().or(z.literal('')),
-  address: z.string().min(1, 'Address is required'),
-  identifyNumber: z.string().regex(/^[0-9]{9,12}$/, 'Identity number must be 9-12 digits').optional().or(z.literal('')),
+  userId: z.string().min(1, 'User ID is required'),
+  bloodType: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']).optional(),
   emergencyContact: z.object({
-    name: z.string().min(1, 'Emergency contact name is required'),
-    phoneNumber: z.string().regex(/^[0-9]{10,11}$/, 'Emergency contact phone must be 10-11 digits'),
-    relationship: z.string().min(1, 'Relationship is required')
+    name: z.string().min(1),
+    phoneNumber: z.string().regex(/^[0-9]{10,11}$/),
+    relationship: z.string().min(1)
   }).optional(),
   medicalHistory: z.object({
     allergies: z.array(z.string()).optional(),
@@ -31,9 +24,9 @@ const createPatientRecordSchema = z.object({
     previousSurgeries: z.array(z.string()).optional()
   }).optional(),
   insuranceInfo: z.object({
-    provider: z.string().min(1, 'Insurance provider is required'),
-    policyNumber: z.string().min(1, 'Policy number is required'),
-    expiryDate: z.string().refine(isValidDate, 'Expiry date must be in MM/DD/YYYY or YYYY-MM-DD format').optional().or(z.literal(''))
+    provider: z.string().min(1),
+    policyNumber: z.string().min(1),
+    expiryDate: z.string().refine(isValidDate).optional().or(z.literal(''))
   }).optional()
 })
 

@@ -4,6 +4,7 @@ import { MESSAGES } from '~/constants/message.constant'
 import { getTestOrdersCollection, TestOrderDocument, TestResult, Comment } from '~/models/test-order.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
+import { getRolesCollection } from '~/models/role.model'
 
 export interface CreateTestOrderData {
   patientName: string
@@ -293,7 +294,7 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(addedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(addedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -346,7 +347,7 @@ export async function addComment(id: string, content: string, addedBy: string) {
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(addedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(addedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -422,7 +423,7 @@ export async function reviewTestOrderResults(id: string, reviewedBy: string, res
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(reviewedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(reviewedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -459,33 +460,78 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
   }
 
   const now = new Date()
-  let updatedTestResults = testOrder.testResults || []
+  const existingResults = testOrder.testResults || []
 
-  // AI review logic - simulate AI adjustments
-  updatedTestResults = updatedTestResults.map((result: any) => {
-    // Simulate AI analysis and potential adjustments
-    const numericResult = parseFloat(result.result)
-    if (!isNaN(numericResult)) {
-      // Simulate AI finding minor adjustments needed (small random changes)
-      const adjustment = (Math.random() - 0.5) * 0.1 * numericResult // ±5% adjustment
-      const adjustedValue = numericResult + adjustment
-      
-      // Only apply adjustment if it's within reasonable bounds
-      if (adjustedValue > 0 && Math.abs(adjustment) > 0.01) {
-        return {
-          ...result,
-          result: adjustedValue.toFixed(2),
-          aiReviewedAt: now,
-          updatedAt: now
-        }
+  if (!existingResults.length) {
+    throw new HttpError(400, 'Insufficient data: no test results to review')
+  }
+
+  // Prepare AI input
+  const { analyzeTestResultsWithAI, generateDiagnosisJson } = await import('~/services/ai.service')
+  const aiInput = existingResults.map((r: any) => ({ testName: r.testName, result: String(r.result), unit: r.unit }))
+  const aiSuggestions = await analyzeTestResultsWithAI(aiInput)
+  const diagnosisJson = await generateDiagnosisJson(aiInput)
+
+  // Helper to keep values within acceptable configured ranges
+  const { getFlaggingConfigByTestName } = await import('~/services/flagging-config.service')
+  const updatedTestResults = [] as any[]
+  for (const r of existingResults as any[]) {
+    const numeric = parseFloat(r.result)
+    const suggestion = aiSuggestions.find(s => s.testName === r.testName)
+    const suggested = suggestion?.suggestedResult
+    const config = await getFlaggingConfigByTestName(r.testName)
+
+    let finalValue: number | undefined
+    if (!isNaN(numeric)) {
+      if (typeof suggested === 'number' && isFinite(suggested)) {
+        finalValue = suggested
+      } else {
+        // Fallback: small ±3% adjustment if numeric
+        const adj = (Math.random() - 0.5) * 0.06 * numeric
+        finalValue = numeric + adj
+      }
+
+      // Enforce acceptable ranges if configuration exists
+      if (config) {
+        const minCandidates = [config.criticalRange?.min, config.abnormalRange?.min, config.normalRange?.min].filter((x): x is number => typeof x === 'number')
+        const maxCandidates = [config.criticalRange?.max, config.abnormalRange?.max, config.normalRange?.max].filter((x): x is number => typeof x === 'number')
+        const min = minCandidates.length ? Math.min(...minCandidates) : undefined
+        const max = maxCandidates.length ? Math.max(...maxCandidates) : undefined
+        if (typeof min === 'number' && finalValue! < min) finalValue = min
+        if (typeof max === 'number' && finalValue! > max) finalValue = max
       }
     }
-    return {
-      ...result,
-      aiReviewedAt: now,
-      updatedAt: now
+
+    // Attach brief diagnosis summary into processedData if available
+    let processedData = r.processedData || {}
+    if (diagnosisJson) {
+      try {
+        const diagParsed = JSON.parse(diagnosisJson)
+        const names = Array.isArray(diagParsed?.diagnoses) ? diagParsed.diagnoses.map((d: any) => d?.name).filter(Boolean) : []
+        if (names.length) {
+          processedData = { ...processedData, aiDiagnosisSummary: names.slice(0, 3) }
+        }
+      } catch {
+        // ignore parse errors
+      }
     }
-  })
+
+    updatedTestResults.push({
+      ...r,
+      result: typeof finalValue === 'number' && isFinite(finalValue) ? finalValue.toFixed(2) : r.result,
+      aiReviewedAt: now,
+      updatedAt: now,
+      processedData
+    })
+  }
+
+  // Build comment if we have diagnosis JSON
+  const commentPayload = diagnosisJson ? {
+    _id: new ObjectId(),
+    content: `[AI Diagnosis] ${diagnosisJson}`,
+    createdBy: new ObjectId(reviewedBy),
+    createdAt: now
+  } : null
 
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
@@ -494,7 +540,8 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
         status: 'ai_reviewed',
         testResults: updatedTestResults,
         updatedAt: now
-      } 
+      },
+      ...(commentPayload ? { $push: { comments: commentPayload } } : {})
     },
     { returnDocument: 'after' }
   )
@@ -508,7 +555,7 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(reviewedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(reviewedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -520,7 +567,7 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     // swallow logging errors
   }
 
-  return updated
+  return { testOrder: updated, aiSuggestions, aiDiagnosis: diagnosisJson }
 }
 
 // Update comment
@@ -584,7 +631,7 @@ export async function updateComment(testOrderId: string, commentId: string, cont
   try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(updatedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(updatedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
@@ -659,7 +706,7 @@ export async function deleteComment(testOrderId: string, commentId: string, dele
   // Log the event
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(deletedBy) })
-    const actorRoleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleCol = getRolesCollection()
     const actorRoleDoc = actorUser?.roleId ? await actorRoleCol.findOne({ _id: actorUser.roleId } as any) : null
     await eventLogs.insertOne({
       operator: { id: new ObjectId(deletedBy), name: actorUser?.fullName || '', role: actorRoleDoc?.code || '' },
