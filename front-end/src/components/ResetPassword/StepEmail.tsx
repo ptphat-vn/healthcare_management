@@ -1,0 +1,56 @@
+import { motion } from "framer-motion";
+
+export default function StepEmail({
+  identifier,
+  setIdentifier,
+  onSend,
+  onBack,
+  loading,
+}: {
+  identifier: string;
+  setIdentifier: (v: string) => void;
+  onSend: () => void;
+  onBack: () => void;
+  loading: boolean;
+}) {
+  return (
+    <motion.form
+      initial={{ x: -50, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: 50, opacity: 0 }}
+      transition={{ duration: 0.6, type: "spring" }}
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSend();
+      }}
+      className="space-y-4"
+    >
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Email</label>
+        <input
+          placeholder="example123@gmail.com"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <button
+          type="submit"
+          disabled={loading}
+          className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4"
+        >
+          {loading ? "Đang gửi..." : "Send Code"}
+        </button>
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-sm text-blue-600 hover:text-blue-500"
+        >
+          ← Back to Sign in
+        </button>
+      </div>
+    </motion.form>
+  );
+}
