@@ -629,7 +629,7 @@ paths:
       tags:
         - Authentication
       summary: Request password reset
-      description: Send password reset email
+      description: Send OTP via email for password reset
       operationId: forgotPassword
       requestBody:
         required: true
@@ -646,7 +646,7 @@ paths:
                   example: 'user@example.com'
       responses:
         '200':
-          description: Password reset email sent
+          description: OTP sent to email
           content:
             application/json:
               schema:
@@ -654,7 +654,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'Email đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn'
+                    example: 'OTP đã được gửi tới email của bạn!'
                   data:
                     type: object
                     properties:
@@ -671,7 +671,7 @@ paths:
       tags:
         - Authentication
       summary: Reset password
-      description: Reset password using token
+      description: Reset password using OTP
       operationId: resetPassword
       requestBody:
         required: true
@@ -680,12 +680,16 @@ paths:
             schema:
               type: object
               required:
-                - token
+                - email
+                - otp
                 - newPassword
               properties:
-                token:
+                email:
                   type: string
-                  example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                  example: 'user@example.com'
+                otp:
+                  type: string
+                  example: '123456'
                 newPassword:
                   type: string
                   minLength: 8
@@ -704,14 +708,11 @@ paths:
                   data:
                     type: object
                     properties:
-                      accessToken:
+                      email:
                         type: string
-                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-                      refreshToken:
-                        type: string
-                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                        example: 'user@example.com'
         '400':
-          description: Invalid or expired token
+          description: Invalid or expired OTP
         '422':
           description: Validation error
 
@@ -974,6 +975,8 @@ paths:
       summary: Create user (Admin only)
       description: Create a new user account (admin operation)
       operationId: createUser
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1282,6 +1285,8 @@ paths:
       summary: List users with pagination and search
       description: Retrieve paginated list of users with search, filter, and sorting capabilities
       operationId: getAllUsers
+      security:
+        - bearerAuth: []
       parameters:
         - name: search
           in: query
@@ -1380,6 +1385,8 @@ paths:
       summary: Get user by ID
       description: Retrieve user information by ID
       operationId: getUserById
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -2156,6 +2163,8 @@ paths:
         - Flagging Configuration
       summary: Get flagging configurations
       description: Retrieve all flagging configurations or only active ones
+      security:
+        - bearerAuth: []
       parameters:
         - name: active
           in: query
@@ -2186,6 +2195,8 @@ paths:
         - Flagging Configuration
       summary: Get flagging configuration by test name
       description: Retrieve a specific flagging configuration by test name
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path

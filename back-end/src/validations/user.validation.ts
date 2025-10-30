@@ -45,7 +45,8 @@ const forgotPasswordSchema = z.object({
 })
 
 const resetPasswordSchema = z.object({
-  token: z.string().min(1),
+  email: z.string().email(),
+  otp: z.string().min(1),
   newPassword: z.string().min(8),
 })
 
