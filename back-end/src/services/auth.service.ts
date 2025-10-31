@@ -281,6 +281,7 @@ export async function loginWithGoogle({ email, fullName }: { email: string; full
       defaultRole = await roles.findOne({ _id: insertRole.insertedId } as any)
     }
     const insert = await users.insertOne({
+      patientId: await generateNextPatientId(),
       fullName,
       email,
       roleId: (defaultRole as any)._id,

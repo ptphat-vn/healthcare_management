@@ -14,13 +14,18 @@ export const getCountersCollection = (): Collection<CounterDocument> => {
 
 export const getNextSequence = async (key: string): Promise<number> => {
   const counters = getCountersCollection()
+ 
   const result = await counters.findOneAndUpdate(
     { _id: key } as any,
     { $inc: { seq: 1 } },
     { upsert: true, returnDocument: 'after' }
   )
-  const seq: number = ((result as any)?.value?.seq) ?? 1
-  return seq
+  let seq: number | undefined = (result as any)?.value?.seq
+  if (typeof seq !== 'number') {
+    const doc = await counters.findOne({ _id: key } as any)
+    seq = (doc as any)?.seq ?? 1
+  }
+  return typeof seq === 'number' ? seq : 1
 }
 
 
