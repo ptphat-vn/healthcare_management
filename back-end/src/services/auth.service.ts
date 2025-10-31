@@ -73,17 +73,7 @@ export async function register(payload: {
     updatedAt: now
   } as UserDocument)
 
-  const eventLogs = getEventLogsCollection()
-  try {
-    await eventLogs.insertOne({
-      operator: { id: insert.insertedId, name: payload.fullName, role: (defaultRole as any)?.code || 'user' },
-      action: 'USER_CREATED',
-      details: 'User account created',
-      timestamp: now
-    } as any)
-  } catch {
-    // swallow logging errors
-  }
+
 
   return {
     id: insert.insertedId,
@@ -99,7 +89,7 @@ export async function register(payload: {
   }
 }
 
-export async function createUserByAdmin(payload: Parameters<typeof register>[0]) {
+export async function createUserByAdmin(payload: Parameters<typeof register>[0], performedBy?: string) {
   const created = await register(payload)
   // gửi tkhoan mkhau cho user
   try {
@@ -115,8 +105,29 @@ export async function createUserByAdmin(payload: Parameters<typeof register>[0])
   } catch (err) {
     console.error('Failed to send credentials email to new user:', err)
   }
+
+
+  // event log
+  try {
+    const eventLogs = getEventLogsCollection()
+    const users = getUsersCollection()
+    const actor = performedBy ? await users.findOne({ _id: new (require('mongodb').ObjectId)(performedBy) } as any) : null
+    const roleCol = (await import('~/models/role.model')).getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: actor?._id || 'system', name: actor?.fullName || 'system', role: actorRoleDoc?.code || 'system' },
+      action: 'USER_CREATED',
+      details: `User account created: ${payload.fullName} (${payload.email})`,
+      timestamp: new Date()
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
+
   return created
 }
+
+
 
 export async function login(payload: { email: string; password: string }) {
   const users = getUsersCollection()
