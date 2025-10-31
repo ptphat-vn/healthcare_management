@@ -24,6 +24,9 @@ import ProfilePage from "@/pages/profile/ProfilePage";
 import UserManagement from "@/pages/manager/UserManagement/UserManagementPage";
 import LabUserDashboard from "@/pages/labUser/LabUserDashboard";
 
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+
+
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
   // const role = user?.data.roleCode;
@@ -51,6 +54,8 @@ export const router = createBrowserRouter([
         children: [
           { path: "login", element: <LoginPage /> },
           { path: "register", element: <RegisterPage /> },
+          { path: "forgot-password", element: <ForgotPasswordPage /> },
+          { path: "reset-password", element: <ForgotPasswordPage /> },
         ],
       },
     ],

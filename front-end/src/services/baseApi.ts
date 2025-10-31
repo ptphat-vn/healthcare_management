@@ -20,6 +20,10 @@ import type {
   UpdateUserRequest,
 } from "@/types/request.type";
 import type { User } from "@/types/user.type";
+import type {
+ForgotPasswordRequest,
+ResetPasswordRequest
+} from "@/types/request.type";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
@@ -126,16 +130,38 @@ export const baseApi = createApi({
       }),
     }),
     loginGoogle: builder.mutation<
-      APIResponse<AuthResponse>,
-      { tokenGoogle: string }
-    >({
-      query: (tokenGoogle) => ({
-        url: "auth/login-google",
+    APIResponse<AuthResponse>,
+    { tokenGoogle: string }
+  >({
+    query: (tokenGoogle) => ({
+      url: "auth/login-google",
+      method: "POST",
+      body: tokenGoogle,
+    }),
+  }),
+    forgotPassword: builder.mutation<APIResponse<{ email: string }>, ForgotPasswordRequest>({
+      query: (body) => ({
+        url: "/auth/forgot-password",
         method: "POST",
-        body: tokenGoogle,
+        body,
+      }),
+    }),
+    resetPassword: builder.mutation<APIResponse<AuthResponse>, ResetPasswordRequest>({
+      query: (body) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        body,
+      }),
+    }),
+    verifyOTP: builder.mutation<APIResponse<{ verified: boolean }>, { email: string; otp: string }>({
+      query: (body) => ({
+        url: "/auth/verify-otp",
+        method: "POST",
+        body,
       }),
     }),
   }),
+  
 });
 export const {
   useLoginMutation,
@@ -144,4 +170,7 @@ export const {
   useUpdateProfileMutation,
   useLoginGoogleMutation,
   useLogoutMutation,
+  useForgotPasswordMutation,  
+  useResetPasswordMutation,
+  useVerifyOTPMutation,
 } = baseApi;
