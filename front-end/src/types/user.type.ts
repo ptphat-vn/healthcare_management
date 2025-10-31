@@ -15,7 +15,7 @@ export interface User {
   updatedAt: string;
 }
 export type RoleUser =
-  | "user"
+  | "patient"
   | "admin"
   | "lab_manager"
   | "consultant"
