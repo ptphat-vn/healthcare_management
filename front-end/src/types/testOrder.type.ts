@@ -14,8 +14,8 @@ export interface TestOrder {
   testResults: TestResults[];
 
   comments: Comments[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   createdByUser?: {
     fullName: string;
     email: string;
@@ -53,4 +53,4 @@ export interface Comments {
   updatedAt: string;
   modifiedBy: string;
   isDeleted: boolean;
-} 
+}

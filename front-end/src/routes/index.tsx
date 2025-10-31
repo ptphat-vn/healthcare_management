@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
-import UserDashBoard from "@/pages/user/UserDashBoard";
+
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
 
 import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrderManagementPage";
@@ -25,7 +25,10 @@ import UserManagement from "@/pages/manager/UserManagement/UserManagementPage";
 import LabUserDashboard from "@/pages/labUser/LabUserDashboard";
 
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import PatientDashboardPage from "@/pages/user/PatientDashboardPage";
 
+import MedicalRecordPatientPage from "@/pages/user/medical_record/MedicalRecordPage";
+import ProfilePatient from "@/pages/user/ProfilePatient";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -130,12 +133,16 @@ export const router = createBrowserRouter([
 
   // USER ROUTE
   {
-    path: "/user",
+    path: "/patient",
     element: (
-      <ProtectedRoute allowedRoles={["user"]}>
+      <ProtectedRoute allowedRoles={["patient"]}>
         <MainLayout />
       </ProtectedRoute>
     ),
-    children: [{ path: "dashboard", element: <UserDashBoard /> }],
+    children: [
+      { path: "dashboard", element: <PatientDashboardPage /> },
+      { path: "medical-record", element: <MedicalRecordPatientPage /> },
+      { path: "profile", element: <ProfilePatient /> },
+    ],
   },
 ]);

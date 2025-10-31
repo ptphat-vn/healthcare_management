@@ -89,8 +89,8 @@ export default function Header() {
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem>
+              <DropdownMenuContent align="end" className="w-56 cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer">
                   <Link
                     to={`/${user?.data.roleCode}/profile`}
                     className="w-full block"
@@ -98,13 +98,16 @@ export default function Header() {
                     Profile
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
                   <Link to="/app/settings" className="w-full block">
                     Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600" onClick={logout}>
+                <DropdownMenuItem
+                  className="text-red-600 cursor-pointer"
+                  onClick={logout}
+                >
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>

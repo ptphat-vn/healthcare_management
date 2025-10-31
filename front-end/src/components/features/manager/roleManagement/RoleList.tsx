@@ -1,5 +1,6 @@
 import AddRoleModal from "@/components/features/admin/roleManagement/AddRoleModal";
 import DeleteRoleModal from "@/components/features/admin/roleManagement/DeleteRoleModal";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +24,6 @@ import type { Roles } from "@/types/roles.type";
 import formatPrivilege from "@/utils/formatPrivilege";
 import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-
 
 export default function RoleList() {
   const [roleList, setRoleList] = useState<Roles[]>([]);
@@ -63,39 +63,13 @@ export default function RoleList() {
     setAddModalOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Roles...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
-    const errMsg = error || (error as any)?.message || "Unknown error";
+    const errMsg = (error as any)?.message || error || "Unknown error";
     return (
-      <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
-        <div className="flex items-center">
-          <svg
-            className="w-5 h-5 text-red-600 mr-2"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div>
-            <p className="font-semibold text-red-800">Error loading data</p>
-            <p className="text-sm text-red-600">{errMsg as any}</p>
-          </div>
-        </div>
-      </div>
+      <Alert variant="destructive" className="my-8">
+        <AlertTitle>Error loading users</AlertTitle>
+        <AlertDescription>{errMsg}</AlertDescription>
+      </Alert>
     );
   }
   return (

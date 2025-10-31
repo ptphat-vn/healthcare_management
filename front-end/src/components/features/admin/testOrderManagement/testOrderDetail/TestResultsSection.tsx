@@ -1,0 +1,196 @@
+import { TrendingUp, AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+interface TestResult {
+  _id: string;
+  testName: string;
+  result: string;
+  unit: string;
+  normalRange: string;
+  status: string;
+  flag: string;
+  hl7MessageId: string;
+  processedData?: {
+    originalFlag: string;
+    processingTimestamp: string;
+    configApplied: string | null;
+  };
+  createdAt: string;
+}
+
+interface TestResultsSectionProps {
+  testResults: TestResult[];
+}
+
+const getResultStatusColor = (status: string) => {
+  const statusMap: Record<string, string> = {
+    normal: "bg-green-100 text-green-800 border-green-200",
+    abnormal: "bg-red-100 text-red-800 border-red-200",
+    warning: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  };
+  return statusMap[status] || "bg-gray-100 text-gray-800 border-gray-200";
+};
+
+const getFlagBadge = (flag: string) => {
+  const flagMap: Record<string, string> = {
+    H: "bg-red-100 text-red-800",
+    L: "bg-blue-100 text-blue-800",
+    "": "bg-gray-100 text-gray-800",
+  };
+  return flagMap[flag] || "bg-gray-100 text-gray-800";
+};
+
+export default function TestResultsSection({
+  testResults,
+}: TestResultsSectionProps) {
+  if (!testResults || testResults.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <TrendingUp className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+        <p className="text-lg text-gray-600">No test results available</p>
+      </div>
+    );
+  }
+
+  const abnormalResults = testResults.filter((r) => r.status === "abnormal");
+
+  return (
+    <div className="space-y-6">
+      {/* Alert for abnormal results */}
+      {abnormalResults.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-red-800 mb-1">
+              {abnormalResults.length} Abnormal Result
+              {abnormalResults.length > 1 ? "s" : ""} Found
+            </h3>
+            <p className="text-red-700 text-sm">
+              The following test results are outside the normal range and
+              require attention:
+            </p>
+            <div className="mt-2 space-y-1">
+              {abnormalResults.map((r) => (
+                <p key={r._id} className="text-sm text-red-700">
+                  • <span className="font-semibold">{r.testName}</span>:{" "}
+                  {r.result} {r.unit} (Normal: {r.normalRange})
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Results Table */}
+      <Card className="border-indigo-100 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
+          <CardTitle className="flex items-center gap-2 text-indigo-700">
+            <TrendingUp className="w-6 h-6" />
+            Test Results ({testResults.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 border-b">
+                  <TableHead className="font-semibold text-gray-700 min-w-[150px]">
+                    Test Name
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-center min-w-[100px]">
+                    Result
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-center min-w-[80px]">
+                    Unit
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-center min-w-[120px]">
+                    Normal Range
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-center min-w-[80px]">
+                    Flag
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-center min-w-[100px]">
+                    Status
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {testResults.map((result) => (
+                  <TableRow
+                    key={result._id}
+                    className={`border-b hover:bg-gray-50 transition-colors ${
+                      result.status === "abnormal" ? "bg-red-50" : ""
+                    }`}
+                  >
+                    <TableCell className="font-semibold text-gray-900">
+                      {result.testName}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="font-bold text-blue-600">
+                        {result.result}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center text-gray-600">
+                      {result.unit}
+                    </TableCell>
+                    <TableCell className="text-center text-gray-600">
+                      {result.normalRange}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {result.flag ? (
+                        <span
+                          className={`inline-block px-2 py-1 rounded font-bold text-sm ${getFlagBadge(
+                            result.flag
+                          )}`}
+                        >
+                          {result.flag}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${getResultStatusColor(
+                          result.status
+                        )}`}
+                      >
+                        {result.status.charAt(0).toUpperCase() +
+                          result.status.slice(1)}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* HL7 Info */}
+      <Card className="border-gray-200 shadow-sm">
+        <CardHeader className="bg-gray-50">
+          <CardTitle className="text-gray-700">
+            HL7 Message Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <p className="text-xs text-gray-600 mb-2">HL7 Message ID</p>
+            <p className="font-mono text-sm text-gray-900 break-all">
+              {testResults[0]?.hl7MessageId}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

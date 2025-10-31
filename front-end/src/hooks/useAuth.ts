@@ -1,7 +1,8 @@
 import { useGetProfileQuery, useLogoutMutation } from "@/services/baseApi";
 import { logout } from "@/stores/authSlice";
-import type { RootState } from "@/stores/store";
+import { store, type RootState } from "@/stores/store";
 import { useDispatch, useSelector } from "react-redux";
+import { persistStore } from "redux-persist";
 import { toast } from "sonner";
 
 export function useAuth() {
@@ -21,6 +22,9 @@ export function useAuth() {
       console.log(error);
     } finally {
       dispatch(logout());
+      persistStore(store).purge();
+      localStorage.clear();
+      window.location.reload();
     }
   };
   return { isAuthenticated, user, logout: handleLogout };

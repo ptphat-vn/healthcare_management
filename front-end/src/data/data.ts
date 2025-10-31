@@ -1,3 +1,5 @@
+import type { TestOrder } from "@/types/testOrder.type";
+
 export const privilegeList = [
   "view_role",
   "create_role",
@@ -20,3 +22,53 @@ export const privilegeList = [
   "review_medical_record",
   "modify_medical_record",
 ];
+
+export const fakeTestOrder: TestOrder = {
+  _id: "507f1f77bcf86cd799439011",
+  patientName: "Nguyễn Văn A",
+  dateOfBirth: "1990-01-15",
+  gender: "male",
+  address: "123 Đường ABC, Quận 1, TP.HCM",
+  phoneNumber: "0123456789",
+  email: "patient@email.com",
+  status: "completed",
+  createdDate: "2024-01-15T10:30:00Z",
+  createdBy: "507f1f77bcf86cd799439012",
+  runDate: "2024-01-15T14:30:00Z",
+  runBy: "507f1f77bcf86cd799439013",
+  testResults: [
+    {
+      _id: "60d5f9b2b60a3c6f1c9e8b7a",
+      testName: "Hemoglobin",
+      result: "14.5",
+      unit: "g/dL",
+      normalRange: "12.0-16.0",
+      status: "normal",
+      flag: "",
+      aiDiagnosisSummary: ["Diabetes Mellitus"],
+      createdAt: "2024-01-15T14:30:00Z",
+      updatedAt: "2024-01-15T15:30:00Z",
+      reviewedBy: "507f1f77bcf86cd799439016",
+      aiReviewedAt: "2024-01-15T16:30:00Z",
+    },
+  ],
+  comments: [
+    {
+      _id: "507f1f77bcf86cd799439017",
+      content: "Kết quả xét nghiệm bình thường, không có dấu hiệu bất thường",
+      createdBy: "507f1f77bcf86cd799439018",
+      createdAt: "2024-01-15T16:30:00Z",
+      updatedAt: "2024-01-15T17:30:00Z",
+      modifiedBy: "507f1f77bcf86cd799439019",
+      isDeleted: false,
+    },
+  ],
+  createdByUser: {
+    fullName: "Dr. Nguyễn Văn B",
+    email: "doctor@hospital.com",
+  },
+  runByUser: {
+    fullName: "Lab Tech C",
+    email: "labtech@hospital.com",
+  },
+};

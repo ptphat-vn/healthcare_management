@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuContent } from "@radix-ui/react-dropdown-menu";
 import formatPrivilege from "@/utils/formatPrivilege";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MonitoringList() {
   const [selectedLog, setSelectedLog] = useState<EventLog | null>(null);
@@ -44,10 +45,7 @@ export default function MonitoringList() {
         timestamp: rawLog.timestamp || "",
         action: rawLog.action || "",
         message: rawLog.details || rawLog.message || "",
-        operator:
-          typeof rawLog.operator === "object"
-            ? rawLog.operator?.name
-            : rawLog.operator || "System",
+        operator: rawLog.operator || "System",
         status: "info",
         service: "System",
       })
@@ -62,45 +60,6 @@ export default function MonitoringList() {
   const handleChangePage = (page: number) => {
     setCurrentPage(page);
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Event Logs...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    const errorMessage =
-      (error as any)?.data?.message ||
-      (error as any)?.message ||
-      "Error loading event logs";
-    return (
-      <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
-        <div className="flex items-center">
-          <svg
-            className="w-5 h-5 text-red-600 mr-2"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div>
-            <p className="font-semibold text-red-800">Error loading data</p>
-            <p className="text-sm text-red-600">{errorMessage}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full space-y-4">
@@ -130,18 +89,35 @@ export default function MonitoringList() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
-                  Đang tải dữ liệu...
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 10 }).map((_, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>
+                    <Skeleton className="h-4 w-8" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-32" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-48" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-16" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-8" />
+                  </TableCell>
+                </TableRow>
+              ))
             ) : error ? (
               <TableRow>
                 <TableCell
                   colSpan={6}
                   className="text-center py-8 text-red-600"
                 >
-                  Lỗi khi tải dữ liệu!
+                  Error loading data!
                 </TableCell>
               </TableRow>
             ) : eventLogs.length === 0 ? (
@@ -177,7 +153,7 @@ export default function MonitoringList() {
                       {log.message}
                     </div>
                   </TableCell>
-                  <TableCell>{log.operator}</TableCell>
+                  <TableCell>{log.operator?.name}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
