@@ -8,6 +8,8 @@ import { getRolesCollection } from '~/models/role.model'
 import { getPasswordResetCollection, type PasswordResetDocument } from '~/models/password-reset.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getNextSequence } from '~/models/counter.model'
+import crypto from 'crypto'
+import { sendMail } from '~/utils/email'
 
 const revokedRefreshTokens = new Set<string>()
 
@@ -99,6 +101,20 @@ export async function register(payload: {
 
 export async function createUserByAdmin(payload: Parameters<typeof register>[0]) {
   const created = await register(payload)
+  // gửi tkhoan mkhau cho user
+  try {
+    await sendMail({
+      to: payload.email,
+      subject: 'Tài khoản của bạn đã được tạo',
+      text: `Xin chào ${payload.fullName},\n\nTài khoản của bạn đã được tạo trên hệ thống.\n\nThông tin đăng nhập:\n- Email: ${payload.email}\n- Mật khẩu: ${payload.password}\n\nVui lòng đăng nhập và đổi mật khẩu sau khi sử dụng lần đầu.`,
+      html: `<p>Xin chào <b>${payload.fullName}</b>,</p>
+<p>Tài khoản của bạn đã được tạo trên hệ thống.</p>
+<p><b>Thông tin đăng nhập:</b><br/>Email: <code>${payload.email}</code><br/>Mật khẩu: <code>${payload.password}</code></p>
+<p>Vui lòng đăng nhập và <b>đổi mật khẩu</b> sau khi sử dụng lần đầu.</p>`
+    })
+  } catch (err) {
+    console.error('Failed to send credentials email to new user:', err)
+  }
   return created
 }
 
@@ -131,50 +147,41 @@ export async function forgotPassword(email: string) {
   const resetTokens = getPasswordResetCollection()
   await resetTokens.deleteMany({ userId: user._id, used: false } as any)
 
-  const token = jwt.sign({ userId: user._id, type: 'password_reset' }, getJwtSecret(), { expiresIn: '1h' })
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000)
+  // tạo otp
+  
+  const otp = crypto.randomInt(100000, 999999).toString()
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
 
   await resetTokens.insertOne({
     userId: user._id,
-    token,
+    token: otp,
     expiresAt,
     createdAt: new Date(),
     used: false
   } as PasswordResetDocument)
+
+  await sendMail({
+    to: email,
+    subject: 'Mã OTP đặt lại mật khẩu',
+    text: `Mã OTP của bạn là: ${otp}. Có hiệu lực trong 10 phút.`,
+    html: `<h2>Mã OTP của bạn là: <b>${otp}</b></h2><p>Hiệu lực 10 phút.</p>`
+  })
   return { email }
 }
 
-export async function resetPassword(payload: { token: string; newPassword: string }) {
+export async function resetPassword(payload: { otp: string; email: string; newPassword: string }) {
+  const users = getUsersCollection()
+  const user = await users.findOne({ email: payload.email })
+  if (!user) throw new HttpError(404, MESSAGES.EMAIL_NOT_FOUND)
   const resetTokens = getPasswordResetCollection()
-  const resetRecord = await resetTokens.findOne({ token: payload.token, used: false })
+  const resetRecord = await resetTokens.findOne({ userId: user._id, token: payload.otp, used: false })
   if (!resetRecord || resetRecord.expiresAt < new Date()) throw new HttpError(400, MESSAGES.INVALID_RESET_TOKEN)
 
-  const users = getUsersCollection()
   const newPasswordHash = await bcrypt.hash(payload.newPassword, 10)
-  await users.updateOne(
-    { _id: resetRecord.userId as any },
-    { $set: { passwordHash: newPasswordHash, updatedAt: new Date() } }
-  )
+  await users.updateOne({ _id: user._id }, { $set: { passwordHash: newPasswordHash, updatedAt: new Date() } })
   await resetTokens.updateOne({ _id: resetRecord._id }, { $set: { used: true } })
 
-  const updatedUser = await users.findOne({ _id: resetRecord.userId as any })
-  const roles = getRolesCollection()
-  const roleDoc = updatedUser?.roleId ? await roles.findOne({ _id: updatedUser.roleId } as any) : null
-  const eventLogs = getEventLogsCollection()
-  await eventLogs.insertOne({
-    operator: { id: resetRecord.userId, name: updatedUser?.fullName || '', role: roleDoc?.code || '' },
-    action: 'PASSWORD_RESET',
-    details: 'Password was successfully reset',
-    timestamp: new Date()
-  } as any)
-
-  const accessToken = jwt.sign(
-    { sub: String(updatedUser?._id), email: updatedUser?.email, type: 'access' },
-    getJwtSecret(),
-    { expiresIn: '30m' }
-  )
-  const refreshToken = jwt.sign({ sub: String(updatedUser?._id), type: 'refresh' }, getJwtSecret(), { expiresIn: '7d' })
-  return { accessToken, refreshToken }
+  return { email: payload.email }
 }
 
 export async function changePassword(payload: { userId: string | ObjectId; oldPassword: string; newPassword: string }) {
@@ -240,9 +247,7 @@ export async function logout(refreshToken?: string) {
       if (payload.type === 'refresh') {
         revokedRefreshTokens.add(refreshToken)
       }
-    } catch {
-      // ignore invalid token on logout; goal is to clear any server references
-    }
+    } catch {}
   }
   return { revoked: Boolean(refreshToken) }
 }

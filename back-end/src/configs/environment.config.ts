@@ -10,8 +10,13 @@ const EnvSchema = z.object({
   MONGO_DB_NAME: z.string().min(1).default('app'),
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
   FRONTEND_URL: z.string().optional(),
-  FRONTEND_URLS: z.string().optional(), 
+  FRONTEND_URLS: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
+  SMTP_HOST: z.string().min(1, 'SMTP_HOST is required'),
+  SMTP_PORT: z.string().min(1, 'SMTP_PORT is required'),
+  SMTP_USER: z.string().min(1, 'SMTP_USER is required'),
+  SMTP_PASS: z.string().min(1, 'SMTP_PASS is required'),
+  SMTP_FROM: z.string().min(1, 'SMTP_FROM is required'),
 })
 
 const parsed = EnvSchema.safeParse(process.env)
