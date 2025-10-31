@@ -21,8 +21,8 @@ import type {
 } from "@/types/request.type";
 import type { User } from "@/types/user.type";
 import type {
-ForgotPasswordRequest,
-ResetPasswordRequest
+  ForgotPasswordRequest,
+  ResetPasswordRequest
 } from "@/types/request.type";
 
 const baseQuery = fetchBaseQuery({
@@ -146,7 +146,7 @@ export const baseApi = createApi({
         body,
       }),
     }),
-    resetPassword: builder.mutation<APIResponse<AuthResponse>, ResetPasswordRequest>({
+    resetPassword: builder.mutation<APIResponse<{ email: string }>, ResetPasswordRequest>({
       query: (body) => ({
         url: "/auth/reset-password",
         method: "POST",
