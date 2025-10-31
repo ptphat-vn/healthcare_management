@@ -12,82 +12,67 @@ interface AiSuggestion {
   suggestedResult?: number
 }
 
-export async function analyzeTestResultsWithAI(testResults: AiInputTestResult[]): Promise<AiSuggestion[]> {
+// Unified AI function: returns a single compact JSON string containing
+// suggestedAdjustments, diagnoses, and summaryNotes as requested.
+export async function generateUnifiedLabAIJson(testResults: AiInputTestResult[]): Promise<string | null> {
   if (!env.GEMINI_API_KEY) {
-    return []
+    return null
   }
 
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY as string })
 
-  const prompt = `You are assisting a laboratory information system.
-Given a list of lab test results (name, numeric value, unit), suggest corrected numeric values only when there is clear minor measurement drift. Keep changes small and reasonable; omit tests you cannot confidently adjust. Respond strictly as JSON array of objects with keys: testName, suggestedResult (number). Do not include any other text.
+  const prompt = `Bạn là một chuyên gia đánh giá kết quả phòng thí nghiệm (Clinical Pathologist) cho một Hệ thống Thông tin Phòng thí nghiệm. Nhiệm vụ của bạn là đánh giá kết quả xét nghiệm đã hoàn thành của bệnh nhân và cung cấp cả **sự điều chỉnh dữ liệu** (nếu cần) và **đánh giá lâm sàng**.
 
-Examples input:
-Hemoglobin: 15.2 g/dL -> ok
-Glucose: 99 mg/dL -> ok
+Trả về DUY NHẤT một chuỗi JSON gọn nhẹ với cấu trúc và các khóa sau. KHÔNG bao gồm bất kỳ văn bản hoặc định dạng bổ sung nào (ví dụ: code fences, chú thích, hay tiêu đề).
 
-Now analyze these:
+{
+  "suggestedAdjustments": [
+    { "testName": string, "suggestedResult": number }
+    // Chỉ bao gồm các bài kiểm tra có dấu hiệu "độ trôi đo lường nhỏ" (minor measurement drift) và cần điều chỉnh.
+    // Giữ sự thay đổi nhỏ và hợp lý. Bỏ qua các bài kiểm tra không thể điều chỉnh tự tin.
+  ],
+  "diagnoses": [
+    { "name": string, "confidence": number, "rationale": string }
+    // Đề xuất các tình trạng lâm sàng tiềm năng dựa trên kết quả.
+    // Sử dụng confidence 0..1. Giữ rationale ngắn gọn.
+  ],
+  "summaryNotes": string 
+  // Cung cấp một tóm tắt chuyên nghiệp ngắn gọn về các phát hiện quan trọng nhất. 
+  // Bình luận về bất kỳ mô hình bất thường nào hoặc đề xuất các bước lâm sàng tiếp theo (ví dụ: "Cần theo dõi thêm về chức năng thận").
+}
+
+Kết quả Xét nghiệm để phân tích:
 ${testResults.map((r) => `${r.testName}: ${r.result}${r.unit ? ' ' + r.unit : ''}`).join('\n')}`
 
   try {
     const contents = [{ role: 'user', parts: [{ text: prompt }] }]
     const result = await ai.models.generateContent({ model: 'gemini-2.5-pro', contents })
     let text = (result as any).text?.trim?.() || ''
-    // Strip code fences if model wraps JSON
+    // Strip code fences if any
     if (text.startsWith('```')) {
       text = text.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim()
     }
-    // Attempt to parse a JSON array; if fails, return empty
-    const jsonStart = text.indexOf('[')
-    const jsonEnd = text.lastIndexOf(']')
-    if (jsonStart === -1 || jsonEnd === -1) return []
-    const json = text.slice(jsonStart, jsonEnd + 1)
-    const parsed = JSON.parse(json)
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter((x: any) => x && typeof x.testName === 'string' && typeof x.suggestedResult === 'number')
-  } catch {
-    return []
-  }
-}
-
-
-export async function generateDiagnosisJson(testResults: AiInputTestResult[]): Promise<string | null> {
-  if (!env.GEMINI_API_KEY) {
-    return null
-  }
-
-  const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY as string })
-
-  const prompt = `You are a clinical assistant for a laboratory.
-Based on the following lab test results, return ONLY a compact JSON string with this shape and keys:
-{
-  "diagnoses": [{ "name": string, "confidence": number, "rationale": string }],
-  "notes": string
-}
-Rules:
-- Be conservative; suggest likely conditions only.
-- Use confidence 0..1.
-- Keep rationale short.
-- No extra text or formatting, only JSON string.
-
-Results:\n${testResults.map((r) => `${r.testName}: ${r.result}${r.unit ? ' ' + r.unit : ''}`).join('\n')}`
-
-  try {
-    const contents = [{ role: 'user', parts: [{ text: prompt }] }]
-    const result = await ai.models.generateContent({ model: 'gemini-2.5-pro', contents })
-    let text = (result as any).text?.trim?.() || ''
-    if (text.startsWith('```')) {
-      text = text.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim()
-    }
-    // Return raw JSON string if looks like JSON object
-    if (text.startsWith('{') && text.endsWith('}')) return text
-    // Attempt to extract first JSON object
+    // Extract JSON object
     const objStart = text.indexOf('{')
     const objEnd = text.lastIndexOf('}')
-    if (objStart !== -1 && objEnd !== -1) {
-      return text.slice(objStart, objEnd + 1)
+    if (objStart === -1 || objEnd === -1) return null
+
+    const jsonStr = text.slice(objStart, objEnd + 1)
+    // Validate minimal structure
+    try {
+      const parsed = JSON.parse(jsonStr)
+      const ok = parsed && typeof parsed === 'object'
+      if (!ok) return null
+      // Ensure required keys exist; if missing, coerce to expected structure
+      const normalized = {
+        suggestedAdjustments: Array.isArray(parsed.suggestedAdjustments) ? parsed.suggestedAdjustments : [],
+        diagnoses: Array.isArray(parsed.diagnoses) ? parsed.diagnoses : [],
+        summaryNotes: typeof parsed.summaryNotes === 'string' ? parsed.summaryNotes : ''
+      }
+      return JSON.stringify(normalized)
+    } catch {
+      return null
     }
-    return null
   } catch {
     return null
   }

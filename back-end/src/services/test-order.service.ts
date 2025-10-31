@@ -467,10 +467,22 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
   }
 
   // Prepare AI input
-  const { analyzeTestResultsWithAI, generateDiagnosisJson } = await import('~/services/ai.service')
+  const { generateUnifiedLabAIJson } = await import('~/services/ai.service')
   const aiInput = existingResults.map((r: any) => ({ testName: r.testName, result: String(r.result), unit: r.unit }))
-  const aiSuggestions = await analyzeTestResultsWithAI(aiInput)
-  const diagnosisJson = await generateDiagnosisJson(aiInput)
+  const unifiedJson = await generateUnifiedLabAIJson(aiInput)
+  let aiSuggestions: { testName: string; suggestedResult?: number }[] = []
+  let diagnosisJson: string | null = null
+  if (unifiedJson) {
+    diagnosisJson = unifiedJson
+    try {
+      const parsed = JSON.parse(unifiedJson)
+      if (Array.isArray(parsed?.suggestedAdjustments)) {
+        aiSuggestions = parsed.suggestedAdjustments.filter((x: any) => x && typeof x.testName === 'string')
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }
 
   // Helper to keep values within acceptable configured ranges
   const { getFlaggingConfigByTestName } = await import('~/services/flagging-config.service')
