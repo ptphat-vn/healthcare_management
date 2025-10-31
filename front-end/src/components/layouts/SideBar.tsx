@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   ShieldUser,
   TestTubeDiagonal,
+  User,
   UserCog,
   Users,
 } from "lucide-react";
@@ -16,7 +17,7 @@ export default function SideBar() {
 
   // safe role extraction
 
-  const role = String(user?.data.roleCode || "user").toLowerCase();
+  const role = String(user?.data.roleCode || "patient").toLowerCase();
 
   // define menus per role
   const menus: Record<
@@ -112,9 +113,18 @@ export default function SideBar() {
       },
       { label: "Services", to: "/service/list" },
     ],
-    user: [
-      { label: "Dashboard", to: "/user/dashboard", icon: <LayoutDashboard /> },
-      { label: "Profile", to: "/user/profile" },
+    patient: [
+      {
+        label: "Dashboard",
+        to: "/patient/dashboard",
+        icon: <LayoutDashboard />,
+      },
+      {
+        label: "Medical Record",
+        to: "/patient/medical-record",
+        icon: <ClipboardPlus />,
+      },
+      { label: "Profile", to: "/patient/profile", icon: <User /> },
     ],
   };
 

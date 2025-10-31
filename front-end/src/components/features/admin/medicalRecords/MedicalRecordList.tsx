@@ -32,6 +32,7 @@ import {
 import { toast } from "sonner";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ApiError {
   data?: {
@@ -140,11 +141,6 @@ export default function MedicalRecordList() {
     }
   };
 
-  // Loading and error states
-  if (isLoading) {
-    return <LoadingSpinner message="Loading medical records..." />;
-  }
-
   if (error) {
     return (
       <ErrorAlert
@@ -227,7 +223,42 @@ export default function MedicalRecordList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {records.length === 0 ? (
+              {isLoading ? (
+                Array.from({ length: 8 }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : records.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-12">
                     <EmptyState

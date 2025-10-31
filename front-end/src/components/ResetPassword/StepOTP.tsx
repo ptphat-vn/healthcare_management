@@ -1,5 +1,6 @@
-import React, { useMemo, useRef, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 export default function StepOTP({
   otp,
@@ -16,61 +17,6 @@ export default function StepOTP({
   onBack: () => void;
   loading: boolean;
 }) {
-  const length = 6;
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const [focused, setFocused] = useState(false);
-  const [caret, setCaret] = useState(0);
-
-  const digits = useMemo(() => otp.replace(/\D/g, "").slice(0, length), [otp]);
-  const cells = useMemo(
-    () => Array.from({ length }, (_, i) => digits[i] || ""),
-    [digits, length]
-  );
-
-  const syncCaret = () => {
-    const pos = inputRef.current?.selectionStart ?? digits.length;
-    setCaret(Math.max(0, Math.min(pos || 0, length)));
-  };
-
-  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    const ne = e.nativeEvent as InputEvent;
-    const data = (ne?.data ?? "");
-    const raw = e.target.value.replace(/\D/g, "");
-
-    // Overwrite character at caret when already full and a single digit is typed
-    if (digits.length === length && /^[0-9]$/.test(data)) {
-      const sel = e.target.selectionStart ?? length;
-      const i = Math.max(0, Math.min((sel - 1), length - 1));
-      const chars = digits.split("");
-      chars[i] = data;
-      const finalVal = chars.join("");
-      setOtp(finalVal);
-      requestAnimationFrame(() => {
-        const newPos = Math.min(i + 1, length);
-        inputRef.current?.setSelectionRange(newPos, newPos);
-        setCaret(newPos);
-      });
-      return;
-    }
-
-    // Normal path: deletions, paste, or not yet full
-    const next = raw.slice(0, length);
-    setOtp(next);
-    requestAnimationFrame(syncCaret);
-  };
-
-  const handleContainerClick = () => {
-    inputRef.current?.focus();
-    requestAnimationFrame(syncCaret);
-  };
-
-  const handleCellClick = (i: number) => {
-      inputRef.current?.focus();
-      const pos = Math.min(i, digits.length);
-      inputRef.current?.setSelectionRange(pos, Math.min(pos + 1, digits.length));
-     setCaret(pos);
-    };
-
   const handleResendClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -109,58 +55,26 @@ export default function StepOTP({
           </p>
         </div>
 
-        <div
-          role="group"
-          aria-label="OTP input"
-          className="relative"
-          onClick={handleContainerClick}
-        >
-          <input
-            ref={inputRef}
-            value={digits}
-            onChange={handleChange}
-            onFocus={() => { setFocused(true); requestAnimationFrame(syncCaret); }}
-            onBlur={() => setFocused(false)}
-            onKeyUp={syncCaret}
-            maxLength={length}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            aria-label="One-time password"
-            className="absolute opacity-0 w-0 h-0 p-0 m-0 border-0 outline-none"
-            style={{ top: 0, left: 0, position: "absolute" }}
-          />
-
-          <div className="flex justify-center gap-3">
-            {cells.map((ch, i) => {
-              const caretCell = Math.min(caret, length - 1);
-              const isActive = focused && i === caretCell;
-              return (
-                <div
-                  key={i}
-                  onClick={() => handleCellClick(i)}
-                  className={`w-12 h-12 rounded-md border border-gray-300 bg-white
-                              flex items-center justify-center text-xl cursor-text
-                              ${isActive ? "ring-2 ring-blue-500 border-blue-500" : ""}`}
-                >
-                  {ch ? (
-                    <span className="select-none">{ch}</span>
-                  ) : isActive ? (
-                    <span
-                      aria-hidden="true"
-                      className="block w-px h-5 bg-blue-600 animate-pulse"
-                    />
-                  ) : (
-                    <span className="opacity-0">0</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+        <div className="flex justify-center">
+          <InputOTP
+            maxLength={6}
+            value={otp}
+            onChange={(v: string) => setOtp(v.replace(/\D/g, "").slice(0, 6))}
+          >
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
         </div>
 
         <button
           type="submit"
-          disabled={loading || digits.length < length}
+          disabled={loading || otp.replace(/\D/g, "").length < 6}
           className="cursor-pointer w-full h-10 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
         >
           {loading ? "Verifying..." : "Verify OTP"}
