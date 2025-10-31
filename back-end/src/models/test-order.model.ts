@@ -5,6 +5,7 @@ export const TEST_ORDERS_COLLECTION = 'test_orders'
 
 export interface TestOrderDocument {
   _id?: ObjectId
+  medicalRecordId: ObjectId
   patientName: string
   dateOfBirth: string
   gender: 'male' | 'female'

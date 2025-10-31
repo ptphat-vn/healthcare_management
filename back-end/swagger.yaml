@@ -1489,35 +1489,12 @@ paths:
             schema:
               type: object
               required:
-                - patientName
-                - dateOfBirth
-                - gender
-                - address
-                - phoneNumber
-                - email
+                - medicalRecordId
               properties:
-                patientName:
+                medicalRecordId:
                   type: string
-                  example: 'Nguyễn Văn A'
-                dateOfBirth:
-                  type: string
-                  format: date
-                  example: '1990-01-15'
-                gender:
-                  type: string
-                  enum: [male, female]
-                  example: 'male'
-                address:
-                  type: string
-                  example: '123 Đường ABC, Quận 1, TP.HCM'
-                phoneNumber:
-                  type: string
-                  pattern: '^[0-9]{10,11}$'
-                  example: '0123456789'
-                email:
-                  type: string
-                  format: email
-                  example: 'patient@email.com'
+                  description: MongoDB ObjectId of the existing medical record
+                  example: '6512bd43d9caa6e02c990b0a'
       responses:
         '201':
           description: Test order created successfully
