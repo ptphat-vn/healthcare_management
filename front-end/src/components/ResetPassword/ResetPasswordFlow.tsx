@@ -1,23 +1,22 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import StepEmail from "@/components/ResetPassword/StepEmail";
 import StepOTP from "@/components/ResetPassword/StepOTP";
 import StepNewPassword from "@/components/ResetPassword/StepNewPassword";
 
-import { useForgotPasswordMutation,
-   useResetPasswordMutation
-  } from "@/services/baseApi";
-import type { ForgotPasswordRequest } from "@/types/request.type";
+import {
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+} from "@/services/baseApi";
+import type { ForgotPasswordRequest, ResetPasswordRequest } from "@/types/request.type";
 import { forgotPasswordSchema } from "@/schemas/authSchema";
 
 type Step = 1 | 2 | 3;
 
 export default function ResetPasswordFlow() {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const tokenFromUrl = params.get("token") || "";
 
   const [step, setStep] = useState<Step>(1);
   const [identifier, setIdentifier] = useState(""); // email
@@ -28,10 +27,6 @@ export default function ResetPasswordFlow() {
 
   const [forgotPassword, { isLoading: sending }] = useForgotPasswordMutation();
   const [resetPassword, { isLoading: resetting }] = useResetPasswordMutation();
-
-  useEffect(() => {
-    if (tokenFromUrl) setStep(3);
-  }, [tokenFromUrl]);
 
   type ApiError = { data?: { message?: string } };
 
@@ -50,17 +45,14 @@ export default function ResetPasswordFlow() {
       toast.error(err.data?.message || "Gửi mã thất bại");
     }
   };
-  
-  // Hiện tại chưa verify OTP và nhảy sang step 3
 
   const handleVerifyOTP = async () => {
-    const code = otp;
-    if (code.length < 6) {
+    if (!otp || otp.length < 6) {
       toast.error("OTP phải có 6 chữ số");
       return;
     }
     toast.success("Xác thực OTP thành công");
-  setStep(3);
+    setStep(3);
   };
 
   const handleResend = async () => {
@@ -75,8 +67,14 @@ export default function ResetPasswordFlow() {
   };
 
   const handleSubmitNewPassword = async () => {
-    if (!tokenFromUrl) {
-      toast.error("Thiếu token. Vui lòng mở link đặt lại mật khẩu trong email.");
+    if (!identifier) {
+      toast.error("Thiếu email. Vui lòng nhập email ở bước 1.");
+      setStep(1);
+      return;
+    }
+    if (!otp || otp.length < 6) {
+      toast.error("Thiếu/OTP không hợp lệ. Vui lòng nhập lại ở bước 2.");
+      setStep(2);
       return;
     }
     if (!password || password.length < 8) {
@@ -87,8 +85,14 @@ export default function ResetPasswordFlow() {
       toast.error("Mật khẩu xác nhận không khớp");
       return;
     }
+
     try {
-      const res = await resetPassword({ token: tokenFromUrl, newPassword: password }).unwrap();
+      const body: ResetPasswordRequest = {
+        email: identifier,
+        otp,
+        newPassword: password,
+      };
+      const res = await resetPassword(body).unwrap();
       toast.success(res?.message || "Đặt lại mật khẩu thành công");
       navigate("/auth/login");
     } catch (e: unknown) {
@@ -98,48 +102,48 @@ export default function ResetPasswordFlow() {
   };
 
   return (
-      <div className="relative overflow-hidden">
-        <div className="space-y-6">
-      {step === 1 && (
-        <div className="animate-in fade-in-up">
-        <StepEmail
-          identifier={identifier}
-          setIdentifier={setIdentifier}
-          onSend={handleSendCode}
-          onBack={() => navigate("/auth/login")}
-          loading={sending}
-        />
-        </div>
-      )}
+    <div className="relative overflow-hidden">
+      <div className="space-y-6">
+        {step === 1 && (
+          <div className="animate-in fade-in-up">
+            <StepEmail
+              identifier={identifier}
+              setIdentifier={setIdentifier}
+              onSend={handleSendCode}
+              onBack={() => navigate("/auth/login")}
+              loading={sending}
+            />
+          </div>
+        )}
 
-      {step === 2 && (
-        <div className="animate-in fade-in-right">
-        <StepOTP
-          otp={otp}
-          setOtp={setOtp}
-          onVerify={handleVerifyOTP}
-          onResend={handleResend}
-          onBack={() => setStep(1)}
-          loading={sending}
-        />
-        </div>
-      )}
+        {step === 2 && (
+          <div className="animate-in fade-in-right">
+            <StepOTP
+              otp={otp}
+              setOtp={setOtp}
+              onVerify={handleVerifyOTP}
+              onResend={handleResend}
+              onBack={() => setStep(1)}
+              loading={sending}
+            />
+          </div>
+        )}
 
-      {step === 3 && (
-        <div className="animate-in fade-in-left">
-        <StepNewPassword
-          identifier={identifier || "(mở từ link reset)"}
-          password={password}
-          setPassword={setPassword}
-          confirm={confirm}
-          setConfirm={setConfirm}
-          onSubmit={handleSubmitNewPassword}
-          onBack={() => setStep(2)}
-          loading={resetting}
-        />
-        </div>
-      )}
-    </div>
+        {step === 3 && (
+          <div className="animate-in fade-in-left">
+            <StepNewPassword
+              identifier={identifier}
+              password={password}
+              setPassword={setPassword}
+              confirm={confirm}
+              setConfirm={setConfirm}
+              onSubmit={handleSubmitNewPassword}
+              onBack={() => setStep(2)}
+              loading={resetting}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
