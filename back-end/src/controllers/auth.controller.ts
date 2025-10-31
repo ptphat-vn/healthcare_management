@@ -16,7 +16,8 @@ export const registerController = async (req: Request, res: Response, next: Next
 
 export const createUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await authService.createUserByAdmin(req.body)
+    const authUserId = (req as any).authUserId ? (req as any).authUserId.toString() : undefined
+    const data = await authService.createUserByAdmin(req.body, authUserId)
     return res.status(200).json({ message: MESSAGES.REGISTER_SUCCESS, data })
   } catch (err) {
     next(err)
