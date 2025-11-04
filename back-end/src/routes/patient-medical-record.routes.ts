@@ -29,12 +29,12 @@ router.post(
 
 router.get(
   '/patient-records',
-  privilegeMiddleware(['read_only']),
+  privilegeMiddleware(['view_medical_record']),
   validateSearchPatientRecords,
   getAllPatientRecordsController
 )
 
-router.get('/patient-records/:id', privilegeMiddleware(['read_only']), getPatientRecordDetailController)
+router.get('/patient-records/:id', privilegeMiddleware(['view_medical_record']), getPatientRecordDetailController)
 
 router.put(
   '/patient-records/:id',
