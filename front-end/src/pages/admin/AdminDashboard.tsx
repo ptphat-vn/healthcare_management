@@ -242,80 +242,77 @@ export default function AdminDashboard() {
       title: "Tổng người dùng",
       value: stats.totalUsers,
       icon: Users,
-      color: "bg-blue-50",
-      textColor: "text-blue-600",
-      borderColor: "border-blue-200",
+      iconColor: "#2563eb",
     },
     {
       title: "Người dùng hoạt động",
       value: stats.activeUsers,
       icon: UserCheck,
-      color: "bg-green-50",
-      textColor: "text-green-600",
-      borderColor: "border-green-200",
+      iconColor: "#16a34a",
     },
     {
       title: "Người dùng mới tháng này",
       value: stats.newUsersThisMonth,
       icon: TrendingUp,
-      color: "bg-purple-50",
-      textColor: "text-purple-600",
-      borderColor: "border-purple-200",
+      iconColor: "#9333ea",
     },
     {
       title: "Người dùng mới hôm nay",
       value: stats.newUsersToday,
       icon: UserPlus,
-      color: "bg-cyan-50",
-      textColor: "text-cyan-600",
-      borderColor: "border-cyan-200",
+      iconColor: "#0891b2",
     },
     {
       title: "Quản trị viên",
       value: stats.adminUsers,
       icon: Shield,
-      color: "bg-indigo-50",
-      textColor: "text-indigo-600",
-      borderColor: "border-indigo-200",
+      iconColor: "#4f46e5",
     },
     {
       title: "Người dùng thường",
       value: stats.regularUsers,
       icon: User,
-      color: "bg-gray-50",
-      textColor: "text-gray-600",
-      borderColor: "border-gray-200",
+      iconColor: "#6b7280",
     },
     {
       title: "Người dùng không hoạt động",
       value: stats.inactiveUsers,
       icon: Activity,
-      color: "bg-orange-50",
-      textColor: "text-orange-600",
-      borderColor: "border-orange-200",
+      iconColor: "#ea580c",
     },
     {
       title: "Tài khoản bị khóa",
       value: stats.blockedUsers,
       icon: UserX,
-      color: "bg-red-50",
-      textColor: "text-red-600",
-      borderColor: "border-red-200",
+      iconColor: "#dc2626",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 p-8 rounded-[20px]">
-      <div className="mb-8">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            Welcome, Administrator {user?.data.fullName}
-          </h1>
-          <p className="text-gray-600">
-            Tổng quan về tất cả người dùng trong hệ thống
-          </p>
+     <div className="p-6 space-y-6">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-8 text-white shadow-xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">
+              Welcome, {user?.data?.fullName || "Admin"}! 👋
+            </h1>
+            <p className="text-blue-100 text-lg">
+              Tổng quan về tất cả người dùng trong hệ thống
+            </p>
+          </div>
+          {/* <div className="hidden md:flex items-center gap-4">
+            <div className="text-right bg-white/20 px-6 py-3 rounded-lg backdrop-blur-sm">
+              <p className="text-sm font-medium opacity-90">Today's Date</p>
+              <p className="text-xl font-bold">{new Date().toLocaleDateString('en-GB')}</p>
+            </div>
+            <div className="text-right bg-white/20 px-6 py-3 rounded-lg backdrop-blur-sm">
+              <p className="text-sm font-medium opacity-90">Current Time</p>
+              <p className="text-xl font-bold">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+          </div> */}
         </div>
       </div>
+      
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map((stat, index) => {
@@ -323,23 +320,20 @@ export default function AdminDashboard() {
           return (
             <Card
               key={index}
-              className={`${stat.color} border-2 ${stat.borderColor}`}
+              className="p-6 border-l-4"
+              style={{ borderLeftColor: stat.iconColor }}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-gray-700">
-                    {stat.title}
-                  </CardTitle>
-                  <div className={`p-2 rounded-lg ${stat.color}`}>
-                    <Icon className={`h-5 w-5 ${stat.textColor}`} />
-                  </div>
+              <div className="flex flex-col">
+                <div className="flex items-start justify-between mb-4">
+                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                  <Icon className="h-5 w-5" style={{ color: stat.iconColor }} />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-3xl font-bold ${stat.textColor}`}>
-                  {isLoading ? "..." : stat.value}
+                <div>
+                  <h3 className="text-3xl font-bold text-gray-900">
+                    {isLoading ? "..." : stat.value}
+                  </h3>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           );
         })}

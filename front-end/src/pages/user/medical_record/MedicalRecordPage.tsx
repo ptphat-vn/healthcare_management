@@ -47,7 +47,6 @@ const medicalRecord = {
   createdAt: "2025-10-24T01:30:46.734+00:00",
   updatedAt: "2025-10-24T07:54:28.917+00:00",
   createdBy: "68f0a4f5a8b1373f8970e374",
-  bloodType: "A-",
   lastModifiedBy: "68f0a4f5a8b1373f8970e374",
   deletedAt: "2025-10-24T07:54:28.917+00:00",
   deletedBy: "68f0a4f5a8b1373f8970e374",
