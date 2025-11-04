@@ -1,4 +1,7 @@
-import type { APIResponse, GetAllRoleResponse } from "@/types/response.type";
+import type {
+  APIResponse,
+  GetAllTestOrderResponse,
+} from "@/types/response.type";
 import { baseApi } from "./baseApi";
 import type {
   CreateTestOrderRequest,
@@ -9,7 +12,7 @@ import type { TestOrder } from "@/types/testOrder.type";
 export const testOrderApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllTestOrder: builder.query<
-      APIResponse<GetAllRoleResponse>,
+      APIResponse<GetAllTestOrderResponse>,
       {
         search?: string;
         sortBy?: "patientName" | "createdDate" | "runDate" | "status";
