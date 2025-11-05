@@ -96,6 +96,17 @@ export default function SideBar() {
         to: "/lab_user/medical-records",
         icon: <ClipboardPlus />,
       },
+      {
+        label: "Test Order",
+        to: "/lab_user/test-order",
+        icon: <TestTubeDiagonal />,
+      },
+      {
+        label: "Event Log",
+        to: "/lab_user/event-log",
+        icon: <History />,
+      },
+      { label: "Reports", to: "/lab_user/reports" },
     ],
     consultant: [
       {
