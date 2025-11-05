@@ -2,17 +2,13 @@ import { ObjectId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getTestOrdersCollection, TestOrderDocument, TestResult, Comment } from '~/models/test-order.model'
+import { getPatientMedicalRecordsCollection } from '~/models/patient-medical-record.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
 
 export interface CreateTestOrderData {
-  patientName: string
-  dateOfBirth: string
-  gender: 'male' | 'female'
-  address: string
-  phoneNumber: string
-  email: string
+  medicalRecordId: string
 }
 
 export interface UpdateTestOrderData {
@@ -37,6 +33,7 @@ export async function createTestOrder(data: CreateTestOrderData, createdBy: stri
   const testOrders = getTestOrdersCollection()
   const users = getUsersCollection()
   const eventLogs = getEventLogsCollection()
+  const medicalRecords = getPatientMedicalRecordsCollection()
 
   // Verify the creator exists
   const creator = await users.findOne({ _id: new ObjectId(createdBy) })
@@ -44,9 +41,28 @@ export async function createTestOrder(data: CreateTestOrderData, createdBy: stri
     throw new HttpError(404, 'User not found')
   }
 
+  // Validate and fetch medical record
+  let medicalRecordObjectId: ObjectId
+  try {
+    medicalRecordObjectId = new ObjectId(data.medicalRecordId)
+  } catch {
+    throw new HttpError(400, 'Invalid medical record id')
+  }
+
+  const medicalRecord = await medicalRecords.findOne({ _id: medicalRecordObjectId, isDeleted: { $ne: true } } as any)
+  if (!medicalRecord) {
+    throw new HttpError(404, 'Medical record not found')
+  }
+
   const now = new Date()
   const testOrder: Omit<TestOrderDocument, '_id'> = {
-    ...data,
+    medicalRecordId: medicalRecordObjectId,
+    patientName: medicalRecord.fullName,
+    dateOfBirth: medicalRecord.dateOfBirth,
+    gender: medicalRecord.gender,
+    address: medicalRecord.address,
+    phoneNumber: medicalRecord.phoneNumber,
+    email: medicalRecord.email || '',
     status: 'pending',
     createdDate: now,
     createdBy: new ObjectId(createdBy),
@@ -55,6 +71,12 @@ export async function createTestOrder(data: CreateTestOrderData, createdBy: stri
   }
 
   const result = await testOrders.insertOne(testOrder as TestOrderDocument)
+
+  // Link test order to medical record
+  await medicalRecords.updateOne(
+    { _id: medicalRecordObjectId } as any,
+    { $push: { testOrders: result.insertedId }, $set: { updatedAt: now } } as any
+  )
   
   // Log the event
   try {
@@ -64,7 +86,7 @@ export async function createTestOrder(data: CreateTestOrderData, createdBy: stri
     await eventLogs.insertOne({
       operator: { id: new ObjectId(createdBy), name: actor?.fullName || '', role: actorRoleDoc?.code || '' },
       action: 'TEST_ORDER_CREATED',
-      details: `Created test order for patient: ${data.patientName}`,
+      details: `Created test order for patient: ${medicalRecord.fullName}`,
       timestamp: now
     } as any)
   } catch {
@@ -579,7 +601,11 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     // swallow logging errors
   }
 
-  return { testOrder: updated, aiSuggestions, aiDiagnosis: diagnosisJson }
+  const response: any = { testOrder: updated, aiDiagnosis: diagnosisJson }
+  if (aiSuggestions.length > 0) {
+    response.aiSuggestions = aiSuggestions
+  }
+  return response
 }
 
 // Update comment
