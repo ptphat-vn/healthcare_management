@@ -29,23 +29,22 @@ export interface ProcessedTestResult extends TestResult {
 
 // Simulate HL7 message processing with random test results
 export function generateRandomHL7TestResults(): HL7TestResult[] {
+  // CBC panel aligned with provided ranges
   const commonTests = [
-    { name: 'Hemoglobin', unit: 'g/dL', normalRange: '12.0-16.0' },
-    { name: 'White Blood Cell Count', unit: 'K/uL', normalRange: '4.5-11.0' },
-    { name: 'Platelet Count', unit: 'K/uL', normalRange: '150-450' },
-    { name: 'Glucose', unit: 'mg/dL', normalRange: '70-100' },
-    { name: 'Cholesterol', unit: 'mg/dL', normalRange: '<200' },
-    { name: 'Creatinine', unit: 'mg/dL', normalRange: '0.6-1.2' },
-    { name: 'Sodium', unit: 'mEq/L', normalRange: '136-145' },
-    { name: 'Potassium', unit: 'mEq/L', normalRange: '3.5-5.0' },
-    { name: 'ALT', unit: 'U/L', normalRange: '7-56' },
-    { name: 'AST', unit: 'U/L', normalRange: '10-40' }
+    { name: 'White Blood Cell Count', unit: 'cells/µL', normalRange: '4000-10000' },
+    { name: 'Red Blood Cell Count', unit: 'million/µL', normalRange: '4.2-6.1' },
+    { name: 'Hemoglobin', unit: 'g/dL', normalRange: '12-18' },
+    { name: 'Hematocrit', unit: '%', normalRange: '37-52' },
+    { name: 'Platelet Count', unit: 'cells/µL', normalRange: '150000-350000' },
+    { name: 'Mean Corpuscular Volume', unit: 'fL', normalRange: '80-100' },
+    { name: 'Mean Corpuscular Haemoglobin', unit: 'pg', normalRange: '27-33' },
+    { name: 'Mean Corpuscular Haemoglobin Concentration', unit: 'g/dL', normalRange: '32-36' }
   ]
 
   const results: HL7TestResult[] = []
   
-  // Generate 3-6 random test results
-  const numTests = Math.floor(Math.random() * 4) + 3
+  // Generate 4-8 random test results from the CBC panel
+  const numTests = Math.floor(Math.random() * 5) + 4
   const selectedTests = commonTests.sort(() => 0.5 - Math.random()).slice(0, numTests)
   
   for (const test of selectedTests) {
@@ -53,30 +52,51 @@ export function generateRandomHL7TestResults(): HL7TestResult[] {
     let flag: string = ''
     
     // Generate random result based on test type
-    if (test.name === 'Hemoglobin') {
-      const value = (Math.random() * 6 + 8).toFixed(1) // 8.0-14.0
-      result = value
-      if (parseFloat(value) < 10) flag = 'L' // Low
-      else if (parseFloat(value) > 16) flag = 'H' // High
-    } else if (test.name === 'White Blood Cell Count') {
-      const value = (Math.random() * 8 + 3).toFixed(1) // 3.0-11.0
-      result = value
-      if (parseFloat(value) < 4.5) flag = 'L'
-      else if (parseFloat(value) > 11) flag = 'H'
-    } else if (test.name === 'Glucose') {
-      const value = (Math.random() * 80 + 60).toFixed(0) // 60-140
-      result = value
-      if (parseFloat(value) < 70) flag = 'L'
-      else if (parseFloat(value) > 100) flag = 'H'
-    } else if (test.name === 'Cholesterol') {
-      const value = (Math.random() * 200 + 100).toFixed(0) // 100-300
-      result = value
-      if (parseFloat(value) > 200) flag = 'H'
+    if (test.name === 'White Blood Cell Count') {
+      const value = Math.floor(Math.random() * (12000 - 3000 + 1)) + 3000 // 3,000-12,000
+      result = String(value)
+      if (value < 4000) flag = 'L'
+      else if (value > 10000) flag = 'H'
+    } else if (test.name === 'Red Blood Cell Count') {
+      const value = Number((Math.random() * 3 + 3.5).toFixed(1)) // 3.5-6.5 million/µL
+      result = String(value)
+      if (value < 4.2) flag = 'L'
+      else if (value > 6.1) flag = 'H'
+    } else if (test.name === 'Hemoglobin') {
+      const value = Number((Math.random() * 10 + 10).toFixed(1)) // 10.0-20.0 g/dL
+      result = String(value)
+      if (value < 12) flag = 'L'
+      else if (value > 18) flag = 'H'
+    } else if (test.name === 'Hematocrit') {
+      const value = Number((Math.random() * 25 + 30).toFixed(1)) // 30-55 %
+      result = String(value)
+      if (value < 37) flag = 'L'
+      else if (value > 52) flag = 'H'
+    } else if (test.name === 'Platelet Count') {
+      const value = Math.floor(Math.random() * (400000 - 100000 + 1)) + 100000 // 100,000-400,000
+      result = String(value)
+      if (value < 150000) flag = 'L'
+      else if (value > 350000) flag = 'H'
+    } else if (test.name === 'Mean Corpuscular Volume') {
+      const value = Number((Math.random() * 40 + 70).toFixed(0)) // 70-110 fL
+      result = String(value)
+      if (value < 80) flag = 'L'
+      else if (value > 100) flag = 'H'
+    } else if (test.name === 'Mean Corpuscular Haemoglobin') {
+      const value = Number((Math.random() * 16 + 20).toFixed(1)) // 20-36 pg
+      result = String(value)
+      if (value < 27) flag = 'L'
+      else if (value > 33) flag = 'H'
+    } else if (test.name === 'Mean Corpuscular Haemoglobin Concentration') {
+      const value = Number((Math.random() * 10 + 28).toFixed(1)) // 28-38 g/dL
+      result = String(value)
+      if (value < 32) flag = 'L'
+      else if (value > 36) flag = 'H'
     } else {
-      // Generic numeric result
-      const value = (Math.random() * 100 + 10).toFixed(1)
-      result = value
-      if (Math.random() < 0.1) flag = Math.random() < 0.5 ? 'L' : 'H' // 10% chance of flag
+      // Fallback generic numeric result
+      const value = Number((Math.random() * 100 + 10).toFixed(1))
+      result = String(value)
+      if (Math.random() < 0.1) flag = Math.random() < 0.5 ? 'L' : 'H'
     }
     
     results.push({

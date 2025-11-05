@@ -176,44 +176,68 @@ export async function initializeDefaultFlaggingConfigs() {
   
   const defaultConfigs: CreateFlaggingConfigData[] = [
     {
+      testName: 'White Blood Cell Count',
+      normalRange: { min: 4000, max: 10000 },
+      abnormalRange: { min: 3000, max: 12000 },
+      criticalRange: { min: 1000, max: 20000 },
+      unit: 'cells/µL',
+      flag: 'WBC'
+    },
+    {
+      testName: 'Red Blood Cell Count',
+      normalRange: { min: 4.2, max: 6.1 },
+      abnormalRange: { min: 3.5, max: 6.5 },
+      criticalRange: { min: 3.0, max: 7.0 },
+      unit: 'million/µL',
+      flag: 'RBC'
+    },
+    {
       testName: 'Hemoglobin',
-      normalRange: { min: 12.0, max: 16.0 },
-      abnormalRange: { min: 10.0, max: 18.0 },
-      criticalRange: { min: 8.0, max: 20.0 },
+      normalRange: { min: 12.0, max: 18.0 },
+      abnormalRange: { min: 10.0, max: 20.0 },
+      criticalRange: { min: 8.0, max: 22.0 },
       unit: 'g/dL',
       flag: 'HGB'
     },
     {
-      testName: 'White Blood Cell Count',
-      normalRange: { min: 4.5, max: 11.0 },
-      abnormalRange: { min: 3.0, max: 15.0 },
-      criticalRange: { min: 1.0, max: 20.0 },
-      unit: 'K/uL',
-      flag: 'WBC'
+      testName: 'Hematocrit',
+      normalRange: { min: 37, max: 52 },
+      abnormalRange: { min: 30, max: 55 },
+      criticalRange: { min: 25, max: 60 },
+      unit: '%',
+      flag: 'HCT'
     },
     {
-      testName: 'Glucose',
-      normalRange: { min: 70, max: 100 },
-      abnormalRange: { min: 60, max: 140 },
-      criticalRange: { min: 40, max: 200 },
-      unit: 'mg/dL',
-      flag: 'GLU'
+      testName: 'Platelet Count',
+      normalRange: { min: 150000, max: 350000 },
+      abnormalRange: { min: 100000, max: 400000 },
+      criticalRange: { min: 50000, max: 500000 },
+      unit: 'cells/µL',
+      flag: 'PLT'
     },
     {
-      testName: 'Cholesterol',
-      normalRange: { min: 0, max: 200 },
-      abnormalRange: { min: 0, max: 240 },
-      criticalRange: { min: 0, max: 300 },
-      unit: 'mg/dL',
-      flag: 'CHOL'
+      testName: 'Mean Corpuscular Volume',
+      normalRange: { min: 80, max: 100 },
+      abnormalRange: { min: 70, max: 110 },
+      criticalRange: { min: 60, max: 120 },
+      unit: 'fL',
+      flag: 'MCV'
     },
     {
-      testName: 'Creatinine',
-      normalRange: { min: 0.6, max: 1.2 },
-      abnormalRange: { min: 0.4, max: 1.5 },
-      criticalRange: { min: 0.2, max: 2.0 },
-      unit: 'mg/dL',
-      flag: 'CREA'
+      testName: 'Mean Corpuscular Haemoglobin',
+      normalRange: { min: 27, max: 33 },
+      abnormalRange: { min: 20, max: 36 },
+      criticalRange: { min: 15, max: 38 },
+      unit: 'pg',
+      flag: 'MCH'
+    },
+    {
+      testName: 'Mean Corpuscular Haemoglobin Concentration',
+      normalRange: { min: 32, max: 36 },
+      abnormalRange: { min: 28, max: 38 },
+      criticalRange: { min: 24, max: 40 },
+      unit: 'g/dL',
+      flag: 'MCHC'
     }
   ]
 
