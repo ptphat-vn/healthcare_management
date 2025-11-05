@@ -2,10 +2,10 @@ import { Router } from 'express'
 import {
   validateCreateTestOrder,
   validateUpdateTestOrder,
-  validateAddTestResult,
   validateAddComment,
   validateUpdateComment,
-  validateReviewTestOrder
+  validateReviewTestOrder,
+  validateRunWithInstrument
 } from '~/validations/test-order.validation'
 
 import {
@@ -14,9 +14,8 @@ import {
   deleteTestOrderController,
   getTestOrderDetailController,
   getAllTestOrdersController,
-  addTestResultsController,
   addCommentController,
-  addTestResultsFromHL7Controller,
+  runWithInstrumentController,
   reviewTestOrderController,
   aiReviewTestOrderController,
   updateCommentController,
@@ -56,19 +55,14 @@ testOrderRouter.delete(
   deleteTestOrderController
 )
 
-// Test Results Management
+// Test Results Management (run with instrument)
+
 testOrderRouter.post(
-  '/test-orders/:id/results',
+  '/test-orders/:id/run-with-instrument',
   authMiddleware,
   privilegeMiddleware(['execute_blood_testing']),
-  validateAddTestResult,
-  addTestResultsController
-)
-testOrderRouter.post(
-  '/test-orders/:id/hl7-results',
-  authMiddleware,
-  privilegeMiddleware(['execute_blood_testing']),
-  addTestResultsFromHL7Controller
+  validateRunWithInstrument,
+  runWithInstrumentController
 )
 
 // Test Order Review
