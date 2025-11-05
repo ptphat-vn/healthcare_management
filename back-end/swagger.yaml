@@ -60,6 +60,16 @@ info:
     - `activate_instrument`: Activate instruments
     - `deactivate_instrument`: Deactivate instruments
 
+    **Reagents:**
+    - `view_reagent`: View reagents
+    - `create_reagent`: Create reagents
+    - `modify_reagent`: Modify reagents
+    - `delete_reagent`: Delete reagents
+    - `view_reagent_supply_history`: View reagent vendor supply history
+    - `create_reagent_supply`: Create reagent vendor supply record
+    - `view_reagent_usage_history`: View reagent usage history
+    - `create_reagent_usage`: Record reagent usage
+
     **Event Logs:**
     - `view_event_logs`: View event logs
 
@@ -106,6 +116,8 @@ tags:
     description: Comment management operations
   - name: Flagging Configuration
     description: Flagging configuration management
+  - name: Reagents
+    description: Reagent management operations (CRUD, vendor supply history, usage history)
 
 paths:
   /roles:
@@ -493,10 +505,10 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: 'user@example.com'
+                  example: 'ncb2601@gmail.com'
                 password:
                   type: string
-                  example: 'password123'
+                  example: '12345678'
       responses:
         '200':
           description: Login successful
@@ -2937,6 +2949,817 @@ paths:
         '401':
           description: Unauthorized
 
+  # Reagent Management endpoints
+  /reagents:
+    get:
+      tags:
+        - Reagents
+      summary: List reagents
+      description: |
+        Get a paginated list of reagents. Results are sorted by latest date (updatedAt) by default.
+
+        **Required Privilege:** `view_reagent`
+
+        **Access:** Admin, Lab Manager, Service
+      operationId: listReagents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search by name, description, catalogNumber, or manufacturer
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [name, createdAt, updatedAt]
+            default: updatedAt
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, -1]
+            default: -1
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: isActive
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Reagents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get reagents successfully'
+                  data:
+                    type: object
+                    properties:
+                      reagents:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Reagent'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '403':
+          description: Insufficient privileges
+
+    post:
+      tags:
+        - Reagents
+      summary: Create reagent
+      description: |
+        Create a new reagent with specified properties.
+
+        **Required Privilege:** `create_reagent`
+
+        **Access:** Admin, Lab Manager
+      operationId: createReagent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - usagePerRun
+              properties:
+                name:
+                  type: string
+                  example: 'Diluent'
+                catalogNumber:
+                  type: string
+                  example: 'CAT-001'
+                manufacturer:
+                  type: string
+                  example: 'ABC Chemicals'
+                casNumber:
+                  type: string
+                  example: '123-45-6'
+                description:
+                  type: string
+                  example: 'Typically used in a 1:10 to 1:20 ratio with blood samples'
+                usagePerRun:
+                  type: object
+                  required:
+                    - min
+                    - max
+                    - unit
+                  properties:
+                    min:
+                      type: number
+                      example: 1
+                    max:
+                      type: number
+                      example: 2
+                    unit:
+                      type: string
+                      enum: [ml, μL, L]
+                      example: 'ml'
+                ratio:
+                  type: string
+                  example: '1:10 to 1:20'
+                preciseAmount:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                      example: 50
+                    max:
+                      type: number
+                      example: 200
+                    unit:
+                      type: string
+                      enum: [μL]
+                      example: 'μL'
+      responses:
+        '200':
+          description: Reagent created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent created successfully'
+                  data:
+                    $ref: '#/components/schemas/Reagent'
+        '409':
+          description: Reagent with this name already exists
+        '422':
+          description: Validation error
+
+  /reagents/{id}:
+    get:
+      tags:
+        - Reagents
+      summary: Get reagent by ID
+      description: |
+        Get a specific reagent by its ID.
+
+        **Required Privilege:** `view_reagent`
+      operationId: getReagentById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      responses:
+        '200':
+          description: Reagent retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get reagent successfully'
+                  data:
+                    $ref: '#/components/schemas/Reagent'
+        '404':
+          description: Reagent not found
+
+    put:
+      tags:
+        - Reagents
+      summary: Update reagent
+      description: |
+        Update a reagent by ID.
+
+        **Required Privilege:** `modify_reagent`
+      operationId: updateReagent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                catalogNumber:
+                  type: string
+                manufacturer:
+                  type: string
+                casNumber:
+                  type: string
+                description:
+                  type: string
+                usagePerRun:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                    max:
+                      type: number
+                    unit:
+                      type: string
+                      enum: [ml, μL, L]
+                ratio:
+                  type: string
+                preciseAmount:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                    max:
+                      type: number
+                    unit:
+                      type: string
+                      enum: [μL]
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: Reagent updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent updated successfully'
+                  data:
+                    $ref: '#/components/schemas/Reagent'
+        '404':
+          description: Reagent not found
+        '409':
+          description: Reagent with this name already exists
+        '422':
+          description: Validation error
+
+    delete:
+      tags:
+        - Reagents
+      summary: Delete reagent
+      description: |
+        Delete a reagent from the system.
+
+        **Required Privilege:** `delete_reagent`
+      operationId: deleteReagent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      responses:
+        '200':
+          description: Reagent deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent deleted successfully'
+                  data:
+                    $ref: '#/components/schemas/Reagent'
+        '404':
+          description: Reagent not found
+
+  /reagents/vendor-supply:
+    post:
+      tags:
+        - Reagents
+      summary: Create vendor supply record
+      description: |
+        Record a new reagent shipment received from a vendor. This automatically creates an entry in the vendor supply history.
+
+        **Required Privilege:** `create_reagent_supply`
+      operationId: createVendorSupply
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reagentId
+                - reagentName
+                - vendorName
+                - purchaseOrderNumber
+                - orderDate
+                - receiptDate
+                - quantityReceived
+                - unitOfMeasure
+                - lotNumber
+                - expirationDate
+                - receivedBy
+                - status
+              properties:
+                reagentId:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: '507f1f77bcf86cd799439011'
+                reagentName:
+                  type: string
+                  example: 'Diluent'
+                catalogNumber:
+                  type: string
+                  example: 'CAT-001'
+                manufacturer:
+                  type: string
+                  example: 'ABC Chemicals'
+                casNumber:
+                  type: string
+                  example: '123-45-6'
+                vendorName:
+                  type: string
+                  example: 'XYZ Supplies Inc.'
+                vendorId:
+                  type: string
+                  example: 'VEND-001'
+                purchaseOrderNumber:
+                  type: string
+                  example: 'PO-2024-001'
+                orderDate:
+                  type: string
+                  format: date
+                  example: '2024-01-15'
+                receiptDate:
+                  type: string
+                  format: date
+                  example: '2024-01-20'
+                quantityReceived:
+                  type: number
+                  example: 100
+                unitOfMeasure:
+                  type: string
+                  example: 'ml'
+                lotNumber:
+                  type: string
+                  example: 'LOT-2024-001'
+                expirationDate:
+                  type: string
+                  format: date
+                  example: '2025-12-31'
+                receivedBy:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: '507f1f77bcf86cd799439011'
+                initialStorageLocation:
+                  type: string
+                  example: 'Warehouse A, Shelf 3'
+                status:
+                  type: string
+                  enum: [Received, Partial Shipment, Returned]
+                  example: 'Received'
+      responses:
+        '200':
+          description: Vendor supply record created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Vendor supply record created successfully'
+                  data:
+                    $ref: '#/components/schemas/ReagentVendorSupply'
+        '404':
+          description: Reagent or user not found
+        '422':
+          description: Validation error
+
+  /reagents/vendor-supply/history:
+    get:
+      tags:
+        - Reagents
+      summary: List vendor supply history
+      description: |
+        Get a paginated list of reagent vendor supply history. Can filter by reagent, vendor, or date range.
+
+        **Required Privilege:** `view_reagent_supply_history`
+
+        If no filters are provided, returns the full history of all reagent shipments.
+      operationId: listVendorSupplyHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reagentId
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by reagent ID
+        - name: vendorId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vendor ID
+        - name: vendorName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vendor name (partial match)
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by receipt date from (YYYY-MM-DD)
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by receipt date to (YYYY-MM-DD)
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [receiptDate, orderDate, createdAt]
+            default: receiptDate
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, -1]
+            default: -1
+      responses:
+        '200':
+          description: Vendor supply history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get vendor supply history successfully'
+                  data:
+                    type: object
+                    properties:
+                      vendorSupplies:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReagentVendorSupply'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+
+  /reagents/usage:
+    post:
+      tags:
+        - Reagents
+      summary: Record reagent usage
+      description: |
+        Record reagent usage. This automatically creates an entry in the usage history.
+
+        **Required Privilege:** `create_reagent_usage`
+      operationId: recordReagentUsage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reagentId
+                - reagentName
+                - quantity
+                - unit
+                - action
+                - performedBy
+              properties:
+                reagentId:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: '507f1f77bcf86cd799439011'
+                reagentName:
+                  type: string
+                  example: 'Diluent'
+                quantity:
+                  type: number
+                  example: 1.5
+                unit:
+                  type: string
+                  example: 'ml'
+                action:
+                  type: string
+                  enum: [Used, Consumed, Wasted, Expired, Returned]
+                  example: 'Used'
+                testOrderId:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: '507f1f77bcf86cd799439011'
+                instrumentId:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: '507f1f77bcf86cd799439011'
+                batchLotNumber:
+                  type: string
+                  example: 'LOT-2024-001'
+                performedBy:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: '507f1f77bcf86cd799439011'
+                performedAt:
+                  type: string
+                  format: date-time
+                  example: '2024-01-15T10:30:00Z'
+                notes:
+                  type: string
+                  example: 'Used for blood test analysis'
+      responses:
+        '200':
+          description: Reagent usage recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent usage recorded successfully (multi-lot allocation)'
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/ReagentUsageHistory'
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/ReagentUsageHistory'
+        '404':
+          description: Reagent or user not found
+        '422':
+          description: Validation error
+
+  /reagents/usage/history:
+    get:
+      tags:
+        - Reagents
+      summary: List reagent usage history
+      description: |
+        Get a paginated list of reagent usage history. Can filter by reagent, action, test order, instrument, or date range.
+
+        **Required Privilege:** `view_reagent_usage_history`
+
+        If no filters are provided, returns the full history of all reagent usage.
+      operationId: listUsageHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reagentId
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by reagent ID
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Used, Consumed, Wasted, Expired, Returned]
+          description: Filter by action type
+        - name: testOrderId
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by test order ID
+        - name: instrumentId
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by instrument ID
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by performed date from (YYYY-MM-DD)
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by performed date to (YYYY-MM-DD)
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [performedAt, createdAt]
+            default: performedAt
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, -1]
+            default: -1
+      responses:
+        '200':
+          description: Usage history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get usage history successfully'
+                  data:
+                    type: object
+                    properties:
+                      usageHistory:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReagentUsageHistory'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+
+  /reagents/inventory/fifo:
+    get:
+      tags:
+        - Reagents
+      summary: Get reagent inventory (FIFO)
+      description: |
+        Return reagent inventory aggregated by lot with FIFO sorting (earliest expiration first).
+
+        Available quantity is calculated as `quantityReceived - quantityUsed` (summing Used/Consumed/Wasted for the same lot and unit).
+
+        Recommended privilege: `view_reagent_supply_history`.
+      operationId: getReagentInventoryFIFO
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reagentId
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by reagent ID
+        - name: reagentName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by reagent name (partial match)
+        - name: includeExpired
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Include expired lots (default false)
+        - name: includeExpiringSoon
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Only include lots expiring within 30 days (default false)
+      responses:
+        '200':
+          description: Inventory retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get reagent inventory successfully'
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReagentInventoryItem'
+        '401':
+          description: Unauthorized
+
+  /reagents/inventory/next-lot:
+    get:
+      tags:
+        - Reagents
+      summary: Get next reagent lot (FIFO)
+      description: |
+        Return the next lot to use based on FIFO (earliest expiration) that still has available quantity.
+
+        If `requiredQuantity` is specified, returns the earliest lot that has at least that quantity available. Otherwise, returns the earliest expiring lot.
+
+        Recommended privilege: `view_reagent_supply_history`.
+      operationId: getNextReagentLotFIFO
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reagentId
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Reagent ID
+        - name: requiredQuantity
+          in: query
+          required: false
+          schema:
+            type: number
+          description: Minimum quantity required (in the same unit as the lot)
+      responses:
+        '200':
+          description: Next lot retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get next reagent lot successfully'
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/ReagentInventoryItem'
+                      - type: 'null'
+        '401':
+          description: Unauthorized
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3586,3 +4409,236 @@ components:
         totalPages:
           type: integer
           example: 10
+
+    ReagentInventoryItem:
+      type: object
+      properties:
+        vendorSupplyId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentName:
+          type: string
+          example: 'Diluent'
+        lotNumber:
+          type: string
+          example: 'LOT-2024-001'
+        expirationDate:
+          type: string
+          format: date
+          example: '2025-12-31'
+        quantityReceived:
+          type: number
+          example: 100
+        quantityUsed:
+          type: number
+          example: 20
+        quantityAvailable:
+          type: number
+          example: 80
+        unitOfMeasure:
+          type: string
+          example: 'ml'
+        status:
+          type: string
+          enum: [Received, Partial Shipment, Returned]
+          example: 'Received'
+        daysUntilExpiration:
+          type: integer
+          example: 25
+        isExpired:
+          type: boolean
+          example: false
+        isExpiringSoon:
+          type: boolean
+          example: true
+
+    Reagent:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        name:
+          type: string
+          example: 'Diluent'
+        catalogNumber:
+          type: string
+          example: 'CAT-001'
+        manufacturer:
+          type: string
+          example: 'ABC Chemicals'
+        casNumber:
+          type: string
+          example: '123-45-6'
+        description:
+          type: string
+          example: 'Typically used in a 1:10 to 1:20 ratio with blood samples'
+        usagePerRun:
+          type: object
+          properties:
+            min:
+              type: number
+              example: 1
+            max:
+              type: number
+              example: 2
+            unit:
+              type: string
+              enum: [ml, μL, L]
+              example: 'ml'
+        ratio:
+          type: string
+          example: '1:10 to 1:20'
+        preciseAmount:
+          type: object
+          properties:
+            min:
+              type: number
+              example: 50
+            max:
+              type: number
+              example: 200
+            unit:
+              type: string
+              enum: [μL]
+              example: 'μL'
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T14:30:00Z'
+        createdBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        lastModifiedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+
+    ReagentVendorSupply:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentName:
+          type: string
+          example: 'Diluent'
+        catalogNumber:
+          type: string
+          example: 'CAT-001'
+        manufacturer:
+          type: string
+          example: 'ABC Chemicals'
+        casNumber:
+          type: string
+          example: '123-45-6'
+        vendorName:
+          type: string
+          example: 'XYZ Supplies Inc.'
+        vendorId:
+          type: string
+          example: 'VEND-001'
+        purchaseOrderNumber:
+          type: string
+          example: 'PO-2024-001'
+        orderDate:
+          type: string
+          format: date
+          example: '2024-01-15'
+        receiptDate:
+          type: string
+          format: date
+          example: '2024-01-20'
+        quantityReceived:
+          type: number
+          example: 100
+        unitOfMeasure:
+          type: string
+          example: 'ml'
+        lotNumber:
+          type: string
+          example: 'LOT-2024-001'
+        expirationDate:
+          type: string
+          format: date
+          example: '2025-12-31'
+        receivedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        receivedAt:
+          type: string
+          format: date-time
+          example: '2024-01-20T10:30:00Z'
+        initialStorageLocation:
+          type: string
+          example: 'Warehouse A, Shelf 3'
+        status:
+          type: string
+          enum: [Received, Partial Shipment, Returned]
+          example: 'Received'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-20T10:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-20T10:30:00Z'
+
+    ReagentUsageHistory:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentName:
+          type: string
+          example: 'Diluent'
+        quantity:
+          type: number
+          example: 1.5
+        unit:
+          type: string
+          example: 'ml'
+        action:
+          type: string
+          enum: [Used, Consumed, Wasted, Expired, Returned]
+          example: 'Used'
+        testOrderId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        instrumentId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        batchLotNumber:
+          type: string
+          example: 'LOT-2024-001'
+        performedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        performedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+        notes:
+          type: string
+          example: 'Used for blood test analysis'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'

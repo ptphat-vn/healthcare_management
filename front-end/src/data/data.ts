@@ -1,9 +1,11 @@
 import type { TestOrder } from "@/types/testOrder.type";
 
 export const privilegeList = [
+  "read_only",
   "view_role",
   "create_role",
   "update_role",
+  "delete_role",
   "view_config",
   "create_config",
   "modify_config",
@@ -15,12 +17,24 @@ export const privilegeList = [
   "add_comment",
   "modify_comment",
   "delete_comment",
+  "create_test_order",
+  "delete_test_order",
   "review_test_order",
   "modify_test_order",
+  "view_medical_record",
   "create_medical_record",
   "delete_medical_record",
   "review_medical_record",
   "modify_medical_record",
+  "view_event_logs",
+  "view_reagent",
+  "create_reagent",
+  "modify_reagent",
+  "delete_reagent",
+  "view_reagent_supply_history",
+  "create_reagent_supply",
+  "view_reagent_usage_history",
+  "create_reagent_usage",
 ];
 
 export const fakeTestOrder: TestOrder = {

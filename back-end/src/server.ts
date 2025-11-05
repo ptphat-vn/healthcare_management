@@ -8,6 +8,7 @@ import flaggingConfigRouter from './routes/flagging-config.routes'
 import eventLogRouter from './routes/event-log.routes'
 import patientMedicalRecordRouter from './routes/patient-medical-record.routes'
 import aiRouter from './routes/ai.routes'
+import reagentRouter from './routes/reagent.routes'
 import { HttpError } from '~/models/error.model'
 import { corsMiddleware } from '~/configs/cors.config'
 import { connectMongo } from '~/configs/mongodb.config'
@@ -15,6 +16,7 @@ import { env } from '~/configs/environment.config'
 import { swaggerDocument, swaggerUi } from '~/configs/swagger.config'
 import { ensureDefaultRoles } from '~/services/role.service'
 import { initializeDefaultFlaggingConfigs } from '~/services/flagging-config.service'
+import { ensureDefaultReagents } from '~/services/reagent.service'
 
 dotenv.config()
 
@@ -55,6 +57,7 @@ app.use('/api', flaggingConfigRouter)
 app.use('/api', eventLogRouter)
 app.use('/api', patientMedicalRecordRouter)
 app.use('/api', aiRouter)
+app.use('/api', reagentRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err instanceof HttpError) {
@@ -69,6 +72,7 @@ connectMongo()
   .then(() => {
     ensureDefaultRoles().catch((e) => console.error('Seed roles failed', e))
     initializeDefaultFlaggingConfigs().catch((e) => console.error('Initialize flagging configs failed', e))
+    ensureDefaultReagents().catch((e) => console.error('Initialize default reagents failed', e))
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
     })
