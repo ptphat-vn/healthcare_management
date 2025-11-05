@@ -17,6 +17,7 @@ import { swaggerDocument, swaggerUi } from '~/configs/swagger.config'
 import { ensureDefaultRoles } from '~/services/role.service'
 import { initializeDefaultFlaggingConfigs } from '~/services/flagging-config.service'
 import { ensureDefaultReagents } from '~/services/reagent.service'
+import chatRouter from '~/routes/chat.routes'
 
 dotenv.config()
 
@@ -58,6 +59,7 @@ app.use('/api', eventLogRouter)
 app.use('/api', patientMedicalRecordRouter)
 app.use('/api', aiRouter)
 app.use('/api', reagentRouter)
+app.use('/api', chatRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err instanceof HttpError) {

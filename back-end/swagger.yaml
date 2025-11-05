@@ -118,6 +118,8 @@ tags:
     description: Flagging configuration management
   - name: Reagents
     description: Reagent management operations (CRUD, vendor supply history, usage history)
+  - name: Chat
+    description: Real-time chat and conversation history between patients and clinicians
 
 paths:
   /roles:
