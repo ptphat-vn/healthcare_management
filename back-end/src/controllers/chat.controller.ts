@@ -10,6 +10,11 @@ export const getConversationController = async (req: Request, res: Response, nex
   const userId = (req.params as { UserId?: string }).UserId
   if (!userId) return res.status(400).json({ message: 'userId is required' })
 
+    // Make sure the path param is the OTHER participant's id (not the authenticated user)
+    if (String(authUserId) === String(userId)) {
+      return res.status(400).json({ message: 'userId must be the other participant id (not yourself). To fetch conversation while authenticated as this user, pass the other user id in the path.' })
+    }
+
     const conversationId = chatService.getConversationId(String(authUserId), userId)
     const page = req.query.page ? parseInt(req.query.page as string) : 1
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 50
