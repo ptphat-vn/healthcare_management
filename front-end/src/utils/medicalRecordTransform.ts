@@ -4,66 +4,121 @@ import { type MedicalRecord, type CreateMedicalRecordRequest, type UpdateMedical
  * Transform form data to backend format for creating medical record
  */
 export const transformFormToCreateRequest = (formData: Record<string, unknown>): CreateMedicalRecordRequest => {
-  return {
-    patientId: String(formData.patientId || ""),
-    fullName: String(formData.fullName || ""),
-    dateOfBirth: String(formData.dateOfBirth || ""),
-    gender: formData.gender as 'male' | 'female',
-    bloodType: formData.bloodType ? formData.bloodType as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' : undefined,
-    phoneNumber: String(formData.phoneNumber || ""),
-    email: formData.email ? String(formData.email) : undefined,
-    address: String(formData.address || ""),
-    identifyNumber: formData.identifyNumber ? String(formData.identifyNumber) : undefined,
-    emergencyContact: formData.emergencyName ? {
-      name: String(formData.emergencyName),
-      phoneNumber: String(formData.emergencyPhone || ""),
-      relationship: String(formData.emergencyRelationship || "")
-    } : undefined,
-    medicalHistory: {
-      allergies: formData.allergies ? String(formData.allergies).split(',').map((a: string) => a.trim()).filter((a: string) => a) : undefined,
-      chronicConditions: formData.chronicConditions ? String(formData.chronicConditions).split(',').map((c: string) => c.trim()).filter((c: string) => c) : undefined,
-      medications: formData.medications ? String(formData.medications).split(',').map((m: string) => m.trim()).filter((m: string) => m) : undefined,
-      previousSurgeries: formData.previousSurgeries ? String(formData.previousSurgeries).split(',').map((s: string) => s.trim()).filter((s: string) => s) : undefined
-    },
-    insuranceInfo: formData.insuranceProvider ? {
-      provider: String(formData.insuranceProvider),
-      policyNumber: String(formData.insurancePolicyNumber || ""),
-      expiryDate: formData.insuranceExpiryDate ? String(formData.insuranceExpiryDate) : undefined
-    } : undefined
+  const result: CreateMedicalRecordRequest = {
+    userId: String(formData.userId || ""),
   };
+
+  // Blood Type
+  if (formData.bloodType) {
+    result.bloodType = formData.bloodType as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+  }
+
+  // Emergency Contact - chỉ tạo nếu TẤT CẢ fields đều có giá trị và không empty
+  const emergencyName = String(formData.emergencyName || "").trim();
+  const emergencyPhone = String(formData.emergencyPhone || "").trim();
+  const emergencyRelationship = String(formData.emergencyRelationship || "").trim();
+  
+  if (emergencyName && emergencyPhone && emergencyRelationship) {
+    result.emergencyContact = {
+      name: emergencyName,
+      phoneNumber: emergencyPhone,
+      relationship: emergencyRelationship
+    };
+  }
+
+  // Medical History - chỉ tạo nếu có ít nhất 1 array không empty
+  const allergies = formData.allergies 
+    ? String(formData.allergies).split(',').map((a: string) => a.trim()).filter((a: string) => a)
+    : [];
+  const chronicConditions = formData.chronicConditions 
+    ? String(formData.chronicConditions).split(',').map((c: string) => c.trim()).filter((c: string) => c)
+    : [];
+  const medications = formData.medications 
+    ? String(formData.medications).split(',').map((m: string) => m.trim()).filter((m: string) => m)
+    : [];
+  const previousSurgeries = formData.previousSurgeries 
+    ? String(formData.previousSurgeries).split(',').map((s: string) => s.trim()).filter((s: string) => s)
+    : [];
+
+  // Chỉ tạo medicalHistory nếu có ít nhất 1 array không empty
+  if (allergies.length > 0 || chronicConditions.length > 0 || medications.length > 0 || previousSurgeries.length > 0) {
+    result.medicalHistory = {};
+    if (allergies.length > 0) result.medicalHistory.allergies = allergies;
+    if (chronicConditions.length > 0) result.medicalHistory.chronicConditions = chronicConditions;
+    if (medications.length > 0) result.medicalHistory.medications = medications;
+    if (previousSurgeries.length > 0) result.medicalHistory.previousSurgeries = previousSurgeries;
+  }
+
+  // Insurance Info - chỉ tạo nếu TẤT CẢ required fields có giá trị và không empty
+  const insuranceProvider = String(formData.insuranceProvider || "").trim();
+  const insurancePolicyNumber = String(formData.insurancePolicyNumber || "").trim();
+  const insuranceExpiryDate = formData.insuranceExpiryDate 
+    ? String(formData.insuranceExpiryDate).trim() 
+    : undefined;
+
+  if (insuranceProvider && insurancePolicyNumber) {
+    result.insuranceInfo = {
+      provider: insuranceProvider,
+      policyNumber: insurancePolicyNumber,
+      expiryDate: insuranceExpiryDate || undefined
+    };
+  }
+
+  return result;
 };
 
 /**
  * Transform form data to backend format for updating medical record
  */
 export const transformFormToUpdateRequest = (formData: Record<string, unknown>, recordId: string): UpdateMedicalRecordRequest => {
-  return {
-    _id: recordId,
-    fullName: String(formData.fullName || ""),
-    dateOfBirth: String(formData.dateOfBirth || ""),
-    gender: formData.gender as 'male' | 'female',
-    bloodType: formData.bloodType ? formData.bloodType as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' : undefined,
-    phoneNumber: String(formData.phoneNumber || ""),
-    email: formData.email ? String(formData.email) : undefined,
-    address: String(formData.address || ""),
-    identifyNumber: formData.identifyNumber ? String(formData.identifyNumber) : undefined,
-    emergencyContact: formData.emergencyName ? {
+  const result: UpdateMedicalRecordRequest = { _id: recordId };
+  
+  if (formData.fullName && String(formData.fullName).trim()) result.fullName = String(formData.fullName);
+  if (formData.dateOfBirth && String(formData.dateOfBirth).trim()) result.dateOfBirth = String(formData.dateOfBirth);
+  if (formData.gender) result.gender = formData.gender as 'male' | 'female';
+  if (formData.bloodType) result.bloodType = formData.bloodType as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+  if (formData.phoneNumber && String(formData.phoneNumber).trim()) result.phoneNumber = String(formData.phoneNumber);
+  if (formData.email && String(formData.email).trim()) result.email = String(formData.email);
+  if (formData.address && String(formData.address).trim()) result.address = String(formData.address);
+  if (formData.identifyNumber && String(formData.identifyNumber).trim()) result.identifyNumber = String(formData.identifyNumber);
+  
+  if (formData.emergencyName && String(formData.emergencyName).trim()) {
+    result.emergencyContact = {
       name: String(formData.emergencyName),
       phoneNumber: String(formData.emergencyPhone || ""),
       relationship: String(formData.emergencyRelationship || "")
-    } : undefined,
-    medicalHistory: {
-      allergies: formData.allergies ? String(formData.allergies).split(',').map((a: string) => a.trim()).filter((a: string) => a) : undefined,
-      chronicConditions: formData.chronicConditions ? String(formData.chronicConditions).split(',').map((c: string) => c.trim()).filter((c: string) => c) : undefined,
-      medications: formData.medications ? String(formData.medications).split(',').map((m: string) => m.trim()).filter((m: string) => m) : undefined,
-      previousSurgeries: formData.previousSurgeries ? String(formData.previousSurgeries).split(',').map((s: string) => s.trim()).filter((s: string) => s) : undefined
-    },
-    insuranceInfo: formData.insuranceProvider ? {
+    };
+  }
+  
+  const medicalHistory: {
+    allergies?: string[];
+    chronicConditions?: string[];
+    medications?: string[];
+    previousSurgeries?: string[];
+  } = {};
+  if (formData.allergies && String(formData.allergies).trim()) {
+    medicalHistory.allergies = String(formData.allergies).split(',').map((s: string) => s.trim()).filter((s: string) => s);
+  }
+  if (formData.chronicConditions && String(formData.chronicConditions).trim()) {
+    medicalHistory.chronicConditions = String(formData.chronicConditions).split(',').map((s: string) => s.trim()).filter((s: string) => s);
+  }
+  if (formData.medications && String(formData.medications).trim()) {
+    medicalHistory.medications = String(formData.medications).split(',').map((s: string) => s.trim()).filter((s: string) => s);
+  }
+  if (formData.previousSurgeries && String(formData.previousSurgeries).trim()) {
+    medicalHistory.previousSurgeries = String(formData.previousSurgeries).split(',').map((s: string) => s.trim()).filter((s: string) => s);
+  }
+  if (Object.keys(medicalHistory).length > 0) result.medicalHistory = medicalHistory;
+  
+  if (formData.insuranceProvider && String(formData.insuranceProvider).trim()) {
+    result.insuranceInfo = {
       provider: String(formData.insuranceProvider),
       policyNumber: String(formData.insurancePolicyNumber || ""),
-      expiryDate: formData.insuranceExpiryDate ? String(formData.insuranceExpiryDate) : undefined
-    } : undefined
-  };
+      expiryDate: formData.insuranceExpiryDate && String(formData.insuranceExpiryDate).trim() ? String(formData.insuranceExpiryDate) : undefined
+    };
+  }
+  
+  return result;
 };
 
 /**
@@ -99,13 +154,8 @@ export const transformBackendToFormData = (record: MedicalRecord): Record<string
 export const validateFormData = (formData: Record<string, unknown>): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Required fields validation
-  if (!String(formData.patientId || "").trim()) errors.push("Patient ID is required");
-  if (!String(formData.fullName || "").trim()) errors.push("Full name is required");
-  if (!String(formData.dateOfBirth || "").trim()) errors.push("Date of birth is required");
-  if (!String(formData.gender || "").trim()) errors.push("Gender is required");
-  if (!String(formData.phoneNumber || "").trim()) errors.push("Phone number is required");
-  if (!String(formData.address || "").trim()) errors.push("Address is required");
+  // Required fields validation for create (userId) or update (no required fields)
+  if (formData.userId && !String(formData.userId || "").trim()) errors.push("User ID is required");
 
   // Email validation
   const email = String(formData.email || "");
