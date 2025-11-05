@@ -1504,11 +1504,27 @@ paths:
               type: object
               required:
                 - medicalRecordId
+                - requestedTests
               properties:
                 medicalRecordId:
                   type: string
                   description: MongoDB ObjectId of the existing medical record
                   example: '6512bd43d9caa6e02c990b0a'
+                requestedTests:
+                  type: array
+                  description: Select one or more tests to perform for this order (CBC panel)
+                  items:
+                    type: string
+                    enum:
+                      - 'White Blood Cell Count'
+                      - 'Red Blood Cell Count'
+                      - 'Hemoglobin'
+                      - 'Hematocrit'
+                      - 'Platelet Count'
+                      - 'Mean Corpuscular Volume'
+                      - 'Mean Corpuscular Haemoglobin'
+                      - 'Mean Corpuscular Haemoglobin Concentration'
+                  example: ['Hemoglobin', 'Hematocrit', 'Platelet Count']
       responses:
         '201':
           description: Test order created successfully
@@ -1738,12 +1754,15 @@ paths:
           description: Test order not found
 
   # Test Results Management
-  /test-orders/{id}/results:
+
+  /test-orders/{id}/run-with-instrument:
     post:
       tags:
         - Test Results
-      summary: Add manual test results
-      description: Add test results manually to a test order
+      summary: Run tests on selected instrument and process HL7
+      description: |
+        Execute the test order's requested tests on a specific instrument, generate HL7 results, and store them.
+        The response includes instrument and active reagents metadata used when running the tests.
       security:
         - bearerAuth: []
       parameters:
@@ -1761,74 +1780,15 @@ paths:
             schema:
               type: object
               required:
-                - testResults
+                - instrumentId
               properties:
-                testResults:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - testName
-                      - result
-                      - status
-                    properties:
-                      testName:
-                        type: string
-                        example: 'Hemoglobin'
-                      result:
-                        type: string
-                        example: '14.5'
-                      unit:
-                        type: string
-                        example: 'g/dL'
-                      normalRange:
-                        type: string
-                        example: '12.0-16.0'
-                      status:
-                        type: string
-                        enum: [normal, abnormal, critical]
-                        example: 'normal'
+                instrumentId:
+                  type: string
+                  description: Instrument ID to run the tests on
+                  example: '64f1f77b0c9aa6e02c990b0a'
       responses:
         '200':
-          description: Test results added successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Test results added successfully'
-                  data:
-                    $ref: '#/components/schemas/TestOrder'
-        '400':
-          description: Validation error
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden (insufficient role)
-        '404':
-          description: Test order not found
-
-  /test-orders/{id}/hl7-results:
-    post:
-      tags:
-        - Test Results
-      summary: Process HL7 test results
-      description: Process test results from HL7 message. The system will randomly pick ONE test and generate its value.
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Test order ID
-          schema:
-            type: string
-            example: '507f1f77bcf86cd799439011'
-      responses:
-        '200':
-          description: HL7 test results processed successfully
+          description: HL7 test results processed successfully using instrument
           content:
             application/json:
               schema:
@@ -1842,20 +1802,48 @@ paths:
                     properties:
                       testOrder:
                         $ref: '#/components/schemas/TestOrder'
+                      instrument:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          status:
+                            type: string
+                        required: [id, name]
+                      reagents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: string }
+                            reagentId: { type: string }
+                            reagentName: { type: string }
+                            lotNumber: { type: string }
+                            unitOfMeasure: { type: string }
+                            expirationDate: { type: string, format: date-time }
                       hl7Message:
-                        $ref: '#/components/schemas/HL7Message'
+                        type: object
+                        properties:
+                          messageId: { type: string }
+                          patientId: { type: string }
+                          timestamp: { type: string, format: date-time }
+                          rawMessage: { type: string }
                       processedResults:
                         type: array
-                        minItems: 1
-                        maxItems: 1
                         items:
                           $ref: '#/components/schemas/TestResult'
+        '400':
+          description: Validation error
         '401':
           description: Unauthorized
         '403':
           description: Forbidden (insufficient role)
         '404':
-          description: Test order not found
+          description: Test order or instrument not found
+        '409':
+          description: Instrument is not active
 
   # Test Order Review
   /test-orders/{id}/review:
@@ -4677,6 +4665,20 @@ components:
           type: string
           format: email
           example: 'patient@email.com'
+        requestedTests:
+          type: array
+          items:
+            type: string
+            enum:
+              - 'White Blood Cell Count'
+              - 'Red Blood Cell Count'
+              - 'Hemoglobin'
+              - 'Hematocrit'
+              - 'Platelet Count'
+              - 'Mean Corpuscular Volume'
+              - 'Mean Corpuscular Haemoglobin'
+              - 'Mean Corpuscular Haemoglobin Concentration'
+          example: ['Hemoglobin', 'Hematocrit']
         status:
           type: string
           enum: [pending, cancelled, completed, reviewed, ai_reviewed]

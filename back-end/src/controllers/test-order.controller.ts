@@ -169,6 +169,26 @@ export const addTestResultsFromHL7Controller = async (req: Request, res: Respons
   }
 }
 
+export const runWithInstrumentController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authUserId = (req as any).authUserId
+    if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
+
+    const { addTestResultsFromHL7UsingInstrument } = await import('~/services/hl7-processing.service')
+    const data = await addTestResultsFromHL7UsingInstrument(
+      (req.params as { id: string }).id,
+      (req.body as { instrumentId: string }).instrumentId,
+      authUserId.toString()
+    )
+    return res.status(200).json({
+      message: 'HL7 test results processed successfully',
+      data
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
 export const reviewTestOrderController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authUserId = (req as any).authUserId
