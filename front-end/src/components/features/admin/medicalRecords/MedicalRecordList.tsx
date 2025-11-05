@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/table";
 
 import { Badge } from "@/components/ui/badge";
-import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import ErrorAlert from "@/components/ui/error/ErrorAlert";
 import EmptyState from "@/components/ui/empty/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -34,6 +33,7 @@ import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 import { Skeleton } from "@/components/ui/skeleton";
 
+
 interface ApiError {
   data?: {
     message?: string;
@@ -52,8 +52,8 @@ export default function MedicalRecordList() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<number | "">("");
   const [sortBy, setSortBy] = useState<
-    "fullName" | "dateOfBirth" | "createdAt"
-  >("createdAt");
+  "fullName" | "dateOfBirth" | "createdAt" | "lastTestDate"
+>("createdAt");
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
 
   // API hooks
@@ -74,7 +74,6 @@ export default function MedicalRecordList() {
 
   const records = recordsData?.data?.patient || [];
 
-  // Helper function to calculate age from date of birth
   const calcAge = (dob?: string) => {
     if (!dob) return "-";
     const d = new Date(dob);
@@ -84,10 +83,6 @@ export default function MedicalRecordList() {
     const m = now.getMonth() - d.getMonth();
     if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
     return age >= 0 ? String(age) : "-";
-  };
-
-  const handleChangePage = (page: number) => {
-    setCurrentPage(page);
   };
 
   const handleView = (record: MedicalRecord) => {
@@ -126,7 +121,6 @@ export default function MedicalRecordList() {
     } catch (error: unknown) {
       console.error("Error deleting medical record:", error);
 
-      // Handle validation errors from backend
       const errorData = error as ApiError & {
         data?: { errors?: Record<string, string> };
       };
@@ -154,7 +148,6 @@ export default function MedicalRecordList() {
 
   return (
     <div className="w-full space-y-4">
-      {/* Search and Filter */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <SearchAndFilter
           searchTerm={search}
@@ -165,10 +158,11 @@ export default function MedicalRecordList() {
             { value: "fullName", label: "Full Name" },
             { value: "dateOfBirth", label: "Date of Birth" },
             { value: "createdAt", label: "Created At" },
+            { value: "lastTestDate", label: "Last Test Date" },
           ]}
           sortByValue={sortBy}
           onSortByChange={(value) =>
-            setSortBy(value as "fullName" | "dateOfBirth" | "createdAt")
+            setSortBy(value as "fullName" | "dateOfBirth" | "createdAt" | "lastTestDate")
           }
           sortOrder={sortOrder}
           onSortOrderChange={setSortOrder}
@@ -184,7 +178,6 @@ export default function MedicalRecordList() {
         />
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
@@ -216,6 +209,12 @@ export default function MedicalRecordList() {
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 w-32 px-4">
                   Date of Birth
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-36 px-4">
+                 Last Test Date
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 w-32 px-4">
+                  Last Test Status
                 </TableHead>
                 <TableHead className="text-right font-semibold text-gray-700 w-24 px-3">
                   Actions
@@ -254,13 +253,19 @@ export default function MedicalRecordList() {
                       <Skeleton className="h-4 w-16" />
                     </TableCell>
                     <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
                       <Skeleton className="h-4 w-8" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : records.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-12">
+                  <TableCell colSpan={12} className="text-center py-12">
                     <EmptyState
                       title="No medical records found"
                       description="Try adjusting your search or filter criteria"
@@ -320,6 +325,12 @@ export default function MedicalRecordList() {
                     <TableCell className="text-gray-600 px-4">
                       {new Date(record.dateOfBirth).toLocaleDateString()}
                     </TableCell>
+                    <TableCell className="text-gray-600 px-4">
+                      {record.lastTestDate ? new Date(record.lastTestDate).toLocaleDateString() : "-"}
+                    </TableCell>
+                    <TableCell className="text-gray-600 px-4">
+                      {record.lastTestStatus || "-"}
+                    </TableCell>
                     <TableCell className="text-right px-3">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -365,8 +376,6 @@ export default function MedicalRecordList() {
         </div>
       </div>
 
-      {/* Pagination */}
-
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
           {records.length > 0 ? (
@@ -396,13 +405,11 @@ export default function MedicalRecordList() {
               <PaginationUI
                 currentPage={currentPage}
                 totalPages={recordsData.data.pagination.totalPages}
-                onPageChange={handleChangePage}
+                onPageChange={setCurrentPage}
               />
             )}
         </div>
       </div>
-
-      {/* Modals */}
       <EditMedicalRecordModal
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
