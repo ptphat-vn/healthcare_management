@@ -26,6 +26,7 @@ import LabUserDashboard from "@/pages/labUser/LabUserDashboard";
 
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import PatientDashboardPage from "@/pages/user/PatientDashboardPage";
+import LabManagerDashboard from "@/pages/manager/LabManagerDashboard";
 
 import MedicalRecordPatientPage from "@/pages/user/medical_record/MedicalRecordPage";
 import ProfilePatient from "@/pages/user/ProfilePatient";
@@ -101,7 +102,7 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { path: "dashboard", element: <div>Đang làm</div> },
+      { path: "dashboard", element: <LabManagerDashboard /> },
       { path: "user-management", element: <UserManagement /> },
       { path: "roles-management", element: <RoleManagementPage /> },
       { path: "user-management/:id", element: <UserDetail /> },
