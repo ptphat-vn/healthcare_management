@@ -43,7 +43,18 @@ export const PRIVILEGES = {
   ACTIVATE_INSTRUMENT: 'activate_instrument',
   DEACTIVATE_INSTRUMENT: 'deactivate_instrument',
 
+  // Reagents
+  VIEW_REAGENT: 'view_reagent',
+  CREATE_REAGENT: 'create_reagent',
+  MODIFY_REAGENT: 'modify_reagent',
+  DELETE_REAGENT: 'delete_reagent',
+  VIEW_REAGENT_SUPPLY_HISTORY: 'view_reagent_supply_history',
+  CREATE_REAGENT_SUPPLY: 'create_reagent_supply',
+  VIEW_REAGENT_USAGE_HISTORY: 'view_reagent_usage_history',
+  CREATE_REAGENT_USAGE: 'create_reagent_usage',
+
   // Medical-record
+  VIEW_MEDICAL_RECORD: 'view_medical_record',
   CREATE_MEDICAL_RECORD: 'create_medical_record',
   DELETE_MEDICAL_RECORD: 'delete_medical_record',
   REVIEW_MEDICAL_RECORD: 'review_medical_record',
