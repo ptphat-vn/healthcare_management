@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetMedicalRecordsQuery } from "@/services/medicalRecordApi";
 import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
+import { useGetEventLogsQuery } from "@/services/eventLogApi";
 import type { TestOrder } from "@/types/testOrder.type";
 import {
   FileText,
@@ -71,6 +72,11 @@ export default function LabUserDashboard() {
     sortOrder: -1,
   });
 
+  const { data: eventLogsData, isLoading: isLoadingLogs } = useGetEventLogsQuery({
+    page: 1,
+    limit: 20,
+  });
+
   const stats = useMemo(() => {
     const testOrders = (testOrdersData?.data as any)?.testOrder || [];
     const totalTestOrders = testOrders.length;
@@ -87,32 +93,29 @@ export default function LabUserDashboard() {
       reviewed,
     };
   }, [testOrdersData]);
-
-  const recentTests = useMemo(() => {
-    const testOrders = (testOrdersData?.data as any)?.testOrder || [];
+ 
+  const recentActivities = useMemo(() => {
+    const eventLogs = (eventLogsData?.data as any)?.eventLogs || [];
     const now = new Date();
     const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-    return testOrders
-      .filter((test: TestOrder) => {
-        const testDate = new Date(test.createdDate || "");
-        return testDate >= last24Hours;
+    
+    return eventLogs
+      .filter((log: any) => {
+        const logDate = new Date(log.timestamp || "");
+        return logDate >= last24Hours;
       })
-      .slice(0, 100)
-      .map((test: TestOrder) => ({
-        id: test._id,
-        patientName: test.patientName || "N/A",
-        phoneNumber: test.phoneNumber || "N/A",
-        email: test.email || "N/A",
-        status: test.status,
-        priority: test.comments?.some(c => c.content?.toLowerCase().includes("urgent")) ? "URGENT" : "NORMAL",
-        date: test.createdDate ? new Date(test.createdDate).toLocaleDateString() : "N/A",
-        time: test.createdDate ? new Date(test.createdDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "N/A",
-        createdByUser: test.createdByUser?.fullName || test.createdBy || "Unknown User",
+      .map((log: any) => ({
+        id: log._id,
+        action: log.action,
+        description: log.details || log.description,
+        operatorName: log.operator?.name || "Unknown User",
+        timestamp: log.timestamp,
+        date: log.timestamp ? new Date(log.timestamp).toLocaleDateString() : "N/A",
+        time: log.timestamp ? new Date(log.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "N/A",
       }));
-  }, [testOrdersData]);
+  }, [eventLogsData]);
 
-  if (isLoadingRecords || isLoadingTests) {
+  if (isLoadingRecords || isLoadingTests || isLoadingLogs) {
     return <LoadingSpinner message="Loading dashboard data..." />;
   }
 
@@ -191,49 +194,72 @@ export default function LabUserDashboard() {
         </div>
 
         <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-          {recentTests.length === 0 ? (
+          {recentActivities.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               Không có hoạt động gần đây
             </div>
           ) : (
-            recentTests.map((test: any, index: number) => {
-              const actionTypes = ['create', 'update', 'view', 'delete'];
-              const actionType = actionTypes[index % actionTypes.length];
+            recentActivities.map((activity: any) => {
+              const getActionConfig = (action: string) => {
+                const actionLower = action.toLowerCase();
+                
+                if (actionLower.includes('view') || actionLower.includes('xem') || actionLower.includes('detail')) {
+                  return {
+                    icon: <Eye className="h-5 w-5 text-blue-600" />,
+                    bgColor: 'bg-blue-50',
+                  };
+                } else if (actionLower.includes('update') || actionLower.includes('cập nhật') || actionLower.includes('edit') || actionLower.includes('sửa')) {
+                  return {
+                    icon: <Edit className="h-5 w-5 text-green-600" />,
+                    bgColor: 'bg-green-50',
+                  };
+                } else if (actionLower.includes('delete') || actionLower.includes('xóa')) {
+                  return {
+                    icon: <Trash2 className="h-5 w-5 text-red-600" />,
+                    bgColor: 'bg-red-50',
+                  };
+                } else if (actionLower.includes('create') || actionLower.includes('tạo') || actionLower.includes('add')) {
+                  return {
+                    icon: <FileText className="h-5 w-5 text-purple-600" />,
+                    bgColor: 'bg-purple-50',
+                  };
+                } else if (actionLower.includes('login') || actionLower.includes('đăng nhập')) {
+                  return {
+                    icon: <CheckCircle className="h-5 w-5 text-indigo-600" />,
+                    bgColor: 'bg-indigo-50',
+                  };
+                } else {
+                  return {
+                    icon: <History className="h-5 w-5 text-gray-600" />,
+                    bgColor: 'bg-gray-50',
+                  };
+                }
+              };
 
-              const actionText =
-                actionType === 'create' ? `Tạo test order mới cho bệnh nhân ${test.patientName}` :
-                  actionType === 'update' ? `Cập nhật test order của ${test.patientName}` :
-                    actionType === 'view' ? `Xem test order của ${test.patientName}` :
-                      `Xóa test order của ${test.patientName}`;
-
-              const iconColor =
-                actionType === 'create' ? 'text-green-600' :
-                  actionType === 'update' ? 'text-blue-600' :
-                    actionType === 'view' ? 'text-purple-600' :
-                      'text-red-600';
+              const config = getActionConfig(activity.action);
 
               return (
                 <div
-                  key={test.id}
+                  key={activity.id}
                   className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
                 >
                   <div className="flex items-center space-x-3">
-                    <div>
-                      {actionType === 'create' && <FileText className={`h-4 w-4 ${iconColor}`} />}
-                      {actionType === 'update' && <Edit className={`h-4 w-4 ${iconColor}`} />}
-                      {actionType === 'view' && <Eye className={`h-4 w-4 ${iconColor}`} />}
-                      {actionType === 'delete' && <Trash2 className={`h-4 w-4 ${iconColor}`} />}
+                    <div className={`${config.bgColor} p-2 rounded-full`}>
+                      {config.icon}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium text-gray-900">
-                        {actionText}
+                        {activity.description || activity.action}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        {test.createdByUser}
-                      </p>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span>{activity.operatorName}</span>
+                      </div>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-400">{test.time}</span>
+                  <div className="text-right">
+                    <div className="text-xs text-gray-500">{activity.date}</div>
+                    <div className="text-xs font-medium text-gray-700">{activity.time}</div>
+                  </div>
                 </div>
               );
             })
