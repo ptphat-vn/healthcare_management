@@ -11,6 +11,7 @@ export interface User {
   roleCode?: RoleUser;
   roleName?: string;
   status: number;
+  patientId?: string;  
   createdAt: string;
   updatedAt: string;
 }

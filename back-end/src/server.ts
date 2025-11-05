@@ -11,6 +11,7 @@ import eventLogRouter from './routes/event-log.routes'
 import patientMedicalRecordRouter from './routes/patient-medical-record.routes'
 import aiRouter from './routes/ai.routes'
 import reagentRouter from './routes/reagent.routes'
+import instrumentRouter from './routes/instrument.routes'
 import { HttpError } from '~/models/error.model'
 import { corsMiddleware } from '~/configs/cors.config'
 import { connectMongo } from '~/configs/mongodb.config'
@@ -64,6 +65,7 @@ app.use('/api', patientMedicalRecordRouter)
 app.use('/api', aiRouter)
 app.use('/api', reagentRouter)
 app.use('/api', chatRouter)
+app.use('/api', instrumentRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err instanceof HttpError) {

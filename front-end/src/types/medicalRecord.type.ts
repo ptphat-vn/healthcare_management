@@ -36,18 +36,14 @@ export interface MedicalRecord {
   updatedAt: string;
   createdBy: string;
   lastModifiedBy?: string;
+  lastTestDate?: string
+  lastTestStatus?: string
+
 }
 
 export interface CreateMedicalRecordRequest {
-  patientId: string;
-  fullName: string;
-  dateOfBirth: string;
-  gender: 'male' | 'female';
+  userId: string;
   bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
-  phoneNumber: string;
-  email?: string;
-  address: string;
-  identifyNumber?: string;
   emergencyContact?: {
     name: string;
     phoneNumber: string;

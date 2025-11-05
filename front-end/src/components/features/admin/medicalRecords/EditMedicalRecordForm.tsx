@@ -30,7 +30,6 @@ export function EditMedicalRecordForm({
   } = useForm<UpdateMedicalRecordFormData>({
     resolver: zodResolver(updateMedicalRecordSchema),
     defaultValues: {
-      patientId: "",
       fullName: "",
       phoneNumber: "",
       email: "",
@@ -55,7 +54,8 @@ export function EditMedicalRecordForm({
   useEffect(() => {
     if (defaultValues) {
       const formData = transformBackendToFormData(defaultValues);
-      reset(formData as UpdateMedicalRecordFormData);
+      const { patientId, ...rest } = formData;
+      reset(rest as UpdateMedicalRecordFormData);
     }
   }, [defaultValues, reset]);
 
@@ -68,42 +68,35 @@ export function EditMedicalRecordForm({
   return (
     <div className="flex flex-col gap-1">
       <form className="space-y-2" onSubmit={handleSubmit(onFormSubmit)}>
-        {/* Patient's Information */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Patient's Information
           </h3>
-          
           <div className="grid grid-cols-2 gap-3">
-            <Input
-              {...register("patientId")}
-              label="Patient ID"
-              required
-              error={errors.patientId?.message}
-              placeholder="Enter patient ID"
-              autoComplete="off"
-            />
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-medium text-gray-700">Patient ID</label>
+              <div className="w-full px-3 py-2 text-sm border rounded-md bg-gray-50 text-gray-700 border-gray-300">
+                {defaultValues.patientId}
+              </div>
+            </div>
             <Input
               {...register("fullName")}
               label="Full Name"
-              required
               error={errors.fullName?.message}
               placeholder="Enter full name"
               autoComplete="off"
             />
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <Input
               {...register("dateOfBirth")}
               type="date"
               label="Date of Birth"
-              required
               error={errors.dateOfBirth?.message}
             />
             <div className="flex flex-col space-y-1">
               <label className="text-xs font-medium text-gray-700">
-                Gender <span className="text-red-500">*</span>
+                Gender
               </label>
               <select
                 {...register("gender")}
@@ -120,7 +113,6 @@ export function EditMedicalRecordForm({
               )}
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-xs font-medium text-gray-700">
@@ -149,13 +141,11 @@ export function EditMedicalRecordForm({
             <Input
               {...register("phoneNumber")}
               label="Phone Number"
-              required
               error={errors.phoneNumber?.message}
               placeholder="Enter phone number"
               autoComplete="off"
             />
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <Input
               {...register("email")}
@@ -173,23 +163,18 @@ export function EditMedicalRecordForm({
               autoComplete="off"
             />
           </div>
-
           <Input
             {...register("address")}
             label="Address"
-            required
             error={errors.address?.message}
             placeholder="Enter full address"
             autoComplete="off"
           />
         </div>
-
-        {/* Medical Information */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Medical Information
           </h3>
-          
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-sm font-medium text-gray-700">
@@ -224,7 +209,6 @@ export function EditMedicalRecordForm({
               )}
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-sm font-medium text-gray-700">
@@ -260,13 +244,10 @@ export function EditMedicalRecordForm({
             </div>
           </div>
         </div>
-
-        {/* Emergency Contact */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Emergency Contact
           </h3>
-          
           <div className="grid grid-cols-2 gap-3">
             <Input
               {...register("emergencyName")}
@@ -283,7 +264,6 @@ export function EditMedicalRecordForm({
               autoComplete="off"
             />
           </div>
-          
           <Input
             {...register("emergencyRelationship")}
             label="Relationship"
@@ -292,13 +272,10 @@ export function EditMedicalRecordForm({
             autoComplete="off"
           />
         </div>
-
-        {/* Insurance Information */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Insurance Information
           </h3>
-          
           <div className="grid grid-cols-2 gap-3">
             <Input
               {...register("insuranceProvider")}
@@ -315,7 +292,6 @@ export function EditMedicalRecordForm({
               autoComplete="off"
             />
           </div>
-          
           <Input
             {...register("insuranceExpiryDate")}
             type="date"
@@ -323,7 +299,6 @@ export function EditMedicalRecordForm({
             error={errors.insuranceExpiryDate?.message}
           />
         </div>
-
         <div className="flex justify-end space-x-2 pt-4">
           <button
             type="button"
