@@ -52,6 +52,8 @@
     "mime": "^4.1.0",
     "mongodb": "^6.20.0",
     "nodemailer": "^7.0.10",
+    "socket": "^2.0.6",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "yaml": "^2.8.1",

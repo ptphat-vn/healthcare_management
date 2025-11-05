@@ -136,7 +136,7 @@ export async function deleteUser(id: string, performedBy?: string) {
     await eventLogs.insertOne({
       operator: { id: actor?._id || updated._id as any, name: actor?.fullName || updated.fullName || '', role: actorRoleCode || roleDoc?.code || '' },
       action: 'USER_INACTIVE',
-      details: `User soft-deleted (status=0): ${updated.fullName}`,
+      details: `User deleted: ${updated.fullName}`,
       timestamp: new Date()
     } as any)
   } catch {
@@ -174,7 +174,7 @@ export async function blockUser(id: string, performedBy?: string) {
     await eventLogs.insertOne({
       operator: { id: actor?._id || updated._id as any, name: actor?.fullName || updated.fullName || '', role: actorRoleCode || roleDoc?.code || '' },
       action: 'USER_LOCKED',
-      details: `User blocked (status=2): ${updated.fullName}`,
+      details: `User blocked: ${updated.fullName}`,
       timestamp: new Date()
     } as any)
   } catch {
