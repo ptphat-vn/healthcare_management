@@ -3,9 +3,20 @@ import { getDb } from '~/configs/mongodb.config'
 
 export const TEST_ORDERS_COLLECTION = 'test_orders'
 
+export type CBCPanelTestName =
+  | 'White Blood Cell Count'
+  | 'Red Blood Cell Count'
+  | 'Hemoglobin'
+  | 'Hematocrit'
+  | 'Platelet Count'
+  | 'Mean Corpuscular Volume'
+  | 'Mean Corpuscular Haemoglobin'
+  | 'Mean Corpuscular Haemoglobin Concentration'
+
 export interface TestOrderDocument {
   _id?: ObjectId
   medicalRecordId: ObjectId
+  requestedTests: CBCPanelTestName[]
   patientName: string
   dateOfBirth: string
   gender: 'male' | 'female'

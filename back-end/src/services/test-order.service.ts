@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
-import { getTestOrdersCollection, TestOrderDocument, TestResult, Comment } from '~/models/test-order.model'
+import { getTestOrdersCollection, TestOrderDocument, TestResult, Comment, CBCPanelTestName } from '~/models/test-order.model'
 import { getPatientMedicalRecordsCollection } from '~/models/patient-medical-record.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
@@ -9,6 +9,7 @@ import { getRolesCollection } from '~/models/role.model'
 
 export interface CreateTestOrderData {
   medicalRecordId: string
+  requestedTests: CBCPanelTestName[]
 }
 
 export interface UpdateTestOrderData {
@@ -55,8 +56,15 @@ export async function createTestOrder(data: CreateTestOrderData, createdBy: stri
   }
 
   const now = new Date()
+
+  // Ensure requestedTests is valid and unique
+  const requestedTests = Array.from(new Set(data.requestedTests || [])) as CBCPanelTestName[]
+  if (!requestedTests.length) {
+    throw new HttpError(422, 'At least one requested test must be selected')
+  }
   const testOrder: Omit<TestOrderDocument, '_id'> = {
     medicalRecordId: medicalRecordObjectId,
+    requestedTests,
     patientName: medicalRecord.fullName,
     dateOfBirth: medicalRecord.dateOfBirth,
     gender: medicalRecord.gender,

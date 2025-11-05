@@ -1,7 +1,9 @@
 import { ObjectId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
-import { getTestOrdersCollection, TestResult, getFlaggingConfigCollection } from '~/models/test-order.model'
+import { getTestOrdersCollection, TestResult, getFlaggingConfigCollection, CBCPanelTestName } from '~/models/test-order.model'
+import { getInstrumentsCollection } from '~/models/instrument.model'
+import { getInstrumentReagentAssignmentCollection } from '~/models/instrument-reagent-assignment.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getUsersCollection } from '~/models/user.model'
 
@@ -109,6 +111,14 @@ export function generateRandomHL7TestResults(): HL7TestResult[] {
   }
   
   return results
+}
+
+// Generate HL7 results constrained to specific CBC test names
+export function generateHL7ResultsForTests(testNames: CBCPanelTestName[]): HL7TestResult[] {
+  const all = generateRandomHL7TestResults()
+  if (!testNames || testNames.length === 0) return all
+  const want = new Set(testNames)
+  return all.filter(r => want.has(r.testName as CBCPanelTestName))
 }
 
 export async function processHL7Message(message: HL7Message): Promise<ProcessedTestResult[]> {
@@ -245,5 +255,107 @@ export async function addTestResultsFromHL7(testOrderId: string, addedBy: string
     testOrder: updated,
     hl7Message,
     processedResults
+  }
+}
+
+// Run a test order on a chosen instrument and attach instrument/reagent info
+export async function addTestResultsFromHL7UsingInstrument(testOrderId: string, instrumentId: string, addedBy: string): Promise<any> {
+  const testOrders = getTestOrdersCollection()
+  const instrumentsCol = getInstrumentsCollection()
+  const assignmentsCol = getInstrumentReagentAssignmentCollection()
+  const eventLogs = getEventLogsCollection()
+
+  // Verify test order and instrument
+  const [testOrder, instrument] = await Promise.all([
+    testOrders.findOne({ _id: new ObjectId(testOrderId) } as any),
+    instrumentsCol.findOne({ _id: new ObjectId(instrumentId) } as any)
+  ])
+  if (!testOrder) throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
+  if (!instrument) throw new HttpError(404, 'Instrument not found')
+  if (!instrument.isActive || instrument.status !== 'Active') throw new HttpError(409, 'Instrument is not active')
+
+  // Get active reagents on the instrument
+  const reagents = await assignmentsCol
+    .find({ instrumentId: new ObjectId(instrumentId), isActive: true } as any)
+    .toArray()
+
+  const messageId = `HL7_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+  // Select tests from the order if present; otherwise random subset
+  const requested = Array.isArray((testOrder as any).requestedTests) ? ((testOrder as any).requestedTests as CBCPanelTestName[]) : []
+  const generated = requested.length > 0 ? generateHL7ResultsForTests(requested) : generateRandomHL7TestResults()
+
+  const hl7Message: HL7Message = {
+    messageId,
+    patientId: testOrderId,
+    testResults: generated,
+    timestamp: new Date(),
+    rawMessage: `MSH|^~\\&|LAB|HOSPITAL|LIS|HOSPITAL|${new Date().toISOString()}|${messageId}|ORU^R01|${messageId}|P|2.5`
+  }
+
+  // Process HL7 message
+  const processedResults = await processHL7Message(hl7Message)
+
+  // Attach instrument and reagent metadata into each processed result
+  const processedWithMeta = processedResults.map(r => ({
+    ...r,
+    processedData: {
+      ...r.processedData,
+      instrument: {
+        id: String(instrument._id),
+        name: instrument.name,
+        status: instrument.status
+      },
+      reagents: reagents.map((a: any) => ({
+        id: String(a._id),
+        reagentId: String(a.reagentId),
+        reagentName: a.reagentName,
+        lotNumber: a.lotNumber,
+        unitOfMeasure: a.unitOfMeasure,
+        expirationDate: a.expirationDate
+      }))
+    }
+  }))
+
+  const now = new Date()
+  const result = await testOrders.findOneAndUpdate(
+    { _id: new ObjectId(testOrderId) } as any,
+    {
+      $set: {
+        testResults: processedWithMeta,
+        status: 'completed',
+        runDate: now,
+        runBy: new ObjectId(addedBy),
+        updatedAt: now
+      }
+    },
+    { returnDocument: 'after' }
+  )
+
+  const updated: any = (result as any)?.value ?? result
+  if (!updated) throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
+
+  // Log the event
+  try {
+    const usersCol = getUsersCollection()
+    const actorUser = await usersCol.findOne({ _id: new ObjectId(addedBy) })
+    const roleCol = (await import('~/models/role.model')).getRolesCollection()
+    const roleDoc = actorUser?.roleId ? await roleCol.findOne({ _id: actorUser.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: { id: new ObjectId(addedBy), name: actorUser?.fullName || '', role: roleDoc?.code || '' },
+      action: 'HL7_TEST_RESULTS_PROCESSED',
+      details: `Processed HL7 on instrument ${instrument.name} with ${processedWithMeta.length} results for patient: ${updated.patientName}`,
+      timestamp: now
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
+
+  return {
+    testOrder: updated,
+    instrument: { id: String(instrument._id), name: instrument.name, status: instrument.status },
+    reagents: reagents.map((a: any) => ({ id: String(a._id), reagentId: String(a.reagentId), reagentName: a.reagentName, lotNumber: a.lotNumber, unitOfMeasure: a.unitOfMeasure, expirationDate: a.expirationDate })),
+    hl7Message,
+    processedResults: processedWithMeta
   }
 }
