@@ -1,4 +1,6 @@
 import express from 'express'
+import http from 'http'
+import { Server as IOServer } from 'socket.io'
 import dotenv from 'dotenv'
 import userRouter from './routes/user.routes'
 import roleRouter from './routes/role.routes'
@@ -12,12 +14,14 @@ import reagentRouter from './routes/reagent.routes'
 import { HttpError } from '~/models/error.model'
 import { corsMiddleware } from '~/configs/cors.config'
 import { connectMongo } from '~/configs/mongodb.config'
-import { env } from '~/configs/environment.config'
+import { env, getAllowedOrigins } from '~/configs/environment.config'
 import { swaggerDocument, swaggerUi } from '~/configs/swagger.config'
 import { ensureDefaultRoles } from '~/services/role.service'
 import { initializeDefaultFlaggingConfigs } from '~/services/flagging-config.service'
 import { ensureDefaultReagents } from '~/services/reagent.service'
 import chatRouter from '~/routes/chat.routes'
+import { setIo } from '~/utils/socket'
+import { initSockets } from '~/sockets'
 
 dotenv.config()
 
@@ -75,7 +79,34 @@ connectMongo()
     ensureDefaultRoles().catch((e) => console.error('Seed roles failed', e))
     initializeDefaultFlaggingConfigs().catch((e) => console.error('Initialize flagging configs failed', e))
     ensureDefaultReagents().catch((e) => console.error('Initialize default reagents failed', e))
-    app.listen(PORT, () => {
+
+    // create HTTP server so we can attach socket.io
+    const server = http.createServer(app)
+
+    const io = new IOServer(server, {
+      cors: {
+        origin: (origin, callback) => {
+          const allowed = getAllowedOrigins()
+          // Allow swagger UI / local development
+          if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {
+            return callback(null, true)
+          }
+          if (allowed.length === 0 || allowed.includes(origin)) return callback(null, true)
+          return callback(new Error('Not allowed by CORS'))
+        },
+        credentials: true,
+      },
+    })
+
+    // expose io to other modules and register handlers
+    setIo(io)
+    try {
+      initSockets(io)
+    } catch (e) {
+      // if sockets module not present or throws, continue — setIo is still called
+    }
+
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
     })
   })

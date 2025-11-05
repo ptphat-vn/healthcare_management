@@ -8,6 +8,6 @@ const router = Router()
 router.get('/chats/:UserId', authMiddleware, getConversationController)
 
 // send a message to another user (fallback for REST / Swagger testing)
-router.post('/chats/:UserId/messages', authMiddleware, sendMessageController)
+router.post('/chats/:UserId', authMiddleware, sendMessageController)
 
 export default router

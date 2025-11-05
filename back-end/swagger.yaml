@@ -3762,7 +3762,109 @@ paths:
         '401':
           description: Unauthorized
 
+  /chats/{UserId}:
+      get:
+        tags:
+          - Chat
+        summary: Fetch conversation history with another user
+        description: Fetch messages in a 1:1 conversation between the authenticated user and the specified user. The authenticated user is derived from the JWT token.
+        operationId: getConversation
+        security:
+          - bearerAuth: []
+        parameters:
+          - name: UserId
+            in: path
+            required: true
+            schema:
+              type: string
+              pattern: '^[0-9a-fA-F]{24}$'
+            description: Other user's ID
+          - name: page
+            in: query
+            required: false
+            schema:
+              type: integer
+              example: 1
+          - name: limit
+            in: query
+            required: false
+            schema:
+              type: integer
+              example: 50
+        responses:
+          '200':
+            description: Conversation messages retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: 'Conversation messages'
+                    data:
+                      type: object
+                      properties:
+                        messages:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/ChatMessage'
+                        pagination:
+                          $ref: '#/components/schemas/Pagination'
+          '400':
+            description: Bad request
+          '401':
+            description: Unauthorized
+
+      post:
+        tags:
+          - Chat
+        summary: Send a message to another user (REST fallback)
+        description: Persist a chat message and, if Socket.IO is connected, emit to the conversation room so recipients receive the message in real time.
+        operationId: sendMessage
+        security:
+          - bearerAuth: []
+        parameters:
+          - name: UserId
+            in: path
+            required: true
+            schema:
+              type: string
+              pattern: '^[0-9a-fA-F]{24}$'
+            description: Recipient user ID
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [content]
+                properties:
+                  content:
+                    type: string
+                    example: 'Hello, how are you?'
+                  metadata:
+                    type: object
+                    additionalProperties: true
+        responses:
+          '201':
+            description: Message sent
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: 'Message sent'
+                    data:
+                      $ref: '#/components/schemas/ChatMessage'
+          '400':
+            description: Validation error
+          '401':
+            description: Unauthorized
 components:
+
   securitySchemes:
     bearerAuth:
       type: http
@@ -4411,6 +4513,34 @@ components:
         totalPages:
           type: integer
           example: 10
+    ChatMessage:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        conversationId:
+          type: string
+          example: '507f1f77bcf86cd799439011_507f1f77bcf86cd799439012'
+        senderId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        receiverId:
+          type: string
+          example: '507f1f77bcf86cd799439012'
+        content:
+          type: string
+          example: 'Hello, how are you?'
+        metadata:
+          type: object
+          additionalProperties: true
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
 
     ReagentInventoryItem:
       type: object
