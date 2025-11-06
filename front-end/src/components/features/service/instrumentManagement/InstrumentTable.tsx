@@ -13,15 +13,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Eye, Activity, Inbox } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Eye, Inbox, Beaker, Plus, Minus } from "lucide-react";
 import type { Instrument } from "@/types/instrument.type";
 import { useState } from "react";
-import { formatDate } from "@/utils/formatDate";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import EditInstrumentModal from "./EditInstrumentModal";
 import DeleteInstrumentModal from "./DeleteInstrumentModal";
-import ViewInstrumentModal from "./ViewInstrumentModal";
-import ChangeModeModal from "./ChangeModeModal";
 
 interface InstrumentTableProps {
   instruments: Instrument[];
@@ -47,7 +44,6 @@ export default function InstrumentTable({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [changeModeModalOpen, setChangeModeModalOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<Instrument | null>(null);
 
   const handleEdit = (instrument: Instrument) => {
@@ -65,42 +61,18 @@ export default function InstrumentTable({
     setViewModalOpen(true);
   };
 
-  const handleChangeMode = (instrument: Instrument) => {
-    setSelectedInstrument(instrument);
-    setChangeModeModalOpen(true);
-  };
-
   const getStatusBadge = (status: string) => {
     const styles = {
-      active: "bg-green-100 text-green-800",
-      inactive: "bg-gray-100 text-gray-800",
-      maintenance: "bg-yellow-100 text-yellow-800",
+      Active: "bg-green-100 text-green-800",
+      Inactive: "bg-gray-100 text-gray-800",
+      Maintenance: "bg-yellow-100 text-yellow-800",
+      "Out of Service": "bg-red-100 text-red-800",
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800"}`}>
         {status}
       </span>
     );
-  };
-
-  const getModeBadge = (mode: string) => {
-    const styles = {
-      ready: "bg-blue-100 text-blue-800",
-      maintenance: "bg-orange-100 text-orange-800",
-      inactive: "bg-red-100 text-red-800",
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[mode as keyof typeof styles]}`}>
-        {mode}
-      </span>
-    );
-  };
-
-  const getReagentLevelColor = (level?: number) => {
-    if (!level) return "text-gray-400";
-    if (level >= 70) return "text-green-600";
-    if (level >= 40) return "text-yellow-600";
-    return "text-red-600";
   };
 
   return (
@@ -114,22 +86,19 @@ export default function InstrumentTable({
                   No
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 min-w-[200px]">
-                  Instrument name
+                  Instrument Name
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[120px]">
-                  Instrument code
+                <TableHead className="font-semibold text-gray-700 min-w-[140px]">
+                  Model
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 min-w-[140px]">
+                  Serial Number
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 min-w-[140px]">
+                  Location
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 min-w-[120px]">
                   Status
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[110px]">
-                  Mode
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[110px] text-center">
-                  Reagent
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[140px]">
-                  Next maintenance
                 </TableHead>
                 <TableHead className="text-right font-semibold text-gray-700 w-20">
                   Actions
@@ -139,9 +108,9 @@ export default function InstrumentTable({
             <TableBody>
               {instruments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
+                  <TableCell colSpan={9} className="text-center py-12">
                     <div className="flex flex-col items-center justify-center text-gray-500">
-                      <Inbox size={16} />
+                      <Inbox size={48} className="mb-4" />
                       <p className="text-lg font-medium">No instruments found</p>
                       <p className="text-sm">
                         Try adjusting your search or filter criteria
@@ -156,20 +125,17 @@ export default function InstrumentTable({
                     className="hover:bg-blue-50/50 transition-colors"
                   >
                     <TableCell className="text-start font-medium text-gray-600">
-                      {((pagination?.page || 1) - 1) * (pagination?.limit || 8) + index + 1}
+                      {((pagination?.page || 1) - 1) * (pagination?.limit || 10) + index + 1}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900">{instrument.name}</TableCell>
-                    <TableCell className="text-gray-600">{instrument.code}</TableCell>
+                    <TableCell className="font-medium text-gray-900">
+                      <div className="max-w-[200px] truncate" title={instrument.name}>
+                        {instrument.name}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-gray-600">{instrument.model || "-"}</TableCell>
+                    <TableCell className="text-gray-600">{instrument.serialNumber || "-"}</TableCell>
+                    <TableCell className="text-gray-600">{instrument.location || "-"}</TableCell>
                     <TableCell>{getStatusBadge(instrument.status)}</TableCell>
-                    <TableCell>{getModeBadge(instrument.mode)}</TableCell>
-                    <TableCell className="text-center">
-                      <span className={`font-semibold ${getReagentLevelColor(instrument.reagentLevel)}`}>
-                        {instrument.reagentLevel || 0}%
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {instrument.nextMaintenanceDate ? formatDate(instrument.nextMaintenanceDate) : "-"}
-                    </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -182,7 +148,8 @@ export default function InstrumentTable({
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuContent align="end" className="w-56">
+                          {/* Thiết bị Actions */}
                           <DropdownMenuItem
                             onClick={() => handleView(instrument)}
                             className="cursor-pointer hover:bg-blue-50"
@@ -191,25 +158,44 @@ export default function InstrumentTable({
                             <span className="text-gray-700">Xem chi tiết</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleChangeMode(instrument)}
-                            className="cursor-pointer hover:bg-blue-50"
-                          >
-                            <Activity className="mr-2 h-4 w-4 text-purple-600" />
-                            <span className="text-gray-700">Đổi mode</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
                             onClick={() => handleEdit(instrument)}
                             className="cursor-pointer hover:bg-blue-50"
                           >
                             <Edit className="mr-2 h-4 w-4 text-green-600" />
-                            <span className="text-gray-700">Chỉnh sửa</span>
+                            <span className="text-gray-700">Chỉnh sửa thiết bị</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(instrument)}
                             className="cursor-pointer hover:bg-red-50 text-red-600 focus:text-red-600"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Xóa</span>
+                            <span>Xóa thiết bị</span>
+                          </DropdownMenuItem>
+                          
+                          {/* Separator */}
+                          <div className="my-1 h-px bg-gray-200" />
+                          
+                          {/* Thuốc/Reagent Actions */}
+                          <DropdownMenuItem
+                            onClick={() => console.log('View reagents', instrument)}
+                            className="cursor-pointer hover:bg-blue-50"
+                          >
+                            <Beaker className="mr-2 h-4 w-4 text-cyan-600" />
+                            <span className="text-gray-700">Xem thuốc</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => console.log('Add reagent', instrument)}
+                            className="cursor-pointer hover:bg-green-50"
+                          >
+                            <Plus className="mr-2 h-4 w-4 text-green-600" />
+                            <span className="text-gray-700">Thêm thuốc</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => console.log('Remove reagent', instrument)}
+                            className="cursor-pointer hover:bg-orange-50"
+                          >
+                            <Minus className="mr-2 h-4 w-4 text-orange-600" />
+                            <span className="text-gray-700">Xóa thuốc</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -264,17 +250,11 @@ export default function InstrumentTable({
             instrument={selectedInstrument}
             onDelete={onDelete}
           />
-          <ViewInstrumentModal
+          {/* <InstrumentDetailModal
             open={viewModalOpen}
             onOpenChange={setViewModalOpen}
             instrument={selectedInstrument}
-          />
-          <ChangeModeModal
-            open={changeModeModalOpen}
-            onOpenChange={setChangeModeModalOpen}
-            instrument={selectedInstrument}
-            onUpdate={onUpdate}
-          />
+          /> */}
         </>
       )}
     </>

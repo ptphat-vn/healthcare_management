@@ -13,7 +13,7 @@ export default function InstrumentManagementPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Instrument Management</h1>
           <p className="text-sm text-gray-500 mt-2">
-            Quản lý thiết bị xét nghiệm trong hệ thống
+            Managing testing equipment in the system
           </p>
         </div>
 
@@ -23,7 +23,7 @@ export default function InstrumentManagementPage() {
             className="flex items-center gap-2 btn-primary"
           >
             <Plus size={18} />
-            <span>Thêm thiết bị mới</span>
+            <span>Add new instrument</span>
           </Button>
           <AddInstrumentModal
             open={isAddInstrumentModalOpen}

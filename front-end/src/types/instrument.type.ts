@@ -1,27 +1,32 @@
 export interface Instrument {
   _id: string;
   name: string; // Tên thiết bị
-  code: string; // Mã thiết bị
-  model: string; // Model
-  manufacturer: string; // Hãng SX
-  purchaseDate: string; // Ngày mua
+  code?: string; // Mã thiết bị (optional in backend)
+  model?: string; // Model
+  manufacturer?: string; // Hãng SX
+  serialNumber?: string; // Serial number (backend field)
+  location?: string; // Location (backend field)
+  purchaseDate?: string; // Ngày mua (optional for display)
   lastMaintenanceDate?: string; // Ngày bảo trì gần nhất
   lastCalibrationDate?: string; // Lần hiệu chuẩn gần nhất
-  responsiblePerson?: string; // Người phụ trách
+  responsiblePerson?: string; // Người phụ trách (for display)
   responsiblePersonId?: string; // ID người phụ trách
   status: InstrumentStatus; // Tình trạng
-  mode: InstrumentMode; // Ready, Maintenance, Inactive
+  mode?: InstrumentMode; // Ready, Maintenance, Inactive (optional for frontend)
   nextMaintenanceDate?: string; // Lịch bảo trì kế tiếp
-  notes?: string; // Ghi chú
+  description?: string; // Mô tả (backend uses 'description' instead of 'notes')
+  notes?: string; // Ghi chú (for compatibility)
   reagentLevel?: number; // Mức thuốc thử (%)
   modeHistory?: ModeHistory[]; // Lịch sử thay đổi mode
+  isActive: boolean; // Backend field
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
   lastModifiedBy?: string;
 }
 
-export type InstrumentStatus = 'active' | 'inactive' | 'maintenance';
+// Backend uses: 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service'
+export type InstrumentStatus = 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service';
 
 export type InstrumentMode = 'ready' | 'maintenance' | 'inactive';
 
@@ -44,27 +49,21 @@ export interface ChangeInstrumentModeRequest {
 
 export interface CreateInstrumentRequest {
   name: string;
-  code: string;
-  model: string;
-  manufacturer: string;
-  purchaseDate: string;
-  responsiblePersonId?: string;
-  nextMaintenanceDate?: string;
-  notes?: string;
-  reagentLevel?: number;
+  model?: string;
+  manufacturer?: string;
+  serialNumber?: string;
+  location?: string;
+  description?: string;
+  status?: InstrumentStatus;
 }
 
 export interface UpdateInstrumentRequest {
-  _id: string;
   name?: string;
-  code?: string;
   model?: string;
   manufacturer?: string;
-  purchaseDate?: string;
-  lastMaintenanceDate?: string;
-  lastCalibrationDate?: string;
-  responsiblePersonId?: string;
-  nextMaintenanceDate?: string;
-  notes?: string;
-  reagentLevel?: number;
+  serialNumber?: string;
+  location?: string;
+  description?: string;
+  isActive?: boolean;
+  status?: InstrumentStatus;
 }
