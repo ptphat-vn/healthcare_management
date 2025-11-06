@@ -17,6 +17,8 @@ const EnvSchema = z.object({
   SMTP_USER: z.string().min(1, 'SMTP_USER is required'),
   SMTP_PASS: z.string().min(1, 'SMTP_PASS is required'),
   SMTP_FROM: z.string().min(1, 'SMTP_FROM is required'),
+  GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
+  GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required')
 })
 
 const parsed = EnvSchema.safeParse(process.env)
@@ -29,9 +31,9 @@ export const env = parsed.data
 
 export const getAllowedOrigins = (): string[] => {
   if (env.FRONTEND_URLS && env.FRONTEND_URLS.trim().length > 0) {
-    return env.FRONTEND_URLS.split(',').map((s) => s.trim()).filter(Boolean)
+    return env.FRONTEND_URLS.split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
   }
   return env.FRONTEND_URL ? [env.FRONTEND_URL] : []
 }
-
-

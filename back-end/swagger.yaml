@@ -1486,6 +1486,58 @@ paths:
           description: Email or phone number already exists
         '422':
           description: Validation error
+  /user/avatar:
+    put:
+      tags:
+        - User Management
+      summary: Update user avatar
+      description: Update the authenticated user's avatar image.
+      security:
+        - bearerAuth: []
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: avatar
+          type: file
+          required: true
+          description: The avatar image file to upload.
+      responses:
+        200:
+          description: Avatar updated successfully
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Avatar updated successfully
+              avatar:
+                type: string
+                example: https://res.cloudinary.com/xxx/image/upload/v123/avatars/xxx.jpg
+        400:
+          description: Bad request (missing file or other error)
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: No file uploaded!
+        401:
+          description: Unauthorized
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Unauthorized
+        404:
+          description: User not found
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: User not found
 
   # Test Order Management
   /test-orders:
@@ -2827,7 +2879,7 @@ paths:
       summary: AI auto review a completed test order
       description: |
         Trigger AI-assisted review on a completed test order. The system evaluates results, applies minor adjustments if appropriate, clamps values within configured acceptable ranges, and updates status to `ai_reviewed`.
-        
+
         Required privilege: `review_test_order`.
       security:
         - bearerAuth: []
@@ -2838,7 +2890,7 @@ paths:
           description: Test order ID
           schema:
             type: string
-            pattern: "^[0-9a-fA-F]{24}$"
+            pattern: '^[0-9a-fA-F]{24}$'
       responses:
         '200':
           description: AI review completed successfully
@@ -3749,103 +3801,103 @@ paths:
           description: Unauthorized
 
   /chats/{UserId}:
-      get:
-        tags:
-          - Chat
-        summary: Fetch conversation history with another user
-        description: Fetch messages in a 1:1 conversation between the authenticated user and the specified user. The authenticated user is derived from the JWT token.
-        operationId: getConversation
-        security:
-          - bearerAuth: []
-        parameters:
-          - name: UserId
-            in: path
-            required: true
-            schema:
-              type: string
-              pattern: '^[0-9a-fA-F]{24}$'
-            description: Other user's ID
-          - name: page
-            in: query
-            required: false
-            schema:
-              type: integer
-              example: 1
-          - name: limit
-            in: query
-            required: false
-            schema:
-              type: integer
-              example: 50
-        responses:
-          '200':
-            description: Conversation messages retrieved successfully
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    message:
-                      type: string
-                      example: 'Conversation messages'
-                    data:
-                      type: object
-                      properties:
-                        messages:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/ChatMessage'
-                        pagination:
-                          $ref: '#/components/schemas/Pagination'
-          '400':
-            description: Bad request
-          '401':
-            description: Unauthorized
-
-      post:
-        tags:
-          - Chat
-        summary: Send a message to another user (REST fallback)
-        description: Persist a chat message and, if Socket.IO is connected, emit to the conversation room so recipients receive the message in real time.
-        operationId: sendMessage
-        security:
-          - bearerAuth: []
-        parameters:
-          - name: UserId
-            in: path
-            required: true
-            schema:
-              type: string
-              pattern: '^[0-9a-fA-F]{24}$'
-            description: Recipient user ID
-        requestBody:
+    get:
+      tags:
+        - Chat
+      summary: Fetch conversation history with another user
+      description: Fetch messages in a 1:1 conversation between the authenticated user and the specified user. The authenticated user is derived from the JWT token.
+      operationId: getConversation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: UserId
+          in: path
           required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Other user's ID
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 50
+      responses:
+        '200':
+          description: Conversation messages retrieved successfully
           content:
+            application/json:
+              schema:
+                type: object
                 properties:
-                  content:
+                  message:
                     type: string
-                    example: 'Hello, how are you?'
-                  metadata:
+                    example: 'Conversation messages'
+                  data:
                     type: object
-                    additionalProperties: true
-        responses:
-          '201':
-            description: Message sent
+                    properties:
+                      messages:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ChatMessage'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+    post:
+      tags:
+        - Chat
+      summary: Send a message to another user (REST fallback)
+      description: Persist a chat message and, if Socket.IO is connected, emit to the conversation room so recipients receive the message in real time.
+      operationId: sendMessage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: UserId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Recipient user ID
+      requestBody:
+        required: true
+        content:
+          properties:
             content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    message:
-                      type: string
-                      example: 'Message sent'
-                    data:
-                      $ref: '#/components/schemas/ChatMessage'
-          '400':
-            description: Validation error
-          '401':
-            description: Unauthorized
-            
+              type: string
+              example: 'Hello, how are you?'
+            metadata:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Message sent'
+                  data:
+                    $ref: '#/components/schemas/ChatMessage'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+
   /instruments:
     get:
       tags:
@@ -4267,13 +4319,13 @@ paths:
       summary: Add reagent to instrument
       description: |
         Assign a reagent to an instrument. 
-        
+
         **Automatic Data Retrieval:**
         - The system automatically retrieves `reagentName` from the reagent database using `reagentId`.
         - The system automatically determines the `unit` from the inventory:
           - If `lotNumber` is provided, the unit is taken from that specific lot.
           - If `lotNumber` is not provided, the unit is taken from the first available lot (FIFO).
-        
+
         **Lot Selection:**
         - If `lotNumber` is provided, the system will use the specified lot (must have sufficient quantity).
         - If `lotNumber` is not provided, the system will automatically select the lot using FIFO (First In First Out) methodology based on earliest expiration date that has sufficient quantity.
@@ -4437,7 +4489,6 @@ paths:
           description: Invalid assignment ID
 
 components:
-
   securitySchemes:
     bearerAuth:
       type: http

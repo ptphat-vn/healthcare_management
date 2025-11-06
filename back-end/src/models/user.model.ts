@@ -7,6 +7,8 @@ export interface UserDocument {
   _id?: ObjectId
   patientId?: string
   fullName: string
+  avatar?: string
+  avatarPublicId?: string
   email: string
   phoneNumber?: string
   identifyNumber?: string
