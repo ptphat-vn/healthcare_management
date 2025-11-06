@@ -32,6 +32,8 @@ import MedicalRecordPatientPage from "@/pages/user/medical_record/MedicalRecordP
 import ProfilePatient from "@/pages/user/ProfilePatient";
 import ServiceDashboard from "@/pages/service/ServiceDashboardPage";
 import InstrumentManagementPage from "@/pages/service/instrumentManager/InstrumentManagementPage";
+import ReagentManagementPage from "@/pages/labUser/reagentManagement/ReagentManagementPage";
+import ReagentDetailPage from "@/pages/labUser/reagentManagement/reagentDetail/ReagentDetailPage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -127,12 +129,16 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: "dashboard", element: <LabUserDashboard /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
       { path: "medical-records", element: <MedicalRecordPage /> },
+      { path: "reagent-management", element: <ReagentManagementPage /> },
       { path: "medical-records/:id", element: <MedicalRecordDetail /> },
       { path: "test-order", element: <TestOrderManagementPage /> },
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
       { path: "event-log", element: <MonitoringServicePage /> },
       { path: "profile", element: <ProfilePage /> },
+      { path: "reagent-management/:id", element: <ReagentDetailPage /> },
     ],
   },
 
