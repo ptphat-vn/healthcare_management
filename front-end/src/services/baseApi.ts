@@ -92,7 +92,7 @@ export const baseApi = createApi({
   reducerPath: "api",
 
   baseQuery: customBaseQuery,
-  tagTypes: ["User", "Roles", "testOrder", "medicalRecord"],
+  tagTypes: ["User", "Roles", "testOrder", "medicalRecord", "Instrument"],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
       // mutation là biển đổi, gửi dữ liệu xuống BE

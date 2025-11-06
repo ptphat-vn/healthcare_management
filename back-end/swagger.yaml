@@ -1759,10 +1759,8 @@ paths:
     post:
       tags:
         - Test Results
-      summary: Run tests on selected instrument and process HL7
-      description: |
-        Execute the test order's requested tests on a specific instrument, generate HL7 results, and store them.
-        The response includes instrument and active reagents metadata used when running the tests.
+      summary: Add manual test results
+      description: Add test results manually to a test order
       security:
         - bearerAuth: []
       parameters:

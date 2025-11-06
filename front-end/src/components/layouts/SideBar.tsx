@@ -9,6 +9,7 @@ import {
   User,
   UserCog,
   Users,
+  FlaskConical,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -122,7 +123,11 @@ export default function SideBar() {
         to: "/service/dashboard",
         icon: <LayoutDashboard />,
       },
-      { label: "Services", to: "/service/list" },
+      {
+        label: "Instruments Management",
+        to: "/service/instruments",
+        icon: <FlaskConical />,
+      },
     ],
     patient: [
       {
