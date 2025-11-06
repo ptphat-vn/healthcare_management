@@ -1,5 +1,6 @@
 import type {
   APIResponse,
+  CreateTestOrderResponse,
   GetAllTestOrderResponse,
 } from "@/types/response.type";
 import { baseApi } from "./baseApi";
@@ -33,10 +34,10 @@ export const testOrderApi = baseApi.injectEndpoints({
         params: params || {},
       }),
       keepUnusedDataFor: 0,
-      providesTags: ["testOrder"],
+      providesTags: ["TestOrder"],
     }),
     createTestOrder: builder.mutation<
-      APIResponse<TestOrder>,
+      APIResponse<CreateTestOrderResponse>,
       CreateTestOrderRequest
     >({
       query: (data) => ({
@@ -44,7 +45,7 @@ export const testOrderApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["testOrder"],
+      invalidatesTags: ["TestOrder"],
     }),
     getDetailTestOrder: builder.query<APIResponse<TestOrder>, { id: string }>({
       query: ({ id }) => ({
@@ -52,7 +53,7 @@ export const testOrderApi = baseApi.injectEndpoints({
         method: "GET",
       }),
       keepUnusedDataFor: 0,
-      providesTags: ["testOrder"],
+      providesTags: ["TestOrder"],
     }),
     updateTestOrder: builder.mutation<
       APIResponse<TestOrder>,
@@ -63,14 +64,14 @@ export const testOrderApi = baseApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["testOrder"],
+      invalidatesTags: ["TestOrder"],
     }),
     deleteTestOrder: builder.mutation<APIResponse<TestOrder>, string>({
       query: (id) => ({
         url: `/test-orders/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["testOrder"],
+      invalidatesTags: ["TestOrder"],
     }),
   }),
 });

@@ -108,8 +108,6 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
     totalPages: 1,
   };
 
-
-
   const handleView = (order: TestOrder) => {
     const roleCode = user?.data?.roleCode || "admin";
     navigate(`/${roleCode}/test-order/${order._id}`);
@@ -340,6 +338,7 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
                             <Edit className="mr-2 h-4 w-4 text-green-600" />
                             <span className="text-gray-700">Edit</span>
                           </DropdownMenuItem>
+
                           <DropdownMenuItem
                             onClick={() => handleDelete(order)}
                             className="cursor-pointer hover:bg-red-50 text-red-600 focus:text-red-600"

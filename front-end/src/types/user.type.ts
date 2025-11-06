@@ -11,8 +11,9 @@ export interface User {
   roleCode?: RoleUser;
   roleName?: string;
   status: number;
-  patientId?: string;  
+  patientId?: string;
   createdAt: string;
+  avatar?: string;
   updatedAt: string;
 }
 export type RoleUser =
@@ -23,4 +24,4 @@ export type RoleUser =
   | "service"
   | "lab_user";
 
-export type GenderUser = "male" | "female";
+export type GenderUser = "male" | "female" | "";

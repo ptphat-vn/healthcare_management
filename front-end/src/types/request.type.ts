@@ -51,15 +51,23 @@ export interface UpdateRoleRequest {
   description: string;
   privileges: string[];
 }
-export interface CreateTestOrderRequest {
-  patientName: string;
-  dateOfBirth: string;
-  gender: "male" | "female";
-  address: string;
-  phoneNumber: string;
-  email: string;
-}
+export const requestedTests = [
+  "White Blood Cell Count",
+  "Red Blood Cell Count",
+  "Hemoglobin",
+  "Hematocrit",
+  "Platelet Count",
+  "Mean Corpuscular Volume",
+  "Mean Corpuscular Haemoglobin",
+  "Mean Corpuscular Haemoglobin Concentration",
+] as const;
 
+export type RequestedTestName = (typeof requestedTests)[number];
+
+export interface CreateTestOrderRequest {
+  medicalRecordId: string;
+  requestedTests: RequestedTestName[];
+}
 export interface UpdateTestOrderRequest {
   patientName: string;
   dateOfBirth: string;
@@ -70,11 +78,16 @@ export interface UpdateTestOrderRequest {
 }
 
 export interface ForgotPasswordRequest {
-  email: string; 
+  email: string;
 }
 
 export interface ResetPasswordRequest {
   email: string;
   otp: string;
   newPassword: string;
+}
+export interface CommentTestOrderRequest {
+  content?: string;
+  testOrderId: string;
+  commentId: string;
 }

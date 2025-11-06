@@ -5,18 +5,24 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, AlertCircle } from "lucide-react";
+import { User, AlertCircle, Pencil } from "lucide-react";
 import { formatDate } from "@/utils/formatDate";
 import { EditAdminForm } from "@/components/features/admin/profileManagement/EditAdminForm";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
+import { useUpdateAvatarMutation } from "@/services/userApi";
 
 export default function ProfilePage() {
   const { data: profileData, isLoading } = useGetProfileQuery();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const user = profileData?.data;
   const [isEditOpen, setIsEditOpen] = useState(false);
-
+  const [isAvatarEdit, setIsAvatarEdit] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    user?.avatar || null
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [updateAvatar] = useUpdateAvatarMutation();
   // Role display mapping
   const getRoleDisplay = (roleCode?: string) => {
     const roleMap: Record<string, { label: string; color: string }> = {
@@ -25,6 +31,7 @@ export default function ProfilePage() {
       lab_user: { label: "Lab Technician", color: "bg-blue-500" },
       service: { label: "Service Staff", color: "bg-green-500" },
       consultant: { label: "Consultant", color: "bg-orange-500" },
+      patient: { label: "Patient", color: "bg-pink-500" },
     };
     return (
       roleMap[roleCode || ""] || {
@@ -73,6 +80,30 @@ export default function ProfilePage() {
     return age;
   };
 
+  // Handle avatar change
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarPreview(URL.createObjectURL(file));
+      setIsAvatarEdit(true);
+      try {
+        await updateAvatar(file).unwrap();
+        toast.success("Avatar updated successfully!");
+        setIsAvatarEdit(false);
+      } catch (error: any) {
+        toast.error("Failed to update avatar. Please try again.");
+        console.log(error);
+        setIsAvatarEdit(false);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-5 min-w-[900px] max-w-[1200px] mx-auto ">
       <div className="max-w-6xl mx-auto ">
@@ -82,8 +113,39 @@ export default function ProfilePage() {
             <div className="flex flex-col md:flex-row gap-8">
               {/* Avatar Section */}
               <div className="flex flex-col items-center ml-5">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white mb-4">
-                  <User className="w-16 h-16 " />
+                <div className="relative w-32 h-32 mb-4">
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar"
+                      className="w-32 h-32 rounded-full object-cover border-4 border-blue-400 shadow"
+                    />
+                  ) : user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt="Avatar"
+                      className="w-32 h-32 rounded-full object-cover border-4 border-blue-400 shadow"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white">
+                      <User className="w-16 h-16" />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleAvatarClick}
+                    className="cursor-pointer absolute bottom-1 right-1 bg-white/80 hover:bg-blue-500 hover:text-white text-blue-600 rounded-full p-2 shadow transition-all border border-blue-200"
+                    title="Edit avatar"
+                  >
+                    <Pencil className="w-5 h-5" />
+                  </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">
                   {user.fullName}
@@ -188,6 +250,7 @@ export default function ProfilePage() {
                   | "male"
                   | "female",
                 address: data.address || "",
+                avatar: avatarPreview || user.avatar || "",
               };
               await updateProfile(updateData).unwrap();
               toast.success("Profile updated successfully!");

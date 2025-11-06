@@ -20,6 +20,8 @@ export default function TestOrderDetailPage() {
   });
 
   const order = data?.data;
+  console.log(order);
+  console.log(orderId);
 
   if (isLoading) {
     return (
@@ -39,7 +41,7 @@ export default function TestOrderDetailPage() {
           <Button
             variant="outline"
             onClick={() => navigate("/admin/test-order")}
-            className="flex items-center gap-2 mb-4"
+            className="btn-back"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Test Orders
@@ -137,7 +139,10 @@ export default function TestOrderDetailPage() {
           )}
 
           {activeTab === "comments" && (
-            <CommentsSection comments={order.comments || []} />
+            <CommentsSection
+              comments={order.comments || []}
+              testOrderId={orderId}
+            />
           )}
         </div>
       </div>

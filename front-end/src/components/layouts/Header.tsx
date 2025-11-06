@@ -7,31 +7,64 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell } from "lucide-react";
+import { Bell, LogOut, Settings, User } from "lucide-react";
+
+// Role color mapping
+const getRoleHeaderClass = (roleCode: string) => {
+  const roleColorMap: Record<string, string> = {
+    admin: "bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700",
+    lab_manager: "bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700",
+    lab_user: "bg-gradient-to-r from-green-600 via-emerald-600 to-green-700",
+    service: "bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700",
+    patient: "bg-gradient-to-r from-pink-600 via-rose-600 to-pink-700",
+  };
+  return (
+    roleColorMap[roleCode] ||
+    "bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-500"
+  );
+};
+
+const getRoleBadgeClass = (roleCode: string) => {
+  const badgeMap: Record<string, string> = {
+    admin: "badge-admin",
+    lab_manager: "badge-lab-manager",
+    lab_user: "badge-lab-user",
+    service: "badge-service",
+    patient: "badge-patient",
+  };
+  return (
+    badgeMap[roleCode] ||
+    "bg-white/20 text-white px-2 py-0.5 rounded-full text-xs"
+  );
+};
 
 export default function Header() {
   const { logout, user } = useAuth();
   const fullName = user?.data?.fullName || "User";
   const initial = (fullName.charAt(0) || "U").toUpperCase();
+  const roleCode = user?.data?.roleCode || "user";
   const roleLabel = (
     user?.data?.roleName ||
     user?.data?.roleCode ||
     "User"
   ).toString();
-  // console.log(user?.data);
+
+  const headerColorClass = getRoleHeaderClass(roleCode);
+  const roleBadgeClass = getRoleBadgeClass(roleCode);
 
   return (
     <header className="sticky top-0 z-50">
-      <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-500 text-white shadow-xl">
+      <div className={`${headerColorClass} text-white shadow-xl`}>
         <div className="w-full flex items-center justify-between h-16 md:h-20">
+          {/* Logo Section */}
           <div className="flex items-center pl-3 sm:pl-4">
             <Link to="/" className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-12 h-12 bg-white/10 backdrop-blur-sm rounded-lg ring-1 ring-white/20">
+              <div className="flex items-center justify-center w-12 h-12 bg-white/10 backdrop-blur-sm rounded-lg ring-1 ring-white/20 hover:bg-white/20 transition-all">
                 <svg
                   className="w-6 h-6 text-white"
                   viewBox="0 0 24 24"
                   fill="none"
-                  aria-hidden
+                  aria-hidden="true"
                 >
                   <path
                     d="M3 12h4l3-8 4 16 3-10h4"
@@ -55,34 +88,46 @@ export default function Header() {
 
           <div className="flex-1" />
 
+          {/* Right Section */}
           <div className="flex items-center gap-4 pr-3 sm:pr-4">
+            {/* Notifications */}
             <Link
               to="/notifications"
-              className="relative p-2 rounded-md hover:bg-white/10 transition"
+              className="relative p-2 rounded-lg hover:bg-white/10 transition-all"
               aria-label="Notifications"
             >
-              <Bell size={15} />
-
-              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-medium leading-none text-indigo-700 bg-white rounded-full">
+              <Bell size={18} />
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
                 5
               </span>
             </Link>
 
+            {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
                   aria-haspopup="menu"
-                  className="flex items-center gap-3 px-3 py-1 rounded-md hover:bg-white/10 transition focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="flex cursor-pointer items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-white/30"
                 >
-                  <div className="flex items-center justify-center w-9 h-9 bg-white/10 text-white rounded-full font-semibold">
-                    {initial}
+                  <div className="flex items-center justify-center w-9 h-9 bg-white/20 text-white rounded-full font-bold text-sm ring-2 ring-white/30 overflow-hidden">
+                    {user?.data?.avatar ? (
+                      <img
+                        src={user.data.avatar}
+                        alt={fullName}
+                        className="w-9 h-9 object-cover rounded-full"
+                      />
+                    ) : (
+                      initial
+                    )}
                   </div>
                   <div className="hidden md:flex flex-col text-left">
-                    <span className="text-sm font-medium leading-4">
+                    <span className="text-sm font-semibold leading-4">
                       {fullName}
                     </span>
-                    <span className="text-xs text-white/80 -mt-0.5">
+                    <span
+                      className={`text-xs font-medium mt-0.5 ${roleBadgeClass}`}
+                    >
                       {roleLabel}
                     </span>
                   </div>
@@ -90,25 +135,37 @@ export default function Header() {
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-56 cursor-pointer">
-                <DropdownMenuItem className="cursor-pointer">
+                <div className="px-2 py-2 border-b">
+                  <p className="text-sm font-semibold text-gray-900">
+                    {fullName}
+                  </p>
+                  <p className="text-xs text-gray-500">{user?.data?.email}</p>
+                </div>
+                <DropdownMenuItem className="cursor-pointer px-3 py-2 flex items-center gap-2">
+                  <User className="w-4 h-4" />
                   <Link
                     to={`/${user?.data.roleCode}/profile`}
-                    className="w-full block"
+                    className="w-full block text-sm font-medium text-gray-700"
                   >
                     Profile
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Link to="/app/settings" className="w-full block">
+                <DropdownMenuItem className="cursor-pointer px-3 py-2 flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  <Link
+                    to="/app/settings"
+                    className="w-full block text-sm font-medium text-gray-700"
+                  >
                     Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-red-600 cursor-pointer"
+                  className="text-red-600 cursor-pointer font-semibold px-3 py-2 flex items-center gap-2"
                   onClick={logout}
                 >
-                  Logout
+                  <LogOut className="w-4 h-4" />
+                  <span className="text-sm font-medium">Logout</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

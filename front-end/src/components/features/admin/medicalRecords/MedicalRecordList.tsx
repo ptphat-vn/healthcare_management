@@ -33,7 +33,6 @@ import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 import { Skeleton } from "@/components/ui/skeleton";
 
-
 interface ApiError {
   data?: {
     message?: string;
@@ -52,8 +51,8 @@ export default function MedicalRecordList() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<number | "">("");
   const [sortBy, setSortBy] = useState<
-  "fullName" | "dateOfBirth" | "createdAt" | "lastTestDate"
->("createdAt");
+    "fullName" | "dateOfBirth" | "createdAt" | "lastTestDate"
+  >("createdAt");
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
 
   // API hooks
@@ -162,7 +161,9 @@ export default function MedicalRecordList() {
           ]}
           sortByValue={sortBy}
           onSortByChange={(value) =>
-            setSortBy(value as "fullName" | "dateOfBirth" | "createdAt" | "lastTestDate")
+            setSortBy(
+              value as "fullName" | "dateOfBirth" | "createdAt" | "lastTestDate"
+            )
           }
           sortOrder={sortOrder}
           onSortOrderChange={setSortOrder}
@@ -186,14 +187,14 @@ export default function MedicalRecordList() {
                 <TableHead className="font-semibold text-gray-700 w-16 px-3">
                   No
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 w-32 px-4">
+                {/* <TableHead className="font-semibold text-gray-700 w-32 px-4">
                   Patient ID
-                </TableHead>
+                </TableHead> */}
                 <TableHead className="font-semibold text-gray-700 w-48 px-4">
                   Full Name
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 w-20 px-3">
-                  Age
+                  Birthday
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 w-24 px-3">
                   Gender
@@ -207,11 +208,9 @@ export default function MedicalRecordList() {
                 <TableHead className="font-semibold text-gray-700 w-56 px-4">
                   Email
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 w-32 px-4">
-                  Date of Birth
-                </TableHead>
+
                 <TableHead className="font-semibold text-gray-700 w-36 px-4">
-                 Last Test Date
+                  Last Test Date
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 w-32 px-4">
                   Last Test Status
@@ -296,15 +295,18 @@ export default function MedicalRecordList() {
                     <TableCell className="text-start font-medium text-gray-600 px-3">
                       {idx + 1}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900 px-4">
+                    {/* <TableCell className="font-medium text-gray-900 px-4">
                       {record.patientId}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell className="font-medium text-gray-900 px-4">
                       {record.fullName}
                     </TableCell>
-                    <TableCell className="text-gray-600 px-3">
-                      {calcAge(record.dateOfBirth)}
+                    <TableCell className="text-gray-600 px-4">
+                      {new Date(record.dateOfBirth).toLocaleDateString()}
                     </TableCell>
+                    {/* <TableCell className="text-gray-600 px-3">
+                      {calcAge(record.dateOfBirth)}
+                    </TableCell> */}
                     <TableCell className="text-gray-600 capitalize px-3">
                       {record.gender}
                     </TableCell>
@@ -322,11 +324,13 @@ export default function MedicalRecordList() {
                     <TableCell className="text-gray-600 px-4">
                       {record.email || "-"}
                     </TableCell>
-                    <TableCell className="text-gray-600 px-4">
+                    {/* <TableCell className="text-gray-600 px-4">
                       {new Date(record.dateOfBirth).toLocaleDateString()}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell className="text-gray-600 px-4">
-                      {record.lastTestDate ? new Date(record.lastTestDate).toLocaleDateString() : "-"}
+                      {record.lastTestDate
+                        ? new Date(record.lastTestDate).toLocaleDateString()
+                        : "-"}
                     </TableCell>
                     <TableCell className="text-gray-600 px-4">
                       {record.lastTestStatus || "-"}

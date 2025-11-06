@@ -100,7 +100,10 @@ export default function LoginForm() {
         <span className="text-red-400 text-xs">{errors.root?.message}</span>
       )}
       <p className="mt-2 text-center text-sm text-gray-600">
-        <Link className="font-medium text-blue-600 hover:text-blue-500" to="/auth/forgot-password">
+        <Link
+          className="font-medium text-blue-600 hover:text-blue-500"
+          to="/auth/forgot-password"
+        >
           Forgot password?
         </Link>
       </p>
