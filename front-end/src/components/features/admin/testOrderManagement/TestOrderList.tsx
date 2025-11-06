@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -23,6 +22,8 @@ import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
 import { formatDate } from "@/utils/formatDate";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 export interface TestOrder {
   _id: string;
@@ -73,6 +74,7 @@ interface TestOrderListProps {
 
 export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [editingOrder, setEditingOrder] = useState<TestOrder | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState<TestOrder | null>(null);
@@ -106,8 +108,11 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
     totalPages: 1,
   };
 
+
+
   const handleView = (order: TestOrder) => {
-    navigate(`/admin/test-order/${order._id}`);
+    const roleCode = user?.data?.roleCode || "admin";
+    navigate(`/${roleCode}/test-order/${order._id}`);
   };
 
   const handleEdit = (order: TestOrder) => {

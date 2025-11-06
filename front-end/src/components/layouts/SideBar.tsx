@@ -107,7 +107,13 @@ export default function SideBar() {
         to: "/lab_user/event-log",
         icon: <History />,
       },
+      {
+        label: "Reagent Management",
+        to: "/lab_user/reagent-management",
+        icon: <ClipboardPlus />,
+      },
       { label: "Reports", to: "/lab_user/reports" },
+      
     ],
     consultant: [
       {

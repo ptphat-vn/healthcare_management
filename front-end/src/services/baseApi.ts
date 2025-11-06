@@ -88,6 +88,8 @@ const customBaseQuery: BaseQueryFn<
   return result;
 };
 
+export { customBaseQuery };
+
 export const baseApi = createApi({
   reducerPath: "api",
 
@@ -95,7 +97,6 @@ export const baseApi = createApi({
   tagTypes: ["User", "Roles", "testOrder", "medicalRecord", "Instrument"],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
-      // mutation là biển đổi, gửi dữ liệu xuống BE
       query: (loginData) => ({
         url: "/auth/login",
         method: "POST",
