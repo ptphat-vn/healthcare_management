@@ -120,6 +120,8 @@ tags:
     description: Reagent management operations (CRUD, vendor supply history, usage history)
   - name: Chat
     description: Real-time chat and conversation history between patients and clinicians
+  - name: Notifications
+    description: Chat Notification
 
 paths:
   /roles:
@@ -4487,6 +4489,160 @@ paths:
           description: Unauthorized
         '422':
           description: Invalid assignment ID
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List notifications
+      description: List notifications for the authenticated user.
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 20
+        - name: unreadOnly
+          in: query
+          required: false
+          description: Return only unread notifications (true|1)
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Notifications fetched'
+                  data:
+                    type: object
+                    properties:
+                      notifications:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized
+
+  /notifications/summary:
+    get:
+      tags:
+        - Notifications
+      summary: Notifications summary
+      description: Get unread count and latest notifications for badge/preview
+      operationId: getNotificationsSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Notifications summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Notifications summary'
+                  data:
+                    type: object
+                    properties:
+                      unreadCount:
+                        type: integer
+                        example: 3
+                      latest:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+        '401':
+          description: Unauthorized
+
+  /notifications/{id}/read:
+    put:
+      tags:
+        - Notifications
+      summary: Mark notification as read
+      description: Mark a single notification as read for the authenticated user
+      operationId: markNotificationRead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Notification ID
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Notification marked as read'
+                  data:
+                    $ref: '#/components/schemas/Notification'
+        '400':
+          description: Invalid notification id
+        '401':
+          description: Unauthorized
+
+  /notifications/read-all:
+    put:
+      tags:
+        - Notifications
+      summary: Mark all notifications as read
+      description: Mark all notifications as read for the authenticated user
+      operationId: markAllNotificationsRead
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'All notifications marked as read'
+                  data:
+                    type: object
+                    properties:
+                      modifiedCount:
+                        type: integer
+                        example: 5
+        '401':
+          description: Unauthorized
 
 components:
   securitySchemes:
@@ -5175,6 +5331,42 @@ components:
         metadata:
           type: object
           additionalProperties: true
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439099'
+        userId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+          description: Recipient user id
+        actorId:
+          type: string
+          nullable: true
+          example: '507f1f77bcf86cd799439012'
+          description: User who triggered the notification (if applicable)
+        type:
+          type: string
+          example: 'chat_message'
+        title:
+          type: string
+          example: 'New message from Dr. B'
+        body:
+          type: string
+          example: 'Bạn có 1 tin nhắn mới'
+        data:
+          type: object
+          additionalProperties: true
+          description: Optional additional payload (e.g., { testOrderId: '...', url: '...' })
         read:
           type: boolean
           example: false
