@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import type { Instrument } from "@/types/instrument.type";
 import EditInstrumentForm from "./EditInstrumentForm";
 import type { UpdateInstrumentFormData } from "@/schemas/instrumentSchema";
+import { useUpdateInstrumentMutation } from "@/services/instrumentApi";
 
 interface EditInstrumentModalProps {
   open: boolean;
@@ -23,24 +24,30 @@ export default function EditInstrumentModal({
   instrument,
   onUpdate,
 }: EditInstrumentModalProps) {
-  const handleUpdate = (formData: UpdateInstrumentFormData) => {
-    // Merge the form data with the existing instrument data
-    const updatedInstrument: Instrument = {
-      ...instrument,
-      ...formData,
-    };
-    onUpdate(updatedInstrument);
-    toast.success("Cập nhật thiết bị thành công!");
-    onOpenChange(false);
+  const [updateInstrument, { isLoading }] = useUpdateInstrumentMutation();
+
+  const handleUpdate = async (formData: UpdateInstrumentFormData) => {
+    try {
+      const result = await updateInstrument({
+        id: instrument._id,
+        ...formData,
+      }).unwrap();
+
+      onUpdate(result.data as Instrument);
+      toast.success("Instrument updated successfully!");
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to update instrument");
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Chỉnh sửa thiết bị</DialogTitle>
+          <DialogTitle>Edit Instrument</DialogTitle>
           <DialogDescription>
-            Cập nhật thông tin thiết bị {instrument.name}
+            Update information for instrument <b>{instrument.name}</b>
           </DialogDescription>
         </DialogHeader>
 
@@ -52,10 +59,11 @@ export default function EditInstrumentModal({
             serialNumber: instrument.serialNumber || "",
             location: instrument.location || "",
             description: instrument.description || "",
-            status: instrument.status || "Active"
+            status: instrument.status || "Active",
           }}
           onSubmit={handleUpdate}
           onCancel={() => onOpenChange(false)}
+          isLoading={isLoading}
         />
       </DialogContent>
     </Dialog>

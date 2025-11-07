@@ -70,3 +70,22 @@ export interface CreateCommentTestOrderResponse {
   commentId: string;
   testOrder: TestOrder;
 }
+export interface ReagentToInstrumentResponse {
+  _id: string;
+  instrumentId: string;
+  reagentId: string;
+  reagentName: string;
+  lotNumber: string;
+  quantity: number;
+  unitOfMeasure: string;
+  expirationDate: string;
+  vendorSupplyId: string;
+  assignedBy: string;
+  assignedAt: string;
+  removedAt?: string;
+  removedBy?: string;
+  isActive: string;
+  notes: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
