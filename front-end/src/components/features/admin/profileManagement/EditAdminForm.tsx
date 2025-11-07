@@ -51,7 +51,7 @@ export function EditAdminForm({
         email: defaultValues.email,
         phone: defaultValues.phoneNumber,
         identifyNumber: defaultValues.identifyNumber,
-        gender: defaultValues.gender === "male" ? "Male" : "Female",
+        gender: defaultValues.gender === "male" ? "male" : "female",
         dateOfBirth: defaultValues.dateOfBirth,
         address: defaultValues.address || "",
       });
@@ -108,8 +108,8 @@ export function EditAdminForm({
               <option value="" disabled>
                 Choose your gender
               </option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
             </select>
             {errors.gender?.message && (
               <p className="text-xs text-red-500">{errors.gender.message}</p>

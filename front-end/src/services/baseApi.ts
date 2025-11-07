@@ -22,7 +22,7 @@ import type {
 import type { User } from "@/types/user.type";
 import type {
   ForgotPasswordRequest,
-  ResetPasswordRequest
+  ResetPasswordRequest,
 } from "@/types/request.type";
 
 const baseQuery = fetchBaseQuery({
@@ -94,7 +94,14 @@ export const baseApi = createApi({
   reducerPath: "api",
 
   baseQuery: customBaseQuery,
-  tagTypes: ["User", "Roles", "testOrder", "medicalRecord", "Instrument"],
+  tagTypes: [
+    "User",
+    "Roles",
+    "TestOrder",
+    "medicalRecord",
+    "Instrument",
+    "Comment",
+  ],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
       query: (loginData) => ({
@@ -131,30 +138,39 @@ export const baseApi = createApi({
       }),
     }),
     loginGoogle: builder.mutation<
-    APIResponse<AuthResponse>,
-    { tokenGoogle: string }
-  >({
-    query: (tokenGoogle) => ({
-      url: "auth/login-google",
-      method: "POST",
-      body: tokenGoogle,
+      APIResponse<AuthResponse>,
+      { tokenGoogle: string }
+    >({
+      query: (tokenGoogle) => ({
+        url: "auth/login-google",
+        method: "POST",
+        body: tokenGoogle,
+      }),
     }),
-  }),
-    forgotPassword: builder.mutation<APIResponse<{ email: string }>, ForgotPasswordRequest>({
+    forgotPassword: builder.mutation<
+      APIResponse<{ email: string }>,
+      ForgotPasswordRequest
+    >({
       query: (body) => ({
         url: "/auth/forgot-password",
         method: "POST",
         body,
       }),
     }),
-    resetPassword: builder.mutation<APIResponse<{ email: string }>, ResetPasswordRequest>({
+    resetPassword: builder.mutation<
+      APIResponse<{ email: string }>,
+      ResetPasswordRequest
+    >({
       query: (body) => ({
         url: "/auth/reset-password",
         method: "POST",
         body,
       }),
     }),
-    verifyOTP: builder.mutation<APIResponse<{ verified: boolean }>, { email: string; otp: string }>({
+    verifyOTP: builder.mutation<
+      APIResponse<{ verified: boolean }>,
+      { email: string; otp: string }
+    >({
       query: (body) => ({
         url: "/auth/verify-otp",
         method: "POST",
@@ -162,7 +178,6 @@ export const baseApi = createApi({
       }),
     }),
   }),
-  
 });
 export const {
   useLoginMutation,
@@ -171,7 +186,7 @@ export const {
   useUpdateProfileMutation,
   useLoginGoogleMutation,
   useLogoutMutation,
-  useForgotPasswordMutation,  
+  useForgotPasswordMutation,
   useResetPasswordMutation,
   useVerifyOTPMutation,
 } = baseApi;

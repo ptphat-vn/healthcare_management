@@ -13,12 +13,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Eye, Inbox, Beaker, Plus, Minus } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Eye, Inbox } from "lucide-react";
 import type { Instrument } from "@/types/instrument.type";
 import { useState } from "react";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import EditInstrumentModal from "./EditInstrumentModal";
 import DeleteInstrumentModal from "./DeleteInstrumentModal";
+import { useNavigate } from "react-router-dom";
 
 interface InstrumentTableProps {
   instruments: Instrument[];
@@ -43,9 +44,9 @@ export default function InstrumentTable({
 }: InstrumentTableProps) {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [selectedInstrument, setSelectedInstrument] = useState<Instrument | null>(null);
-
+  const [selectedInstrument, setSelectedInstrument] =
+    useState<Instrument | null>(null);
+  const navigate = useNavigate();
   const handleEdit = (instrument: Instrument) => {
     setSelectedInstrument(instrument);
     setEditModalOpen(true);
@@ -56,11 +57,6 @@ export default function InstrumentTable({
     setDeleteModalOpen(true);
   };
 
-  const handleView = (instrument: Instrument) => {
-    setSelectedInstrument(instrument);
-    setViewModalOpen(true);
-  };
-
   const getStatusBadge = (status: string) => {
     const styles = {
       Active: "bg-green-100 text-green-800",
@@ -69,7 +65,11 @@ export default function InstrumentTable({
       "Out of Service": "bg-red-100 text-red-800",
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800"}`}>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${
+          styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800"
+        }`}
+      >
         {status}
       </span>
     );
@@ -111,7 +111,9 @@ export default function InstrumentTable({
                   <TableCell colSpan={9} className="text-center py-12">
                     <div className="flex flex-col items-center justify-center text-gray-500">
                       <Inbox size={48} className="mb-4" />
-                      <p className="text-lg font-medium">No instruments found</p>
+                      <p className="text-lg font-medium">
+                        No instruments found
+                      </p>
                       <p className="text-sm">
                         Try adjusting your search or filter criteria
                       </p>
@@ -125,16 +127,28 @@ export default function InstrumentTable({
                     className="hover:bg-blue-50/50 transition-colors"
                   >
                     <TableCell className="text-start font-medium text-gray-600">
-                      {((pagination?.page || 1) - 1) * (pagination?.limit || 10) + index + 1}
+                      {((pagination?.page || 1) - 1) *
+                        (pagination?.limit || 10) +
+                        index +
+                        1}
                     </TableCell>
                     <TableCell className="font-medium text-gray-900">
-                      <div className="max-w-[200px] truncate" title={instrument.name}>
+                      <div
+                        className="max-w-[200px] truncate"
+                        title={instrument.name}
+                      >
                         {instrument.name}
                       </div>
                     </TableCell>
-                    <TableCell className="text-gray-600">{instrument.model || "-"}</TableCell>
-                    <TableCell className="text-gray-600">{instrument.serialNumber || "-"}</TableCell>
-                    <TableCell className="text-gray-600">{instrument.location || "-"}</TableCell>
+                    <TableCell className="text-gray-600">
+                      {instrument.model || "-"}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {instrument.serialNumber || "-"}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {instrument.location || "-"}
+                    </TableCell>
                     <TableCell>{getStatusBadge(instrument.status)}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -149,54 +163,33 @@ export default function InstrumentTable({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
-                          {/* Thiết bị Actions */}
+                          {/* Instrument Actions */}
                           <DropdownMenuItem
-                            onClick={() => handleView(instrument)}
+                            onClick={() =>
+                              navigate(`/service/instruments/${instrument._id}`)
+                            }
                             className="cursor-pointer hover:bg-blue-50"
                           >
                             <Eye className="mr-2 h-4 w-4 text-blue-600" />
-                            <span className="text-gray-700">Xem chi tiết</span>
+                            <span className="text-gray-700">View Details</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleEdit(instrument)}
                             className="cursor-pointer hover:bg-blue-50"
                           >
                             <Edit className="mr-2 h-4 w-4 text-green-600" />
-                            <span className="text-gray-700">Chỉnh sửa thiết bị</span>
+                            <span className="text-gray-700">Edit</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(instrument)}
                             className="cursor-pointer hover:bg-red-50 text-red-600 focus:text-red-600"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Xóa thiết bị</span>
+                            <span>Delete</span>
                           </DropdownMenuItem>
-                          
+
                           {/* Separator */}
                           <div className="my-1 h-px bg-gray-200" />
-                          
-                          {/* Thuốc/Reagent Actions */}
-                          <DropdownMenuItem
-                            onClick={() => console.log('View reagents', instrument)}
-                            className="cursor-pointer hover:bg-blue-50"
-                          >
-                            <Beaker className="mr-2 h-4 w-4 text-cyan-600" />
-                            <span className="text-gray-700">Xem thuốc</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => console.log('Add reagent', instrument)}
-                            className="cursor-pointer hover:bg-green-50"
-                          >
-                            <Plus className="mr-2 h-4 w-4 text-green-600" />
-                            <span className="text-gray-700">Thêm thuốc</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => console.log('Remove reagent', instrument)}
-                            className="cursor-pointer hover:bg-orange-50"
-                          >
-                            <Minus className="mr-2 h-4 w-4 text-orange-600" />
-                            <span className="text-gray-700">Xóa thuốc</span>
-                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -214,10 +207,15 @@ export default function InstrumentTable({
           {instruments.length > 0 ? (
             <>
               Showing{" "}
-              <span className="font-semibold">{((pagination?.page || 1) - 1) * (pagination?.limit || 8) + 1}</span>{" "}
+              <span className="font-semibold">
+                {((pagination?.page || 1) - 1) * (pagination?.limit || 8) + 1}
+              </span>{" "}
               to{" "}
               <span className="font-semibold">
-                {Math.min((pagination?.page || 1) * (pagination?.limit || 8), pagination?.total || 0)}
+                {Math.min(
+                  (pagination?.page || 1) * (pagination?.limit || 8),
+                  pagination?.total || 0
+                )}
               </span>{" "}
               of <span className="font-semibold">{pagination?.total || 0}</span>{" "}
               instruments
@@ -250,11 +248,6 @@ export default function InstrumentTable({
             instrument={selectedInstrument}
             onDelete={onDelete}
           />
-          {/* <InstrumentDetailModal
-            open={viewModalOpen}
-            onOpenChange={setViewModalOpen}
-            instrument={selectedInstrument}
-          /> */}
         </>
       )}
     </>

@@ -2,10 +2,21 @@ import { Request, Response, NextFunction } from 'express'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import * as userService from '~/services/user.service'
-
+import { getUsersCollection } from '~/models/user.model'
+import cloudinary from '~/configs/cloundinary.config'
+import fs from 'fs'
 export const updateUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const allowedFields = ['fullName', 'dateOfBirth', 'gender', 'address', 'email', 'phoneNumber', 'roleId', 'status'] as const
+    const allowedFields = [
+      'fullName',
+      'dateOfBirth',
+      'gender',
+      'address',
+      'email',
+      'phoneNumber',
+      'roleId',
+      'status'
+    ] as const
     const updatePayload: Record<string, unknown> = {}
     for (const key of allowedFields) {
       if (key in req.body) updatePayload[key] = (req.body as any)[key]
@@ -13,8 +24,8 @@ export const updateUserController = async (req: Request, res: Response, next: Ne
     if (Object.keys(updatePayload).length === 0) {
       throw new HttpError(422, MESSAGES.VALIDATION_ERROR)
     }
-  const authUserId = (req as any).authUserId ? (req as any).authUserId.toString() : undefined
-  const data = await userService.updateUser((req.params as { id: string }).id, updatePayload, authUserId)
+    const authUserId = (req as any).authUserId ? (req as any).authUserId.toString() : undefined
+    const data = await userService.updateUser((req.params as { id: string }).id, updatePayload, authUserId)
     return res.status(200).json({ message: 'User updated successfully', data })
   } catch (err) {
     next(err)
@@ -37,8 +48,8 @@ export const updateUserStatusController = async (req: Request, res: Response, ne
 
 export const deleteUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-  const authUserId = (req as any).authUserId ? (req as any).authUserId.toString() : undefined
-  const data = await userService.deleteUser((req.params as { id: string }).id, authUserId)
+    const authUserId = (req as any).authUserId ? (req as any).authUserId.toString() : undefined
+    const data = await userService.deleteUser((req.params as { id: string }).id, authUserId)
     return res.status(200).json({ message: 'User deleted (status=0)', data })
   } catch (err) {
     next(err)
@@ -47,8 +58,8 @@ export const deleteUserController = async (req: Request, res: Response, next: Ne
 
 export const blockUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-  const authUserId = (req as any).authUserId ? (req as any).authUserId.toString() : undefined
-  const data = await userService.blockUser((req.params as { id: string }).id, authUserId)
+    const authUserId = (req as any).authUserId ? (req as any).authUserId.toString() : undefined
+    const data = await userService.blockUser((req.params as { id: string }).id, authUserId)
     return res.status(200).json({ message: 'User blocked (status=2)', data })
   } catch (err) {
     next(err)
@@ -102,9 +113,23 @@ export const updateUserProfileController = async (req: Request, res: Response, n
       throw new HttpError(422, MESSAGES.VALIDATION_ERROR)
     }
 
-  const data = await userService.updateUser(authUserId.toString(), updatePayload, authUserId.toString())
+    const data = await userService.updateUser(authUserId.toString(), updatePayload, authUserId.toString())
     return res.status(200).json({ message: 'Profile updated successfully', data })
   } catch (err) {
     next(err)
+  }
+}
+
+export const updateAvatarController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).authUserId
+    const file = req.file as Express.Multer.File
+    const avatarUrl = await userService.updateAvatarService(userId, file)
+    res.status(200).json({
+      message: 'Avatar update successfully',
+      avatar: avatarUrl
+    })
+  } catch (error: any) {
+    res.status(400).json({ message: error.message || 'Failed to update avatar' })
   }
 }

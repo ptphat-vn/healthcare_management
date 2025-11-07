@@ -10,7 +10,7 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
-  
+
 import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrderManagementPage";
 import TestOrderDetailPage from "@/pages/admin/testOrderManagement/TestOrderDetailPage";
 import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
@@ -34,6 +34,7 @@ import ServiceDashboard from "@/pages/service/ServiceDashboardPage";
 import InstrumentManagementPage from "@/pages/service/instrumentManager/InstrumentManagementPage";
 import ReagentManagementPage from "@/pages/labUser/reagentManagement/ReagentManagementPage";
 import ReagentDetailPage from "@/pages/labUser/reagentManagement/reagentDetail/ReagentDetailPage";
+import InstrumentDetailPage from "@/pages/service/instrumentManager/InstrumentDetailPage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -168,8 +169,8 @@ export const router = createBrowserRouter([
     children: [
       { path: "dashboard", element: <ServiceDashboard /> },
       { path: "instruments", element: <InstrumentManagementPage /> },
+      { path: "instruments/:id", element: <InstrumentDetailPage /> },
       { path: "profile", element: <ProfilePage /> },
     ],
   },
-
 ]);

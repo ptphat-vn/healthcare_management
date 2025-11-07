@@ -1,10 +1,14 @@
-import type { Instrument } from "@/types/instrument.type";
+import type { Instrument, InstrumentReagents } from "@/types/instrument.type";
 import { baseApi } from "./baseApi";
-import type { APIResponse } from "@/types/response.type";
+import type {
+  APIResponse,
+  ReagentToInstrumentResponse,
+} from "@/types/response.type";
 import type {
   CreateInstrumentRequest,
   UpdateInstrumentRequest,
 } from "@/types/instrument.type";
+import type { AddReagentToInstrumentRequest } from "@/types/request.type";
 
 export interface GetAllInstrumentsResponse {
   instruments: Instrument[];
@@ -42,7 +46,7 @@ export const instrumentApi = baseApi.injectEndpoints({
 
     // Get instrument by ID
     getInstrumentById: builder.query<APIResponse<Instrument>, string>({
-      query: (id) => ({
+      query: (id: string) => ({
         url: `/instruments/${id}`,
         method: "GET",
       }),
@@ -87,8 +91,8 @@ export const instrumentApi = baseApi.injectEndpoints({
 
     // Add reagent to instrument
     addReagentToInstrument: builder.mutation<
-      APIResponse<any>,
-      { instrumentId: string; reagentData: any }
+      APIResponse<ReagentToInstrumentResponse>,
+      { instrumentId: string; reagentData: AddReagentToInstrumentRequest }
     >({
       query: ({ instrumentId, reagentData }) => ({
         url: `/instruments/${instrumentId}/reagents`,
@@ -100,7 +104,7 @@ export const instrumentApi = baseApi.injectEndpoints({
 
     // Remove reagent from instrument
     removeReagentFromInstrument: builder.mutation<
-      APIResponse<any>,
+      APIResponse<ReagentToInstrumentResponse>,
       string
     >({
       query: (assignmentId) => ({
@@ -111,7 +115,10 @@ export const instrumentApi = baseApi.injectEndpoints({
     }),
 
     // Get instrument reagents
-    getInstrumentReagents: builder.query<APIResponse<any>, string>({
+    getInstrumentReagents: builder.query<
+      APIResponse<InstrumentReagents>,
+      string
+    >({
       query: (instrumentId) => ({
         url: `/instruments/${instrumentId}/reagents`,
         method: "GET",

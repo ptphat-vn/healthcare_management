@@ -62,6 +62,17 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    updateAvatar: builder.mutation<APIResponse<User>, File>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("avatar", file);
+        return {
+          url: "/user/avatar",
+          method: "PUT",
+          body: formData,
+        };
+      },
+    }),
   }),
 });
 export const {
@@ -70,4 +81,5 @@ export const {
   useUpdateUserMutation,
   useGetDetailUserQuery,
   useDeleteUserMutation,
+  useUpdateAvatarMutation,
 } = userApi;

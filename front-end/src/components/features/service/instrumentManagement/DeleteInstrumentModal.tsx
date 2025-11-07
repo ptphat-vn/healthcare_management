@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import type { Instrument } from "@/types/instrument.type";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
+import { useDeleteInstrumentMutation } from "@/services/instrumentApi";
 
 interface DeleteInstrumentModalProps {
   open: boolean;
@@ -24,10 +25,17 @@ export default function DeleteInstrumentModal({
   instrument,
   onDelete,
 }: DeleteInstrumentModalProps) {
-  const handleDelete = () => {
-    onDelete(instrument._id);
-    toast.success(`Đã xóa thiết bị ${instrument.name}`);
-    onOpenChange(false);
+  const [deleteInstrument, { isLoading }] = useDeleteInstrumentMutation();
+
+  const handleDelete = async () => {
+    try {
+      await deleteInstrument(instrument._id).unwrap();
+      toast.success(`Instrument "${instrument.name}" has been deleted`);
+      onDelete(instrument._id);
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to delete instrument");
+    }
   };
 
   return (
@@ -36,20 +44,25 @@ export default function DeleteInstrumentModal({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-6 h-6 text-red-600" />
-            <DialogTitle>Xác nhận xóa thiết bị</DialogTitle>
+            <DialogTitle>Confirm Delete Instrument</DialogTitle>
           </div>
           <DialogDescription>
-            Bạn có chắc chắn muốn xóa thiết bị này không? Hành động này không thể hoàn tác.
+            Are you sure you want to delete this instrument? This action cannot
+            be undone.
           </DialogDescription>
         </DialogHeader>
 
         <div className="bg-gray-50 p-4 rounded-lg space-y-2">
           <div>
-            <span className="text-sm font-medium text-gray-700">Tên thiết bị: </span>
+            <span className="text-sm font-medium text-gray-700">
+              Instrument Name:{" "}
+            </span>
             <span className="text-sm text-gray-900">{instrument.name}</span>
           </div>
           <div>
-            <span className="text-sm font-medium text-gray-700">Mã thiết bị: </span>
+            <span className="text-sm font-medium text-gray-700">
+              Instrument Code:{" "}
+            </span>
             <span className="text-sm text-gray-900">{instrument.code}</span>
           </div>
           <div>
@@ -59,11 +72,19 @@ export default function DeleteInstrumentModal({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Hủy
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+          >
+            Cancel
           </Button>
-          <Button variant="destructive" onClick={handleDelete}>
-            Xóa thiết bị
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isLoading}
+          >
+            {isLoading ? "Deleting..." : "Delete Instrument"}
           </Button>
         </DialogFooter>
       </DialogContent>

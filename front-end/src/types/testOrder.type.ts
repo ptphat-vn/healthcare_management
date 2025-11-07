@@ -54,3 +54,12 @@ export interface Comments {
   modifiedBy: string;
   isDeleted: boolean;
 }
+export interface Comment {
+  _id: string;
+  content: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  modifiedBy?: string;
+  isDeleted: boolean;
+}

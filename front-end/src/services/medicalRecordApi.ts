@@ -1,8 +1,8 @@
 import type { APIResponse } from "@/types/response.type";
-import type { 
-  MedicalRecord, 
-  CreateMedicalRecordRequest, 
-  UpdateMedicalRecordRequest 
+import type {
+  MedicalRecord,
+  CreateMedicalRecordRequest,
+  UpdateMedicalRecordRequest,
 } from "@/types/medicalRecord.type";
 import { baseApi } from "./baseApi";
 
@@ -21,14 +21,14 @@ export const medicalRecordApi = baseApi.injectEndpoints({
       }>,
       {
         search?: string;
-        gender?: 'male' | 'female';
+        gender?: "male" | "female";
         dateOfBirthFrom?: string;
         dateOfBirthTo?: string;
         testType?: string;
         instrumentUsed?: string;
         dateRangeFrom?: string;
         dateRangeTo?: string;
-        sortBy?: 'fullName' | 'dateOfBirth' | 'createdAt' | 'lastTestDate';
+        sortBy?: "fullName" | "dateOfBirth" | "createdAt" | "lastTestDate";
         sortOrder?: 1 | -1;
         page?: number;
         limit?: number;
@@ -38,7 +38,7 @@ export const medicalRecordApi = baseApi.injectEndpoints({
         url: "/patient-records",
         params,
       }),
-      providesTags: ["MedicalRecord"],
+      providesTags: ["medicalRecord"],
     }),
 
     // Get single medical record by ID
@@ -46,7 +46,7 @@ export const medicalRecordApi = baseApi.injectEndpoints({
       query: (id) => ({
         url: `/patient-records/${id}`,
       }),
-      providesTags: (_result, _error, id) => [{ type: "MedicalRecord", id }],
+      providesTags: (_result, _error, id) => [{ type: "medicalRecord", id }],
     }),
 
     // Create new medical record
@@ -59,7 +59,7 @@ export const medicalRecordApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["MedicalRecord"],
+      invalidatesTags: ["medicalRecord"],
     }),
 
     // Update medical record
@@ -73,8 +73,8 @@ export const medicalRecordApi = baseApi.injectEndpoints({
         body: data,
       }),
       invalidatesTags: (_result, _error, { _id }) => [
-        { type: "MedicalRecord", id: _id },
-        "MedicalRecord",
+        { type: "medicalRecord", id: _id },
+        "medicalRecord",
       ],
     }),
 
@@ -88,8 +88,8 @@ export const medicalRecordApi = baseApi.injectEndpoints({
         method: "DELETE",
       }),
       invalidatesTags: (_result, _error, id) => [
-        { type: "MedicalRecord", id },
-        "MedicalRecord",
+        { type: "medicalRecord", id },
+        "medicalRecord",
       ],
     }),
 
@@ -99,7 +99,7 @@ export const medicalRecordApi = baseApi.injectEndpoints({
       {
         patientId: string;
         content: string;
-        noteType: 'general' | 'diagnosis' | 'treatment' | 'follow_up' | 'other';
+        noteType: "general" | "diagnosis" | "treatment" | "follow_up" | "other";
       }
     >({
       query: ({ patientId, ...noteData }) => ({
@@ -108,8 +108,8 @@ export const medicalRecordApi = baseApi.injectEndpoints({
         body: noteData,
       }),
       invalidatesTags: (_result, _error, { patientId }) => [
-        { type: "MedicalRecord", id: patientId },
-        "MedicalRecord",
+        { type: "medicalRecord", id: patientId },
+        "medicalRecord",
       ],
     }),
   }),
