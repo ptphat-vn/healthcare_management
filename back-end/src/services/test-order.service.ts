@@ -499,28 +499,14 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
   // Prepare AI input
   const { generateUnifiedLabAIJson } = await import('~/services/ai.service')
   const aiInput = existingResults.map((r: any) => ({ testName: r.testName, result: String(r.result), unit: r.unit }))
-  const unifiedJson = await generateUnifiedLabAIJson(aiInput)
-  let aiSuggestions: { testName: string; suggestedResult?: number }[] = []
-  let diagnosisJson: string | null = null
-  if (unifiedJson) {
-    diagnosisJson = unifiedJson
-    try {
-      const parsed = JSON.parse(unifiedJson)
-      if (Array.isArray(parsed?.suggestedAdjustments)) {
-        aiSuggestions = parsed.suggestedAdjustments.filter((x: any) => x && typeof x.testName === 'string')
-      }
-    } catch {
-      // ignore parse errors
-    }
-  }
+  const aiSummary = await generateUnifiedLabAIJson(aiInput)
 
   // Helper to keep values within acceptable configured ranges
   const { getFlaggingConfigByTestName } = await import('~/services/flagging-config.service')
   const updatedTestResults = [] as any[]
   for (const r of existingResults as any[]) {
     const numeric = parseFloat(r.result)
-    const suggestion = aiSuggestions.find(s => s.testName === r.testName)
-    const suggested = suggestion?.suggestedResult
+    const suggested = undefined
     const config = await getFlaggingConfigByTestName(r.testName)
 
     let finalValue: number | undefined
@@ -546,17 +532,7 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
 
     // Attach brief diagnosis summary into processedData if available
     let processedData = r.processedData || {}
-    if (diagnosisJson) {
-      try {
-        const diagParsed = JSON.parse(diagnosisJson)
-        const names = Array.isArray(diagParsed?.diagnoses) ? diagParsed.diagnoses.map((d: any) => d?.name).filter(Boolean) : []
-        if (names.length) {
-          processedData = { ...processedData, aiDiagnosisSummary: names.slice(0, 3) }
-        }
-      } catch {
-        // ignore parse errors
-      }
-    }
+    // Attach AI summary only if needed in the future (kept minimal now)
 
     updatedTestResults.push({
       ...r,
@@ -568,9 +544,9 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
   }
 
   // Build comment if we have diagnosis JSON
-  const commentPayload = diagnosisJson ? {
+  const commentPayload = aiSummary ? {
     _id: new ObjectId(),
-    content: `[AI Diagnosis] ${diagnosisJson}`,
+    content: `[AI Diagnosis] ${aiSummary}`,
     createdBy: new ObjectId(reviewedBy),
     createdAt: now
   } : null
@@ -609,11 +585,7 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     // swallow logging errors
   }
 
-  const response: any = { testOrder: updated, aiDiagnosis: diagnosisJson }
-  if (aiSuggestions.length > 0) {
-    response.aiSuggestions = aiSuggestions
-  }
-  return response
+  return { testOrder: updated, aiDiagnosis: aiSummary }
 }
 
 // Update comment
