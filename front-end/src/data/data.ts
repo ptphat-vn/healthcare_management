@@ -35,6 +35,12 @@ export const privilegeList = [
   "create_reagent_supply",
   "view_reagent_usage_history",
   "create_reagent_usage",
+  "view_instrument",
+  "create_instrument",
+  "modify_instrument",
+  "delete_instrument",
+  "activate_instrument",
+  "deactivate_instrument",
 ];
 
 export const fakeTestOrder: TestOrder = {

@@ -1,15 +1,16 @@
 import { ObjectId, WithId } from 'mongodb'
-import { getReagentsCollection, type ReagentDocument } from '~/models/reagent.model'
+import { getReagentsCollection, type ReagentDocument, REAGENT_CATEGORIES } from '~/models/reagent.model'
 import { HttpError } from '~/models/error.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
+import { generateUniqueCasNumber } from '~/utils/cas-lookup.util'
 
 export interface CreateReagentPayload {
   name: string
   catalogNumber?: string
   manufacturer?: string
-  casNumber?: string
+  casNumber?: string 
   description: string
   usagePerRun: {
     min: number
@@ -17,11 +18,8 @@ export interface CreateReagentPayload {
     unit: 'ml' | 'μL' | 'L'
   }
   ratio?: string
-  preciseAmount?: {
-    min: number
-    max: number
-    unit: 'μL'
-  }
+  categories?: string[]
+  storageCondition?: number
 }
 
 export interface UpdateReagentPayload {
@@ -36,11 +34,8 @@ export interface UpdateReagentPayload {
     unit: 'ml' | 'μL' | 'L'
   }
   ratio?: string
-  preciseAmount?: {
-    min: number
-    max: number
-    unit: 'μL'
-  }
+  categories?: string[]
+  storageCondition?: number
   isActive?: boolean
 }
 
@@ -58,11 +53,58 @@ export const createReagent = async (
   createdBy: string
 ): Promise<WithId<ReagentDocument>> => {
   const reagents = getReagentsCollection()
-  const createdByObjectId = new ObjectId(createdBy)
   
-  const exists = await reagents.findOne({ name: payload.name } as any)
-  if (exists) {
+  let createdByObjectId: ObjectId
+  try {
+    createdByObjectId = new ObjectId(createdBy)
+  } catch (error) {
+    console.error('Invalid createdBy ObjectId:', createdBy, error)
+    throw new HttpError(400, 'Invalid user ID')
+  }
+  
+  // Check if name already exists
+  const existsByName = await reagents.findOne({ name: payload.name } as any)
+  if (existsByName) {
     throw new HttpError(409, 'Reagent with this name already exists')
+  }
+
+  let casNumber = payload.casNumber?.trim() || ''
+  
+  // If CAS Number is not provided, automatically generate a unique random CAS Number
+  if (!casNumber) {
+    try {
+      casNumber = await generateUniqueCasNumber(async (cas: string) => {
+        const exists = await reagents.findOne({ casNumber: cas } as any)
+        return !!exists
+      })
+    } catch (error) {
+      console.error('Error generating unique CAS Number:', error)
+      throw new HttpError(500, `Failed to generate unique CAS Number: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or provide CAS Number manually.`)
+    }
+  } else {
+    // Check if manually provided CAS Number already exists
+    const existsByCasNumber = await reagents.findOne({ casNumber: casNumber } as any)
+    if (existsByCasNumber) {
+      throw new HttpError(409, 'Reagent with this CAS Number already exists')
+    }
+  }
+
+  if (payload.categories && payload.categories.length > 0) {
+    // Filter out empty strings and null/undefined values
+    payload.categories = payload.categories.filter(cat => cat && typeof cat === 'string' && cat.trim() !== '')
+    
+    if (payload.categories.length > 0) {
+      const invalidCategories = payload.categories.filter(cat => !REAGENT_CATEGORIES.includes(cat as any))
+      if (invalidCategories.length > 0) {
+        throw new HttpError(400, `Invalid categories: ${invalidCategories.join(', ')}. Valid categories are: ${REAGENT_CATEGORIES.join(', ')}`)
+      }
+      
+      // Remove duplicates
+      payload.categories = [...new Set(payload.categories)]
+    } else {
+      // If all categories were filtered out, set to undefined
+      payload.categories = undefined
+    }
   }
 
   const now = new Date()
@@ -70,21 +112,32 @@ export const createReagent = async (
     name: payload.name,
     catalogNumber: payload.catalogNumber,
     manufacturer: payload.manufacturer,
-    casNumber: payload.casNumber,
+    casNumber: casNumber,
     description: payload.description,
     usagePerRun: payload.usagePerRun,
     ratio: payload.ratio,
-    preciseAmount: payload.preciseAmount,
+    categories: payload.categories,
+    storageCondition: payload.storageCondition,
     isActive: true,
     createdAt: now,
     updatedAt: now,
     createdBy: createdByObjectId
   }
 
-  const result = await reagents.insertOne(doc as any)
-  const created = await reagents.findOne({ _id: result.insertedId } as any)
-  if (!created) {
-    throw new HttpError(500, 'Failed to create reagent')
+  let created: WithId<ReagentDocument>
+  try {
+    const result = await reagents.insertOne(doc as any)
+    const found = await reagents.findOne({ _id: result.insertedId } as any)
+    if (!found) {
+      throw new HttpError(500, 'Failed to create reagent')
+    }
+    created = found as WithId<ReagentDocument>
+  } catch (error) {
+    console.error('Error creating reagent:', error)
+    if (error instanceof HttpError) {
+      throw error
+    }
+    throw new HttpError(500, `Failed to create reagent: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 
   // Event log
@@ -196,6 +249,23 @@ export const updateReagent = async (
     }
   }
 
+  if (payload.casNumber && payload.casNumber !== existing.casNumber) {
+    const casNumberExists = await reagents.findOne({ casNumber: payload.casNumber, _id: { $ne: objectId } } as any)
+    if (casNumberExists) {
+      throw new HttpError(409, 'Reagent with this CAS Number already exists')
+    }
+  }
+
+  if (payload.categories !== undefined) {
+    if (payload.categories.length > 0) {
+      const invalidCategories = payload.categories.filter(cat => !REAGENT_CATEGORIES.includes(cat as any))
+      if (invalidCategories.length > 0) {
+        throw new HttpError(400, `Invalid categories: ${invalidCategories.join(', ')}. Valid categories are: ${REAGENT_CATEGORIES.join(', ')}`)
+      }
+      payload.categories = [...new Set(payload.categories)]
+    }
+  }
+
   const updatedByObjectId = new ObjectId(updatedBy)
   const now = new Date()
   const update: Partial<ReagentDocument> = {
@@ -302,7 +372,7 @@ export const ensureDefaultReagents = async () => {
     systemUserId = new ObjectId('000000000000000000000000') // System ID
   }
 
-  const defaults: Array<Partial<ReagentDocument> & { name: string; description: string; usagePerRun: { min: number; max: number; unit: 'ml' | 'μL' | 'L' } }> = [
+  const defaults: Array<Partial<ReagentDocument> & { name: string; casNumber: string; description: string; usagePerRun: { min: number; max: number; unit: 'ml' | 'μL' | 'L' } }> = [
     {
       name: 'Diluent',
       catalogNumber: 'DL-100',
@@ -315,6 +385,7 @@ export const ensureDefaultReagents = async () => {
         unit: 'ml'
       },
       ratio: '1:10 to 1:20',
+      categories: ['Hematology'],
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -331,11 +402,7 @@ export const ensureDefaultReagents = async () => {
         max: 200,
         unit: 'μL'
       },
-      preciseAmount: {
-        min: 50,
-        max: 200,
-        unit: 'μL'
-      },
+      categories: ['Biochemistry'],
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -352,6 +419,7 @@ export const ensureDefaultReagents = async () => {
         max: 100,
         unit: 'μL'
       },
+      categories: ['Immunology'],
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -368,6 +436,7 @@ export const ensureDefaultReagents = async () => {
         max: 100,
         unit: 'μL'
       },
+      categories: ['Molecular/PCR'],
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -384,6 +453,7 @@ export const ensureDefaultReagents = async () => {
         max: 2,
         unit: 'ml'
       },
+      categories: ['Microbiology'],
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -402,7 +472,8 @@ export const ensureDefaultReagents = async () => {
         description: def.description,
         usagePerRun: def.usagePerRun,
         ratio: def.ratio,
-        preciseAmount: def.preciseAmount,
+        categories: def.categories,
+        storageCondition: def.storageCondition,
         isActive: def.isActive,
         createdAt: def.createdAt,
         updatedAt: def.updatedAt,

@@ -1494,50 +1494,63 @@ paths:
       description: Update the authenticated user's avatar image.
       security:
         - bearerAuth: []
-      consumes:
-        - multipart/form-data
-      parameters:
-        - in: formData
-          name: avatar
-          type: file
-          required: true
-          description: The avatar image file to upload.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - avatar
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: The avatar image file to upload.
       responses:
-        200:
+        '200':
           description: Avatar updated successfully
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: Avatar updated successfully
-              avatar:
-                type: string
-                example: https://res.cloudinary.com/xxx/image/upload/v123/avatars/xxx.jpg
-        400:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Avatar updated successfully
+                  avatar:
+                    type: string
+                    example: https://res.cloudinary.com/xxx/image/upload/v123/avatars/xxx.jpg
+        '400':
           description: Bad request (missing file or other error)
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: No file uploaded!
-        401:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: No file uploaded!
+        '401':
           description: Unauthorized
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: Unauthorized
-        404:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Unauthorized
+        '404':
           description: User not found
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
 
   # Test Order Management
   /test-orders:
@@ -3072,6 +3085,16 @@ paths:
       description: |
         Create a new reagent with specified properties.
 
+        **CAS Number Auto-generation:**
+        - If `casNumber` is not provided, the system will automatically generate a unique random CAS Number
+        - CAS Number format: number-number-number (e.g., 7732-18-5)
+        - CAS Number must be unique across all reagents
+        - Generated CAS Numbers are guaranteed to be unique (no duplicates)
+
+        **Categories:**
+        - A reagent can belong to multiple categories
+        - Valid categories: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme
+
         **Required Privilege:** `create_reagent`
 
         **Access:** Admin, Lab Manager
@@ -3100,7 +3123,10 @@ paths:
                   example: 'ABC Chemicals'
                 casNumber:
                   type: string
-                  example: '123-45-6'
+                  description: |
+                    Optional. CAS Number in format: number-number-number (e.g., 7732-18-5).
+                    If not provided, system will automatically generate a unique random CAS Number.
+                  example: '7732-18-5'
                 description:
                   type: string
                   example: 'Typically used in a 1:10 to 1:20 ratio with blood samples'
@@ -3124,19 +3150,26 @@ paths:
                 ratio:
                   type: string
                   example: '1:10 to 1:20'
-                preciseAmount:
-                  type: object
-                  properties:
-                    min:
-                      type: number
-                      example: 50
-                    max:
-                      type: number
-                      example: 200
-                    unit:
-                      type: string
-                      enum: [μL]
-                      example: 'μL'
+                categories:
+                  type: array
+                  description: 'Array of category names. Must be from predefined list: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme'
+                  items:
+                    type: string
+                    enum:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - 'Molecular/PCR'
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
+                  example:
+                    - Hematology
+                    - Biochemistry
+                storageCondition:
+                  type: number
+                  description: Storage temperature in degrees Celsius
+                  example: 4
       responses:
         '200':
           description: Reagent created successfully
@@ -3150,10 +3183,20 @@ paths:
                     example: 'Reagent created successfully'
                   data:
                     $ref: '#/components/schemas/Reagent'
+        '400':
+          description: |
+            Bad request. Possible reasons:
+            - Invalid categories (not from predefined list)
+            - Failed to generate unique CAS Number
         '409':
-          description: Reagent with this name already exists
+          description: |
+            Conflict. Possible reasons:
+            - Reagent with this name already exists
+            - Reagent with this CAS Number already exists
         '422':
           description: Validation error
+        '500':
+          description: Internal server error (e.g., failed to generate unique CAS Number)
 
   /reagents/{id}:
     get:
@@ -3197,6 +3240,13 @@ paths:
       description: |
         Update a reagent by ID.
 
+        **CAS Number:**
+        - If updating CAS Number, it must be unique and in format: number-number-number (e.g., 7732-18-5)
+
+        **Categories:**
+        - A reagent can belong to multiple categories
+        - Valid categories: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme
+
         **Required Privilege:** `modify_reagent`
       operationId: updateReagent
       security:
@@ -3223,6 +3273,7 @@ paths:
                   type: string
                 casNumber:
                   type: string
+                  description: 'CAS Number in format: number-number-number (e.g., 7732-18-5). Must be unique.'
                 description:
                   type: string
                 usagePerRun:
@@ -3237,16 +3288,22 @@ paths:
                       enum: [ml, μL, L]
                 ratio:
                   type: string
-                preciseAmount:
-                  type: object
-                  properties:
-                    min:
-                      type: number
-                    max:
-                      type: number
-                    unit:
-                      type: string
-                      enum: [μL]
+                categories:
+                  type: array
+                  description: 'Array of category names. Must be from predefined list: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme'
+                  items:
+                    type: string
+                    enum:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - 'Molecular/PCR'
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
+                storageCondition:
+                  type: number
+                  description: Storage temperature in degrees Celsius
                 isActive:
                   type: boolean
       responses:
@@ -3262,10 +3319,17 @@ paths:
                     example: 'Reagent updated successfully'
                   data:
                     $ref: '#/components/schemas/Reagent'
+        '400':
+          description: |
+            Bad request. Possible reasons:
+            - Invalid categories (not from predefined list)
         '404':
           description: Reagent not found
         '409':
-          description: Reagent with this name already exists
+          description: |
+            Conflict. Possible reasons:
+            - Reagent with this name already exists
+            - Reagent with this CAS Number already exists
         '422':
           description: Validation error
 
@@ -3303,6 +3367,51 @@ paths:
         '404':
           description: Reagent not found
 
+  /reagents/categories:
+    get:
+      tags:
+        - Reagents
+      summary: Get reagent categories
+      description: |
+        Get the list of predefined reagent categories.
+
+        **Available Categories:**
+        - Hematology
+        - Biochemistry
+        - Immunology
+        - Molecular/PCR
+        - Microbiology
+        - Coagulation
+        - Enzyme
+
+        **Required Privilege:** `view_reagent`
+      operationId: getReagentCategories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Reagent categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get reagent categories successfully'
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - 'Molecular/PCR'
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
+
   /reagents/vendor-supply:
     post:
       tags:
@@ -3310,6 +3419,8 @@ paths:
       summary: Create vendor supply record
       description: |
         Record a new reagent shipment received from a vendor. This automatically creates an entry in the vendor supply history.
+
+        **Note:** If `reagentName`, `catalogNumber`, `manufacturer`, or `casNumber` are not provided, they will be automatically retrieved from the reagent record based on `reagentId`.
 
         **Required Privilege:** `create_reagent_supply`
       operationId: createVendorSupply
@@ -3323,7 +3434,6 @@ paths:
               type: object
               required:
                 - reagentId
-                - reagentName
                 - vendorName
                 - purchaseOrderNumber
                 - orderDate
@@ -3338,18 +3448,23 @@ paths:
                 reagentId:
                   type: string
                   pattern: '^[0-9a-fA-F]{24}$'
+                  description: Reagent ID. Required. If other reagent fields are not provided, they will be auto-filled from this reagent.
                   example: '507f1f77bcf86cd799439011'
                 reagentName:
                   type: string
+                  description: Reagent name. Optional. If not provided, will be auto-filled from reagent record.
                   example: 'Diluent'
                 catalogNumber:
                   type: string
+                  description: Catalog number. Optional. If not provided, will be auto-filled from reagent record.
                   example: 'CAT-001'
                 manufacturer:
                   type: string
+                  description: Manufacturer name. Optional. If not provided, will be auto-filled from reagent record.
                   example: 'ABC Chemicals'
                 casNumber:
                   type: string
+                  description: CAS Number. Optional. If not provided, will be auto-filled from reagent record.
                   example: '123-45-6'
                 vendorName:
                   type: string
@@ -3376,6 +3491,9 @@ paths:
                   example: 'ml'
                 lotNumber:
                   type: string
+                  description: |
+                    Lot number for this reagent shipment. **Must be unique for each reagent.**
+                    The same lot number cannot be used twice for the same reagent, but can be used for different reagents.
                   example: 'LOT-2024-001'
                 expirationDate:
                   type: string
@@ -3407,6 +3525,16 @@ paths:
                     $ref: '#/components/schemas/ReagentVendorSupply'
         '404':
           description: Reagent or user not found
+        '409':
+          description: Conflict - Lot number already exists for this reagent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Lot number "LOT-2024-001" already exists for this reagent. Each reagent must have unique lot numbers.'
         '422':
           description: Validation error
 
@@ -3873,13 +4001,18 @@ paths:
       requestBody:
         required: true
         content:
-          properties:
-            content:
-              type: string
-              example: 'Hello, how are you?'
-            metadata:
+          application/json:
+            schema:
               type: object
-              additionalProperties: true
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: 'Hello, how are you?'
+                metadata:
+                  type: object
+                  additionalProperties: true
       responses:
         '201':
           description: Message sent
@@ -5245,7 +5378,8 @@ components:
           example: 'ABC Chemicals'
         casNumber:
           type: string
-          example: '123-45-6'
+          description: 'CAS Number (unique identifier for each reagent). Format: number-number-number (e.g., 7732-18-5)'
+          example: '7732-18-5'
         description:
           type: string
           example: 'Typically used in a 1:10 to 1:20 ratio with blood samples'
@@ -5265,19 +5399,26 @@ components:
         ratio:
           type: string
           example: '1:10 to 1:20'
-        preciseAmount:
-          type: object
-          properties:
-            min:
-              type: number
-              example: 50
-            max:
-              type: number
-              example: 200
-            unit:
-              type: string
-              enum: [μL]
-              example: 'μL'
+        categories:
+          type: array
+          description: 'Array of category names. Must be from predefined list: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme'
+          items:
+            type: string
+            enum:
+              - Hematology
+              - Biochemistry
+              - Immunology
+              - 'Molecular/PCR'
+              - Microbiology
+              - Coagulation
+              - Enzyme
+          example:
+            - Hematology
+            - Biochemistry
+        storageCondition:
+          type: number
+          description: Storage temperature in degrees Celsius
+          example: 4
         isActive:
           type: boolean
           example: true

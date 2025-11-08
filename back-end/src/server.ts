@@ -71,6 +71,7 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
   if (err instanceof HttpError) {
     return res.status(err.status).json({ message: err.message })
   }
+  console.error('Unhandled error:', err)
   return res.status(500).json({ message: 'Internal Server Error' })
 })
 

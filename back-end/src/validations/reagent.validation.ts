@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { z } from 'zod'
 import { MESSAGES } from '~/constants/message.constant'
+import { REAGENT_CATEGORIES } from '~/models/reagent.model'
 
 const isValidDate = (s: string) => {
   const ymd = /^\d{4}-\d{2}-\d{2}$/
@@ -17,36 +18,51 @@ const usagePerRunSchema = z.object({
   path: ['max']
 })
 
-const preciseAmountSchema = z.object({
-  min: z.number().positive('Min amount must be positive'),
-  max: z.number().positive('Max amount must be positive'),
-  unit: z.literal('μL')
-}).refine((data) => data.max >= data.min, {
-  message: 'Max amount must be greater than or equal to min amount',
-  path: ['max']
-})
+// CAS Number format: số-số-số (ví dụ: 7732-18-5)
+const casNumberRegex = /^\d{2,7}-\d{2}-\d$/
 
-// Reagent Master Data Validations
 export const createReagentSchema = z.object({
   name: z.string().min(1, 'Reagent name is required'),
   catalogNumber: z.string().optional(),
   manufacturer: z.string().optional(),
-  casNumber: z.string().optional(),
+  casNumber: z.string()
+    .optional()
+    .refine((val) => {
+      if (!val || val.trim() === '') return true
+      return casNumberRegex.test(val)
+    }, {
+      message: 'CAS Number must be in format: number-number-number (e.g., 7732-18-5)'
+    }),
   description: z.string().min(1, 'Description is required'),
   usagePerRun: usagePerRunSchema,
   ratio: z.string().optional(),
-  preciseAmount: preciseAmountSchema.optional()
+  categories: z.array(z.string()).refine(
+    (categories) => categories.every(cat => REAGENT_CATEGORIES.includes(cat as any)),
+    {
+      message: `Each category must be one of: ${REAGENT_CATEGORIES.join(', ')}`
+    }
+  ).optional(),
+  storageCondition: z.number().optional()
 })
 
 export const updateReagentSchema = z.object({
   name: z.string().min(1).optional(),
   catalogNumber: z.string().optional(),
   manufacturer: z.string().optional(),
-  casNumber: z.string().optional(),
+  casNumber: z.string()
+    .min(1, 'CAS Number is required')
+    .regex(casNumberRegex, 'CAS Number must be in format: number-number-number (e.g., 7732-18-5)')
+    .optional(),
   description: z.string().min(1).optional(),
   usagePerRun: usagePerRunSchema.optional(),
   ratio: z.string().optional(),
-  preciseAmount: preciseAmountSchema.optional(),
+  categories: z.array(z.string()).refine(
+    (categories) => categories.every(cat => REAGENT_CATEGORIES.includes(cat as any)),
+    {
+      message: `Each category must be one of: ${REAGENT_CATEGORIES.join(', ')}`
+    }
+  ).optional(),
+  storageCondition: z.number().optional(),
   isActive: z.boolean().optional()
 })
 
@@ -91,7 +107,7 @@ export const validateReagentId = (req: Request, res: Response, next: NextFunctio
 // Vendor Supply History Validations
 export const createVendorSupplySchema = z.object({
   reagentId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid reagent id'),
-  reagentName: z.string().min(1, 'Reagent name is required'),
+  reagentName: z.string().min(1, 'Reagent name is required').optional(),
   catalogNumber: z.string().optional(),
   manufacturer: z.string().optional(),
   casNumber: z.string().optional(),

@@ -8,7 +8,7 @@ import { getRolesCollection } from '~/models/role.model'
 
 export interface CreateVendorSupplyPayload {
   reagentId: string
-  reagentName: string
+  reagentName?: string
   catalogNumber?: string
   manufacturer?: string
   casNumber?: string
@@ -55,6 +55,25 @@ export const createVendorSupply = async (
     throw new HttpError(404, 'Reagent not found')
   }
 
+  // Auto-fill reagent information if not provided
+  const reagentName = payload.reagentName || reagent.name
+  const catalogNumber = payload.catalogNumber || reagent.catalogNumber
+  const manufacturer = payload.manufacturer || reagent.manufacturer
+  const casNumber = payload.casNumber || reagent.casNumber
+
+  const vendorSupplies = getReagentVendorSupplyCollection()
+  const existingLot = await vendorSupplies.findOne({
+    reagentId: reagentObjectId,
+    lotNumber: payload.lotNumber
+  } as any)
+  
+  if (existingLot) {
+    throw new HttpError(
+      409,
+      `Lot number "${payload.lotNumber}" already exists for this reagent. Each reagent must have unique lot numbers.`
+    )
+  }
+
   let receivedByObjectId: ObjectId
   try {
     receivedByObjectId = new ObjectId(payload.receivedBy)
@@ -69,15 +88,14 @@ export const createVendorSupply = async (
     throw new HttpError(404, 'User not found')
   }
 
-  const vendorSupplies = getReagentVendorSupplyCollection()
   const now = new Date()
 
   const doc: ReagentVendorSupplyDocument = {
     reagentId: reagentObjectId,
-    reagentName: payload.reagentName,
-    catalogNumber: payload.catalogNumber,
-    manufacturer: payload.manufacturer,
-    casNumber: payload.casNumber,
+    reagentName: reagentName,
+    catalogNumber: catalogNumber,
+    manufacturer: manufacturer,
+    casNumber: casNumber,
     vendorName: payload.vendorName,
     vendorId: payload.vendorId,
     purchaseOrderNumber: payload.purchaseOrderNumber,
@@ -113,7 +131,7 @@ export const createVendorSupply = async (
         role: actorRoleDoc?.code || 'system'
       },
       action: 'CREATE_REAGENT_VENDOR_SUPPLY',
-      details: `Received reagent shipment: ${payload.reagentName} (PO: ${payload.purchaseOrderNumber}, Lot: ${payload.lotNumber})`,
+      details: `Received reagent shipment: ${reagentName} (PO: ${payload.purchaseOrderNumber}, Lot: ${payload.lotNumber})`,
       timestamp: now
     } as any)
   } catch {
