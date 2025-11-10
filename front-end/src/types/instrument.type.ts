@@ -64,5 +64,5 @@ export interface UpdateInstrumentRequest {
 }
 export interface InstrumentReagents {
   instrument: Instrument;
-  reagents: ReagentInstrument;
+  reagents: ReagentInstrument[];
 }

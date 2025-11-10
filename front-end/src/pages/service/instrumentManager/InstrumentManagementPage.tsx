@@ -22,7 +22,7 @@ export default function InstrumentManagementPage() {
             onClick={() => setIsAddInstrumentModalOpen(true)}
             className="flex items-center gap-2 btn-primary"
           >
-            <Plus size={18} />
+            <Plus className="h-5 w-5 mr-2" />
             <span>Add new instrument</span>
           </Button>
           <AddInstrumentModal
