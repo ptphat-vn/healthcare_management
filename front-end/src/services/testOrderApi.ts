@@ -73,6 +73,41 @@ export const testOrderApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["TestOrder"],
     }),
+    createTestResult: builder.mutation<
+      APIResponse<TestOrder>,
+      { testOrderId: string; instrumentId: string }
+    >({
+      query: ({ testOrderId, instrumentId }) => ({
+        url: `/test-orders/${testOrderId}/run-with-instrument`,
+        method: "POST",
+        body: { instrumentId },
+      }),
+      invalidatesTags: ["TestOrder"],
+    }),
+    // createTestOrderReview: builder.mutation<
+    //   APIResponse<TestOrder>,
+    //   {
+    //     testOrderId: string;
+    //     params: { testResultId: string; newResult: string };
+    //   }
+    // >({
+    //   query: ({ testOrderId, params }) => ({
+    //     url: `/test-orders/${testOrderId}/review`,
+    //     method: "POST",
+    //     body: params,
+    //   }),
+    //   invalidatesTags: ["TestOrder"],
+    // }),
+    createTestOrderReviewByAI: builder.mutation<
+      APIResponse<TestOrder>,
+      { testOrderId: string }
+    >({
+      query: ({ testOrderId }) => ({
+        url: `/test-orders/${testOrderId}/ai-review`,
+        method: "POST",
+      }),
+      invalidatesTags: ["TestOrder"],
+    }),
   }),
 });
 export const {
@@ -81,4 +116,7 @@ export const {
   useGetDetailTestOrderQuery,
   useDeleteTestOrderMutation,
   useUpdateTestOrderMutation,
+  useCreateTestResultMutation,
+  // useCreateTestOrderReviewMutation,
+  useCreateTestOrderReviewByAIMutation,
 } = testOrderApi;
