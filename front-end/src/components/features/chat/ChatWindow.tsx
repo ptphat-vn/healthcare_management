@@ -16,41 +16,27 @@ interface ChatWindowProps {
   onClose?: () => void;
 }
 
-export default function ChatWindow({
-  otherUserId,
-  otherUserName,
-  otherUserAvatar,
-  onClose,
-}: ChatWindowProps) {
+export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar, onClose }: ChatWindowProps) {
   const { user } = useAuth();
   const currentUserId = user?.data?._id;
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
 
-  const { data: conversationData, isLoading, error: conversationError } = useGetConversationQuery({
-    userId: otherUserId,
-    page: 1,
-    limit: 100,
-  });
-
+  const { data, isLoading, error } = useGetConversationQuery({ userId: otherUserId, page: 1, limit: 100 });
   const [sendMessageApi] = useSendMessageMutation();
 
-  const conversationId = currentUserId
-    ? `${[currentUserId, otherUserId].sort().join("_")}`
-    : "";
+  const conversationId = currentUserId ? `${[currentUserId, otherUserId].sort().join("_")}` : "";
 
   useEffect(() => {
-    if (conversationData?.data?.messages) {
-      setMessages(conversationData.data.messages);
-    }
-  }, [conversationData]);
+    if (data?.data?.messages) setMessages(data.data.messages);
+  }, [data]);
 
   useEffect(() => {
-    if (conversationError) toast.error("Không thể tải cuộc trò chuyện");
-  }, [conversationError]);
+    if (error) toast.error("Không thể tải cuộc trò chuyện");
+  }, [error]);
 
   useEffect(() => {
     if (!currentUserId || !conversationId) return;
@@ -58,109 +44,79 @@ export default function ChatWindow({
     socketService.connect();
     setIsConnected(socketService.isConnected());
 
-    const joinRoom = () => {
-      if (socketService.isConnected()) {
-        socketService.joinRoom(conversationId);
-      } else {
-        setTimeout(joinRoom, 500);
-      }
-    };
-    joinRoom();
-
-    const handleNewMessage = (msg: ChatMessage) => {
-      if (msg.conversationId !== conversationId) return;
-      
-      setMessages((prev) =>
-        prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]
-      );
-      
-      // Lưu conversation vào localStorage với roleCode
-      const saved = localStorage.getItem(`chat_conversations_${currentUserId}`);
-      const conversations = saved ? JSON.parse(saved) : [];
-      const existingIndex = conversations.findIndex((c: any) => c.userId === otherUserId);
-      
-      // Xác định roleCode từ userName hoặc từ message
-      const isDoctor = otherUserName.toLowerCase().includes("bác sĩ") || 
-                       otherUserName.toLowerCase().includes("doctor") ||
-                       otherUserName.toLowerCase().includes("consultant");
-      
-      const convData = {
+    const upsertConv = (msg: ChatMessage) => {
+      const key = `chat_conversations_${currentUserId}`;
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
+      const idx = list.findIndex((c: any) => c.userId === otherUserId);
+      const existingRole = idx >= 0 ? list[idx].roleCode : undefined;
+      const conv = {
         userId: otherUserId,
         userName: otherUserName,
         avatar: otherUserAvatar,
-        roleCode: isDoctor ? "consultant" : undefined,
+        roleCode: existingRole,
         lastMessage: msg.content.substring(0, 50),
         lastMessageTime: new Date(msg.createdAt),
       };
-      
-      if (existingIndex >= 0) {
-        conversations[existingIndex] = { ...conversations[existingIndex], ...convData };
-      } else {
-        conversations.unshift(convData);
-      }
-      
-      localStorage.setItem(
-        `chat_conversations_${currentUserId}`,
-        JSON.stringify(conversations.slice(0, 20))
-      );
-      
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-    const handlers = {
-      message: handleNewMessage,
-      error: (err: { message: string; code?: string }) => {
-        if (err.code === "MAX_RECONNECT_ATTEMPTS" || err.code === "RECONNECT_FAILED") {
-          toast.error("Mất kết nối. Vui lòng làm mới trang.");
-        }
-      },
-      connect: () => {
-        setIsConnected(true);
-        socketService.joinRoom(conversationId);
-      },
-      disconnect: () => setIsConnected(false),
-      reconnect: () => {
-        setIsConnected(true);
-        socketService.joinRoom(conversationId);
-      },
+      if (idx >= 0) list[idx] = { ...list[idx], ...conv };
+      else list.unshift(conv);
+      localStorage.setItem(key, JSON.stringify(list.slice(0, 20)));
     };
 
-    Object.entries(handlers).forEach(([event, handler]) => {
-      socketService.on(event, handler);
-    });
+    const join = () => (socketService.isConnected() ? socketService.joinRoom(conversationId) : setTimeout(join, 500));
+    join();
+
+    const onMessage = (msg: ChatMessage) => {
+      if (msg.conversationId !== conversationId) return;
+      setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]));
+      upsertConv(msg);
+      endRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    const onError = (e: { message: string; code?: string }) => {
+      if (e.code === "MAX_RECONNECT_ATTEMPTS" || e.code === "RECONNECT_FAILED") toast.error("Mất kết nối. Vui lòng làm mới trang.");
+    };
+
+    const onConnect = () => {
+      setIsConnected(true);
+      socketService.joinRoom(conversationId);
+    };
+
+    const onDisconnect = () => setIsConnected(false);
+
+    socketService.on("message", onMessage);
+    socketService.on("error", onError);
+    socketService.on("connect", onConnect);
+    socketService.on("disconnect", onDisconnect);
+    socketService.on("reconnect", onConnect);
 
     return () => {
-      Object.keys(handlers).forEach((event) => {
-        socketService.off(event, handlers[event as keyof typeof handlers]);
-      });
+      socketService.off("message", onMessage);
+      socketService.off("error", onError);
+      socketService.off("connect", onConnect);
+      socketService.off("disconnect", onDisconnect);
+      socketService.off("reconnect", onConnect);
       socketService.leaveRoom(conversationId);
     };
-  }, [currentUserId, conversationId, otherUserId]);
+  }, [currentUserId, conversationId, otherUserId, otherUserName, otherUserAvatar]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = async () => {
+  const handleSend = async () => {
     const content = inputMessage.trim();
     if (!content || !currentUserId || isSending || content.length > 5000) return;
 
     setInputMessage("");
     setIsSending(true);
-
     try {
-      const result = await sendMessageApi({
-        userId: otherUserId,
-        message: { content },
-      }).unwrap();
-
-      if (result.data) {
-        setMessages((prev) =>
-          prev.some((m) => m._id === result.data._id) ? prev : [...prev, result.data]
-        );
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      const res = await sendMessageApi({ userId: otherUserId, message: { content } }).unwrap();
+      if (res.data) {
+        setMessages((prev) => (prev.some((m) => m._id === res.data._id) ? prev : [...prev, res.data]));
+        endRef.current?.scrollIntoView({ behavior: "smooth" });
       }
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Không thể gửi tin nhắn");
+    } catch (e: any) {
+      toast.error(e?.data?.message || "Không thể gửi tin nhắn");
       setInputMessage(content);
     } finally {
       setIsSending(false);
@@ -215,28 +171,19 @@ export default function ChatWindow({
             <p>Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
           </div>
         ) : (
-          messages.map((msg) => {
-            const isOwn = msg.senderId === currentUserId;
+          messages.map((m) => {
+            const own = m.senderId === currentUserId;
             return (
-              <div
-                key={msg._id || `msg-${msg.createdAt}-${msg.senderId}`}
-                className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                    isOwn ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-900"
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                  <p className={`text-xs mt-1 ${isOwn ? "text-blue-100" : "text-gray-500"}`}>
-                    {format(new Date(msg.createdAt), "HH:mm")}
-                  </p>
+              <div key={m._id || `msg-${m.createdAt}-${m.senderId}`} className={`flex ${own ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[70%] rounded-lg px-4 py-2 ${own ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-900"}`}>
+                  <p className="text-sm whitespace-pre-wrap break-words">{m.content}</p>
+                  <p className={`text-xs mt-1 ${own ? "text-blue-100" : "text-gray-500"}`}>{format(new Date(m.createdAt), "HH:mm")}</p>
                 </div>
               </div>
             );
           })
         )}
-        <div ref={messagesEndRef} />
+        <div ref={endRef} />
       </div>
 
       <div className="p-4 border-t bg-gray-50">
@@ -244,24 +191,17 @@ export default function ChatWindow({
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
+            onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
             placeholder="Nhập tin nhắn..."
-            disabled={isSending || !isConnected}
+            disabled={isSending}
             className="flex-1"
             maxLength={5000}
           />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isSending || !isConnected}
-            size="icon"
-          >
+          <Button onClick={handleSend} disabled={!inputMessage.trim() || isSending} size="icon">
             {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </div>
-        {!isConnected && (
-          <p className="text-xs text-amber-600 mt-1">Mất kết nối. Tin nhắn sẽ được gửi khi kết nối lại.</p>
-        )}
+        {!isConnected && <p className="text-xs text-amber-600 mt-1">Realtime tạm mất. Tin nhắn vẫn gửi qua máy chủ.</p>}
       </div>
     </div>
   );
-}

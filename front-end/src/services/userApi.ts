@@ -28,6 +28,18 @@ export const userApi = baseApi.injectEndpoints({
       providesTags: ["User"],
     }),
 
+    getAllLabUser: builder.query<APIResponse<GetAllUserResponse>, { search?: string; status?: number; page?: number; limit?: number } | void>({
+      query: (params) => ({ url: "/user/lab-users", method: "GET", params: params || {} }),
+      keepUnusedDataFor: 0,
+      providesTags: ["User"],
+    }),
+
+    getAllPatient: builder.query<APIResponse<GetAllUserResponse>, { search?: string; status?: number; page?: number; limit?: number } | void>({
+      query: (params) => ({ url: "/user/patients", method: "GET", params: params || {} }),
+      keepUnusedDataFor: 0,
+      providesTags: ["User"],
+    }),
+
     createUser: builder.mutation<APIResponse<User>, CreateUserRequest>({
       query: (userData) => ({
         url: "/admin/create-user",
@@ -82,4 +94,6 @@ export const {
   useGetDetailUserQuery,
   useDeleteUserMutation,
   useUpdateAvatarMutation,
+  useGetAllLabUserQuery,
+  useGetAllPatientQuery,
 } = userApi;
