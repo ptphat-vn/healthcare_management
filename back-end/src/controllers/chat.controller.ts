@@ -53,3 +53,20 @@ export const sendMessageController = async (req: Request, res: Response, next: N
     next(err)
   }
 }
+
+export const getRecentConversationsController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authUserId = (req as any).authUserId
+    if (!authUserId) return res.status(401).json({ message: 'Unauthorized' })
+
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 20
+    const conversations = await chatService.getRecentConversations(String(authUserId), limit)
+
+    return res.status(200).json({
+      message: 'Recent conversations',
+      data: { conversations }
+    })
+  } catch (err) {
+    next(err)
+  }
+}

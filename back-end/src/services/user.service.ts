@@ -276,6 +276,65 @@ export const listUsers = async (params: ListUsersParams) => {
   }
 }
 
+export interface ListUsersByRoleParams extends ListUsersParams {
+  roleCodes?: string[]
+}
+
+export const listUsersByRoleCodes = async (params: ListUsersByRoleParams) => {
+  const users = getUsersCollection()
+  const roles = getRolesCollection()
+
+  let roleIds: any[] | undefined
+  if (params.roleCodes && params.roleCodes.length) {
+    const roleDocs = await roles.find({ code: { $in: params.roleCodes } } as any).toArray()
+    roleIds = roleDocs.map((r: any) => r._id)
+  }
+
+  const page = params.page && params.page > 0 ? params.page : 1
+  const limit = params.limit && params.limit > 0 ? params.limit : 10
+  const skip = (page - 1) * limit
+
+  const filter: Record<string, any> = {}
+
+  if (params.search) {
+    const q = params.search
+    filter.$or = [
+      { email: { $regex: q, $options: 'i' } },
+      { fullName: { $regex: q, $options: 'i' } },
+      { phoneNumber: { $regex: q, $options: 'i' } }
+    ]
+  }
+
+  if (params.status !== undefined) {
+    filter.status = params.status
+  }
+
+  if (roleIds && roleIds.length) {
+    filter.roleId = { $in: roleIds as any }
+  }
+
+  const cursor = users.find(filter as any).sort({ createdAt: -1 } as any).skip(skip).limit(limit)
+  const [userItems, total] = await Promise.all([cursor.toArray(), users.countDocuments(filter as any)])
+
+  const usedRoleIds = Array.from(new Set(userItems.map((u) => u.roleId).filter(Boolean))) as any[]
+  const roleDocs = usedRoleIds.length ? await roles.find({ _id: { $in: usedRoleIds } } as any).toArray() : []
+  const idToRole = new Map<string, { code?: string; name?: string }>()
+  for (const r of roleDocs as any[]) {
+    idToRole.set(String(r._id), { code: r.code, name: r.name })
+  }
+
+  const safeUsers = userItems.map((u: any) => {
+    const { passwordHash, ...rest } = u
+    const roleMeta = u.roleId ? idToRole.get(String(u.roleId)) : undefined
+    return { ...rest, roleCode: roleMeta?.code, roleName: roleMeta?.name }
+  })
+
+  return {
+    users: safeUsers,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 }
+  }
+}
+
 export async function getUserDetail(id: string) {
   const userId = new ObjectId(id)
   const user = await getUsersCollection().findOne({ _id: userId })

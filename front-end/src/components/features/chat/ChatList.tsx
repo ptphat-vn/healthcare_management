@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, User as UserIcon, Send, Stethoscope, ChevronDown, ChevronUp } from "lucide-react";
-import { toast } from "sonner";
 import { Combobox } from "@/components/ui/combobox";
-import { useGetAllLabUserQuery, useGetAllPatientQuery } from "@/services/userApi";
+import { MessageCircle, Stethoscope, User as UserIcon, ChevronDown, ChevronUp, Send } from "lucide-react";
+import { toast } from "sonner";
+import { useConversations } from "../../../hooks/useConversations";
+import { useChatPeers } from "../../../hooks/useChatPeers";
+import EmptyState from "@/components/ui/empty/EmptyState";
 import type { User } from "@/types/user.type";
 
 interface ChatListProps {
@@ -13,66 +15,27 @@ interface ChatListProps {
   selectedUserId?: string;
 }
 
-interface Conversation {
-  userId: string;
-  userName: string;
-  avatar?: string;
-  roleCode?: string;
-  lastMessage?: string;
-  lastMessageTime?: Date;
-}
-
 export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps) {
   const { user } = useAuth();
   const currentUserId = user?.data?._id;
-  const roleCode = user?.data?.roleCode;
-  const isPatient = roleCode === "patient";
-  const isDoctor = roleCode === "doctor" || roleCode === "consultant" || roleCode === "lab_user";
-  const targetLabel = isPatient ? "bác sĩ" : "bệnh nhân";
-
   const [selectedUserIdInput, setSelectedUserIdInput] = useState("");
-  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [expandedSection, setExpandedSection] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const queryParams = { search: searchTerm || undefined, status: 1, limit: 100 };
-  const { data: labUsersData, isLoading: isLoadingLabUsers } = useGetAllLabUserQuery(queryParams, { skip: !isPatient } as any);
-  const { data: patientsData, isLoading: isLoadingPatients } = useGetAllPatientQuery(queryParams, { skip: !isDoctor } as any);
-  const usersData = isPatient ? labUsersData : patientsData;
-  const isLoadingUsers = isPatient ? isLoadingLabUsers : isLoadingPatients;
-
-  useEffect(() => {
-    const saved = localStorage.getItem(`chat_conversations_${currentUserId}`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setConversations(parsed.map((c: any) => ({ ...c, lastMessageTime: c.lastMessageTime ? new Date(c.lastMessageTime) : undefined })));
-      } catch (e) {
-        console.error("Failed to load conversations", e);
-      }
-    }
-  }, [currentUserId]);
+  const { conversations, save } = useConversations(currentUserId);
+  const { users, isLoading: isLoadingUsers, targetLabel, isPatient, isDoctor } = useChatPeers(searchTerm);
 
   const userOptions = useMemo(
     () =>
-      (usersData?.data?.user || [])
+      (users || [])
         .filter((u: User) => u._id !== currentUserId)
         .map((u: User) => ({
           value: u._id,
           label: u.fullName || `User ${u._id.substring(0, 8)}...`,
           description: `${u.email || "No email"}${u.roleCode ? ` • ${u.roleCode}` : ""}`,
         })),
-    [usersData, currentUserId]
+    [users, currentUserId]
   );
-
-  const saveConversation = (userId: string, userName: string, avatar?: string, roleCode?: string) => {
-    const newConv = { userId, userName, avatar, roleCode, lastMessageTime: new Date() };
-    setConversations((prev) => {
-      const updated = [newConv, ...prev.filter((c) => c.userId !== userId)].slice(0, 20);
-      localStorage.setItem(`chat_conversations_${currentUserId}`, JSON.stringify(updated));
-      return updated;
-    });
-  };
 
   const handleStartChat = () => {
     const userId = selectedUserIdInput.trim();
@@ -81,11 +44,11 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
       return;
     }
 
-    const selectedUser = usersData?.data?.user?.find((u: User) => u._id === userId);
+    const selectedUser = users?.find((u: User) => u._id === userId);
     const userName = selectedUser?.fullName || (isPatient ? "Bác sĩ tư vấn" : `Bệnh nhân ${userId.substring(0, 8)}...`);
     const partnerRoleCode = selectedUser?.roleCode || (isPatient ? "consultant" : "patient");
 
-    saveConversation(userId, userName, selectedUser?.avatar, partnerRoleCode);
+    save({ userId, userName, avatar: selectedUser?.avatar, roleCode: partnerRoleCode, lastMessageTime: new Date() });
     onSelectChat(userId, userName, selectedUser?.avatar);
     setSelectedUserIdInput("");
     setSearchTerm("");
@@ -109,13 +72,13 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
                 value={selectedUserIdInput}
                 onValueChange={(value) => {
                   setSelectedUserIdInput(value);
-                  const u = usersData?.data?.user?.find((u: User) => u._id === value);
+                  const u = users?.find((u: User) => u._id === value);
                   if (u) setSearchTerm(u.fullName || "");
                 }}
                 placeholder={`Tìm kiếm ${targetLabel}...`}
                 searchPlaceholder="Tìm theo tên, email..."
                 emptyMessage={isLoadingUsers ? "Đang tải..." : `Không tìm thấy ${targetLabel} nào`}
-                disabled={isLoadingUsers || !isPatient && !isDoctor}
+                disabled={isLoadingUsers || (!isPatient && !isDoctor)}
               />
             </div>
             <Button onClick={handleStartChat} size="icon" disabled={!selectedUserIdInput || isLoadingUsers || (!isPatient && !isDoctor)}>
@@ -128,11 +91,12 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
 
       <div className="flex-1 overflow-y-auto">
         {conversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500 p-4">
-            <MessageCircle className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm font-medium mb-1">Chưa có cuộc trò chuyện nào</p>
-            <p className="text-xs text-center text-gray-400">Chọn {targetLabel} từ danh sách ở trên để bắt đầu chat</p>
-          </div>
+          <EmptyState
+            title="Chưa có cuộc trò chuyện nào"
+            description={`Chọn ${targetLabel} từ danh sách ở trên để bắt đầu chat`}
+            icon={<MessageCircle className="w-12 h-12 opacity-50" />}
+            className="h-64"
+          />
         ) : (
           <div className="p-2 space-y-2">
             <button

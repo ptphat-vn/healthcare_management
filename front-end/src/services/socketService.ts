@@ -9,14 +9,22 @@ class SocketService {
   private reconnectAttempts = 0;
   private readonly maxAttempts = 5;
 
+  private getSocketBaseUrl() {
+    // Ưu tiên VITE_SOCKET_URL; fallback: loại bỏ hậu tố /api khỏi VITE_API_URL
+    const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
+    const socketUrl = (import.meta.env.VITE_SOCKET_URL as string | undefined)
+      || (apiUrl ? apiUrl.replace(/\/api\/?$/, "") : undefined);
+    return socketUrl;
+  }
+
   connect() {
     if (this.socket?.connected) return;
 
     const { auth: { accessToken: token } } = store.getState() as RootState;
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const baseUrl = this.getSocketBaseUrl();
 
-    if (!token || !apiUrl) {
-      console.warn("Socket: Missing token or API URL");
+    if (!token || !baseUrl) {
+      console.warn("Socket: Missing token or base URL");
       return;
     }
 
@@ -26,7 +34,7 @@ class SocketService {
       this.socket = null;
     }
 
-    this.socket = io(apiUrl, {
+    this.socket = io(baseUrl, {
       auth: { token: `Bearer ${token}` },
       transports: ["websocket", "polling"],
       reconnection: true,
@@ -34,6 +42,8 @@ class SocketService {
       reconnectionDelayMax: 5000,
       reconnectionAttempts: this.maxAttempts,
       timeout: 20000,
+      // Chỉ rõ path socket.io ở root (không kèm /api)
+      path: "/socket.io",
     });
 
     this.socket.on("connect", () => {
@@ -48,8 +58,8 @@ class SocketService {
 
     this.socket.on("connect_error", (error) => {
       this.reconnectAttempts++;
-      const code = this.reconnectAttempts >= this.maxAttempts 
-        ? "MAX_RECONNECT_ATTEMPTS" 
+      const code = this.reconnectAttempts >= this.maxAttempts
+        ? "MAX_RECONNECT_ATTEMPTS"
         : "CONNECTION_ERROR";
       this.emit("error", { message: error.message, code });
     });

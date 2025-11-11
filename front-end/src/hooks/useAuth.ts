@@ -21,9 +21,26 @@ export function useAuth() {
       toast.error("Đăng xuất thất bại");
       console.log(error);
     } finally {
+      // Backup chat conversations trước khi clear localStorage
+      const chatKeys: string[] = [];
+      const chatData: Record<string, string> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("chat_conversations_")) {
+          chatKeys.push(key);
+          chatData[key] = localStorage.getItem(key) || "";
+        }
+      }
+
       dispatch(logout());
       persistStore(store).purge();
       localStorage.clear();
+
+      // Restore chat conversations sau khi clear
+      Object.entries(chatData).forEach(([key, value]) => {
+        localStorage.setItem(key, value);
+      });
+
       window.location.reload();
     }
   };

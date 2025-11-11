@@ -5,6 +5,7 @@ import type {
   ConversationResponse,
   SendMessageRequest,
 } from "@/types/chat-type";
+import type { Conversation } from "@/hooks/useConversations";
 
 export const chatApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -30,10 +31,22 @@ export const chatApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Chat"],
     }),
+
+    getRecentConversations: builder.query<
+      APIResponse<{ conversations: Conversation[] }>,
+      { limit?: number }
+    >({
+      query: ({ limit = 20 } = {}) => ({
+        url: `/chats/recent?limit=${limit}`,
+        method: "GET",
+      }),
+      providesTags: ["Chat"],
+    }),
   }),
 });
 
 export const {
   useGetConversationQuery,
   useSendMessageMutation,
+  useGetRecentConversationsQuery,
 } = chatApi;

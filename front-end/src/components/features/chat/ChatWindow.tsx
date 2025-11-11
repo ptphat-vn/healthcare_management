@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetConversationQuery, useSendMessageMutation } from "@/services/chatApi";
-import { socketService } from "@/services/socketService";
 import type { ChatMessage } from "@/types/chat-type";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Loader2, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useSocketConnection } from "../../../hooks/useSocketConnection";
+import { useConversations } from "../../../hooks/useConversations";
+import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
+import EmptyState from "@/components/ui/empty/EmptyState";
 
 interface ChatWindowProps {
   otherUserId: string;
@@ -22,13 +25,21 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, error } = useGetConversationQuery({ userId: otherUserId, page: 1, limit: 100 });
   const [sendMessageApi] = useSendMessageMutation();
+  const { update } = useConversations(currentUserId);
 
   const conversationId = currentUserId ? `${[currentUserId, otherUserId].sort().join("_")}` : "";
+
+  const handleMessage = (msg: ChatMessage) => {
+    setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]));
+    update(otherUserId, { lastMessage: msg.content.substring(0, 50), lastMessageTime: new Date(msg.createdAt) });
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const { isConnected } = useSocketConnection(conversationId, handleMessage);
 
   useEffect(() => {
     if (data?.data?.messages) setMessages(data.data.messages);
@@ -37,67 +48,6 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
   useEffect(() => {
     if (error) toast.error("Không thể tải cuộc trò chuyện");
   }, [error]);
-
-  useEffect(() => {
-    if (!currentUserId || !conversationId) return;
-
-    socketService.connect();
-    setIsConnected(socketService.isConnected());
-
-    const upsertConv = (msg: ChatMessage) => {
-      const key = `chat_conversations_${currentUserId}`;
-      const list = JSON.parse(localStorage.getItem(key) || "[]");
-      const idx = list.findIndex((c: any) => c.userId === otherUserId);
-      const existingRole = idx >= 0 ? list[idx].roleCode : undefined;
-      const conv = {
-        userId: otherUserId,
-        userName: otherUserName,
-        avatar: otherUserAvatar,
-        roleCode: existingRole,
-        lastMessage: msg.content.substring(0, 50),
-        lastMessageTime: new Date(msg.createdAt),
-      };
-      if (idx >= 0) list[idx] = { ...list[idx], ...conv };
-      else list.unshift(conv);
-      localStorage.setItem(key, JSON.stringify(list.slice(0, 20)));
-    };
-
-    const join = () => (socketService.isConnected() ? socketService.joinRoom(conversationId) : setTimeout(join, 500));
-    join();
-
-    const onMessage = (msg: ChatMessage) => {
-      if (msg.conversationId !== conversationId) return;
-      setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]));
-      upsertConv(msg);
-      endRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    const onError = (e: { message: string; code?: string }) => {
-      if (e.code === "MAX_RECONNECT_ATTEMPTS" || e.code === "RECONNECT_FAILED") toast.error("Mất kết nối. Vui lòng làm mới trang.");
-    };
-
-    const onConnect = () => {
-      setIsConnected(true);
-      socketService.joinRoom(conversationId);
-    };
-
-    const onDisconnect = () => setIsConnected(false);
-
-    socketService.on("message", onMessage);
-    socketService.on("error", onError);
-    socketService.on("connect", onConnect);
-    socketService.on("disconnect", onDisconnect);
-    socketService.on("reconnect", onConnect);
-
-    return () => {
-      socketService.off("message", onMessage);
-      socketService.off("error", onError);
-      socketService.off("connect", onConnect);
-      socketService.off("disconnect", onDisconnect);
-      socketService.off("reconnect", onConnect);
-      socketService.leaveRoom(conversationId);
-    };
-  }, [currentUserId, conversationId, otherUserId, otherUserName, otherUserAvatar]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -113,23 +63,19 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
       const res = await sendMessageApi({ userId: otherUserId, message: { content } }).unwrap();
       if (res.data) {
         setMessages((prev) => (prev.some((m) => m._id === res.data._id) ? prev : [...prev, res.data]));
+        update(otherUserId, { lastMessage: content.substring(0, 50), lastMessageTime: new Date() });
         endRef.current?.scrollIntoView({ behavior: "smooth" });
       }
-    } catch (e: any) {
-      toast.error(e?.data?.message || "Không thể gửi tin nhắn");
+    } catch (e: unknown) {
+      const error = e as { data?: { message?: string } };
+      toast.error(error?.data?.message || "Không thể gửi tin nhắn");
       setInputMessage(content);
     } finally {
       setIsSending(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-6 h-6 animate-spin" />
-      </div>
-    );
-  }
+  if (isLoading) return <LoadingSpinner message="Đang tải cuộc trò chuyện..." />;
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -167,9 +113,7 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            <p>Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
-          </div>
+          <EmptyState title="Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!" />
         ) : (
           messages.map((m) => {
             const own = m.senderId === currentUserId;
@@ -205,3 +149,4 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
       </div>
     </div>
   );
+}
