@@ -11,7 +11,13 @@ export default function ReagentDetailPage() {
   const { data, isLoading, error } = useGetReagentByIdQuery(id || "");
   const reagent = data?.data;
 
-  const InfoRow = ({ label, value }: { label: string; value: string | number | undefined }) => (
+  const InfoRow = ({
+    label,
+    value,
+  }: {
+    label: string;
+    value: string | number | undefined;
+  }) => (
     <div className="grid grid-cols-3 gap-4 py-3">
       <dt className="font-semibold text-gray-600">{label}</dt>
       <dd className="col-span-2 text-gray-900">{value || "N/A"}</dd>
@@ -44,11 +50,7 @@ export default function ReagentDetailPage() {
     <div className="p-6 bg-gray-50 min-h-screen rounded-[20px]">
       {/* Header */}
       <div className="mb-6">
-        <Button
-          variant="outline"
-          onClick={() => navigate(-1)}
-          className="mb-4"
-        >
+        <Button variant="outline" onClick={() => navigate(-1)} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Reagent List
         </Button>
@@ -84,10 +86,7 @@ export default function ReagentDetailPage() {
           </h2>
           <dl className="divide-y divide-gray-200">
             <InfoRow label="Reagent Name" value={reagent.name} />
-            <InfoRow label="Catalog Number" value={reagent.catalogNumber} />
             <InfoRow label="Manufacturer" value={reagent.manufacturer} />
-            <InfoRow label="CAS Number" value={reagent.casNumber} />
-            <InfoRow label="Category" value={reagent.category} />
           </dl>
         </div>
 
@@ -109,7 +108,10 @@ export default function ReagentDetailPage() {
               </dd>
             </div>
             <InfoRow label="Dilution Ratio" value={reagent.ratio} />
-            <InfoRow label="Storage Conditions" value={reagent.storageConditions} />
+            <InfoRow
+              label="Storage Conditions"
+              value={reagent.storageConditions}
+            />
           </dl>
         </div>
 

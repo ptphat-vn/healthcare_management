@@ -15,6 +15,7 @@ import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrder
 import TestOrderDetailPage from "@/pages/admin/testOrderManagement/TestOrderDetailPage";
 import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
 import MedicalRecordDetail from "@/pages/admin/medicalRecords/medicalRecordDetail/MedicalRecordDetail";
+import TestDetail from "@/pages/admin/medicalRecords/testDetail/TestDetail";
 import { useMemo } from "react";
 
 import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
@@ -92,6 +93,7 @@ export const router = createBrowserRouter([
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
       // medical record
       { path: "medical-records", element: <MedicalRecordPage /> },
+      { path: "medical-records/test/:testId", element: <TestDetail /> },
       { path: "medical-records/:id", element: <MedicalRecordDetail /> },
       // profile
       { path: "profile", element: <ProfilePage /> },
@@ -113,6 +115,7 @@ export const router = createBrowserRouter([
       { path: "user-management/:id", element: <UserDetail /> },
       { path: "profile", element: <ProfilePage /> },
       { path: "medical-record", element: <MedicalRecordPage /> },
+      { path: "medical-records/test/:testId", element: <TestDetail /> },
       { path: "medical-records/:id", element: <MedicalRecordDetail /> },
       { path: "test-order", element: <TestOrderManagementPage /> },
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
@@ -134,6 +137,7 @@ export const router = createBrowserRouter([
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
       { path: "medical-records", element: <MedicalRecordPage /> },
       { path: "reagent-management", element: <ReagentManagementPage /> },
+      { path: "medical-records/test/:testId", element: <TestDetail /> },
       { path: "medical-records/:id", element: <MedicalRecordDetail /> },
       { path: "test-order", element: <TestOrderManagementPage /> },
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
