@@ -10,6 +10,7 @@ import {
   UserCog,
   Users,
   FlaskConical,
+  MessageCircle,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -145,6 +146,11 @@ export default function SideBar() {
         label: "Medical Record",
         to: "/patient/medical-record",
         icon: <ClipboardPlus />,
+      },
+      {
+        label: "Chat",
+        to: "/patient/chat",
+        icon: <MessageCircle />,
       },
       { label: "Profile", to: "/patient/profile", icon: <User /> },
     ],

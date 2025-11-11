@@ -36,6 +36,8 @@ import ReagentManagementPage from "@/pages/labUser/reagentManagement/ReagentMana
 import ReagentDetailPage from "@/pages/labUser/reagentManagement/reagentDetail/ReagentDetailPage";
 import InstrumentDetailPage from "@/pages/service/instrumentManager/InstrumentDetailPage";
 
+import ChatPage from "@/pages/chat/ChatPage";
+
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
   // const role = user?.data.roleCode;
@@ -95,6 +97,7 @@ export const router = createBrowserRouter([
       { path: "medical-records/:id", element: <MedicalRecordDetail /> },
       // profile
       { path: "profile", element: <ProfilePage /> },
+      { path: "chat", element: <ChatPage /> },
     ],
   },
 
@@ -155,6 +158,7 @@ export const router = createBrowserRouter([
       { path: "dashboard", element: <PatientDashboardPage /> },
       { path: "medical-record", element: <MedicalRecordPatientPage /> },
       { path: "profile", element: <ProfilePatient /> },
+      { path: "chat", element: <ChatPage /> },
     ],
   },
 
