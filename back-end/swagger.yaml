@@ -5366,7 +5366,7 @@ components:
         data:
           type: object
           additionalProperties: true
-          description: Optional additional payload (e.g., { testOrderId: '...', url: '...' })
+          description: "Optional additional payload (e.g., { testOrderId: '...', url: '...' })"
         read:
           type: boolean
           example: false

@@ -10,18 +10,21 @@ export interface CreateNotificationPayload {
   body?: string
   data?: Record<string, unknown>
 }
+const parseObjectId = (id: string, fieldName = 'id') => {
+  try {
+    return new ObjectId(id)
+  } catch {
+    throw new HttpError(422, `Invalid ${fieldName}`)
+  }
+}
 
 export const createNotification = async (payload: CreateNotificationPayload): Promise<WithId<NotificationDocument>> => {
-  let userObjectId: ObjectId
-  try {
-    userObjectId = new ObjectId(payload.userId)
-  } catch {
-    throw new HttpError(422, 'Invalid user id')
-  }
+  const userObjectId = parseObjectId(payload.userId, 'user id')
+  const actorObjectId = payload.actorId ? parseObjectId(payload.actorId, 'actor id') : undefined
 
   const doc: NotificationDocument = {
     userId: userObjectId,
-    actorId: payload.actorId ? new ObjectId(payload.actorId) : undefined,
+    actorId: actorObjectId,
     type: payload.type,
     title: payload.title,
     body: payload.body,
@@ -44,13 +47,7 @@ export interface ListNotificationsParams {
 }
 
 export const listNotifications = async (params: ListNotificationsParams) => {
-  let userObjectId: ObjectId
-  try {
-    userObjectId = new ObjectId(params.userId)
-  } catch {
-    throw new HttpError(422, 'Invalid user id')
-  }
-
+  const userObjectId = parseObjectId(params.userId, 'user id')
   const col = getNotificationsCollection()
   const page = params.page && params.page > 0 ? params.page : 1
   const limit = params.limit && params.limit > 0 ? params.limit : 20
@@ -69,22 +66,12 @@ export const listNotifications = async (params: ListNotificationsParams) => {
 }
 
 export const markAsRead = async (id: string, userId: string) => {
-  let objectId: ObjectId
-  try {
-    objectId = new ObjectId(id)
-  } catch {
-    throw new HttpError(422, 'Invalid notification id')
-  }
-  let userObjectId: ObjectId
-  try {
-    userObjectId = new ObjectId(userId)
-  } catch {
-    throw new HttpError(422, 'Invalid user id')
-  }
+  const objectId = parseObjectId(id, 'notification id')
+  const userObjectId = parseObjectId(userId, 'user id')
 
   const col = getNotificationsCollection()
   const res = await col.findOneAndUpdate({ _id: objectId, userId: userObjectId } as any, { $set: { read: true } }, { returnDocument: 'after' as any })
-  const updated: any = (res as any)?.value ?? res
+  const updated = (res as any)?.value
   if (!updated) throw new HttpError(404, 'Notification not found')
   return updated as WithId<NotificationDocument>
 }
