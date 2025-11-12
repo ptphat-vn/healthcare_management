@@ -7,6 +7,7 @@ import {
   getReagentByIdController,
   updateReagentController,
   deleteReagentController,
+  getReagentCategoriesController,
   createVendorSupplyController,
   listVendorSupplyHistoryController,
   recordReagentUsageController,
@@ -35,6 +36,11 @@ router.post(
   privilegeMiddleware(['create_reagent']),
   validateCreateReagent,
   createReagentController
+)
+router.get(
+  '/reagents/categories',
+  privilegeMiddleware(['view_reagent']),
+  getReagentCategoriesController
 )
 router.get(
   '/reagents/:id',
