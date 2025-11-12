@@ -15,9 +15,7 @@ export interface Reagent {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  createdBy:
-    | string
-    | {
+  createdBy: string | {
         _id: string;
         fullName: string;
         email: string;
