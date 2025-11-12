@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGetRecentConversationsQuery } from "@/services/chatApi";
 
 export interface Conversation {
@@ -48,7 +48,10 @@ export function useConversations(currentUserId?: string) {
       if (currentUserId) {
         const key = `chat_conversations_${currentUserId}`;
         localStorage.setItem(key, JSON.stringify(serverConversations));
-        window.dispatchEvent(new CustomEvent("chatConversationUpdated"));
+        // Sử dụng setTimeout để đẩy event ra khỏi quá trình render
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("chatConversationUpdated"));
+        }, 0);
       }
     }
   }, [serverData, currentUserId]);
@@ -56,32 +59,40 @@ export function useConversations(currentUserId?: string) {
   useEffect(() => {
     if (!currentUserId) return;
     const key = `chat_conversations_${currentUserId}`;
+    
     const handleStorage = (e: StorageEvent) => {
       if (e.key === key && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
-          setConversations(
-            parsed.map((c: Conversation & { lastMessageTime?: string | Date }) => ({
-              ...c,
-              lastMessageTime: c.lastMessageTime ? new Date(c.lastMessageTime) : undefined,
-            }))
-          );
+          // Sử dụng setTimeout để đẩy setState ra khỏi quá trình render
+          setTimeout(() => {
+            setConversations(
+              parsed.map((c: Conversation & { lastMessageTime?: string | Date }) => ({
+                ...c,
+                lastMessageTime: c.lastMessageTime ? new Date(c.lastMessageTime) : undefined,
+              }))
+            );
+          }, 0);
         } catch (e) {
           console.error("Failed to load conversations from storage event", e);
         }
       }
     };
+    
     const handleCustom = () => {
       const saved = localStorage.getItem(key);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          setConversations(
-            parsed.map((c: Conversation & { lastMessageTime?: string | Date }) => ({
-              ...c,
-              lastMessageTime: c.lastMessageTime ? new Date(c.lastMessageTime) : undefined,
-            }))
-          );
+          // Sử dụng setTimeout để đẩy setState ra khỏi quá trình render
+          setTimeout(() => {
+            setConversations(
+              parsed.map((c: Conversation & { lastMessageTime?: string | Date }) => ({
+                ...c,
+                lastMessageTime: c.lastMessageTime ? new Date(c.lastMessageTime) : undefined,
+              }))
+            );
+          }, 0);
         } catch (e) {
           console.error("Failed to load conversations from custom event", e);
         }
@@ -102,7 +113,10 @@ export function useConversations(currentUserId?: string) {
     setConversations((prev) => {
       const updated = [conv, ...prev.filter((c) => c.userId !== conv.userId)].slice(0, 20);
       localStorage.setItem(key, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent("chatConversationUpdated"));
+      // Sử dụng setTimeout để đẩy event ra khỏi quá trình render
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("chatConversationUpdated"));
+      }, 0);
       return updated;
     });
   };
@@ -113,7 +127,10 @@ export function useConversations(currentUserId?: string) {
     setConversations((prev) => {
       const updated = prev.map((c) => (c.userId === userId ? { ...c, ...updates } : c));
       localStorage.setItem(key, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent("chatConversationUpdated"));
+      // Sử dụng setTimeout để đẩy event ra khỏi quá trình render
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("chatConversationUpdated"));
+      }, 0);
       return updated;
     });
   };

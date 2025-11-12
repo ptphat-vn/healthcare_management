@@ -32,14 +32,37 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
   const { data, isLoading, error } = useGetConversationQuery({ userId: otherUserId, page: 1, limit: 100 });
   const [sendMessageApi] = useSendMessageMutation();
   const { update } = useConversations(currentUserId);
+  const updateRef = useRef(update);
+  
+  // Cập nhật ref khi update thay đổi
+  useEffect(() => {
+    updateRef.current = update;
+  }, [update]);
 
   const conversationId = currentUserId ? `${[currentUserId, otherUserId].sort().join("_")}` : "";
 
   const handleMessage = (msg: ChatMessage) => {
-    setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]));
-    update(otherUserId, { lastMessage: msg.content.substring(0, 50), lastMessageTime: new Date(msg.createdAt) });
+    setMessages((prev) => {
+      if (prev.some((m) => m._id === msg._id)) return prev;
+      lastMessageRef.current = msg;
+      return [...prev, msg];
+    });
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const lastMessageRef = useRef<ChatMessage | null>(null);
+
+  // Cập nhật conversations khi có message mới
+  useEffect(() => {
+    if (lastMessageRef.current) {
+      const msg = lastMessageRef.current;
+      updateRef.current(otherUserId, { 
+        lastMessage: msg.content.substring(0, 50), 
+        lastMessageTime: new Date(msg.createdAt) 
+      });
+      lastMessageRef.current = null;
+    }
+  }, [messages, otherUserId, update]);
 
   const { isConnected } = useSocketConnection(conversationId, handleMessage);
 
@@ -69,7 +92,15 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
       const res = await sendMessageApi({ userId: otherUserId, message: { content } }).unwrap();
       if (res.data) {
         setMessages((prev) => (prev.some((m) => m._id === res.data._id) ? prev : [...prev, res.data]));
-        update(otherUserId, { lastMessage: content.substring(0, 50), lastMessageTime: new Date() });
+        
+        // Sử dụng setTimeout để đẩy update ra khỏi quá trình render
+        setTimeout(() => {
+          updateRef.current(otherUserId, { 
+            lastMessage: content.substring(0, 50), 
+            lastMessageTime: new Date() 
+          });
+        }, 0);
+        
         endRef.current?.scrollIntoView({ behavior: "smooth" });
       }
     } catch (e: unknown) {
