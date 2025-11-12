@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import bg_authen from "@/assets/images/bg_authen.png";
 import bg_login from "@/assets/images/bg_login.png";
-import ResetPasswordFlow from "@/components/ResetPassword/ResetPasswordFlow";
+import ResetPasswordFlow from "@/components/features/ResetPassword/ResetPasswordFlow";
 
 export default function ForgotPasswordPage() {
   return (
@@ -21,11 +21,18 @@ export default function ForgotPasswordPage() {
         />
         <div className="relative z-10 flex items-center gap-4 ml-8">
           <svg width={56} height={56} viewBox="0 0 56 56" fill="none">
-            <path d="M6 32h10l6-16 12 40 6-24h10" stroke="#222" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M6 32h10l6-16 12 40 6-24h10"
+              stroke="#222"
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           <div>
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-1">Laboratory Management</h1>
-         
+            <h1 className="text-4xl font-extrabold text-gray-900 mb-1">
+              Laboratory Management
+            </h1>
           </div>
         </div>
       </div>
@@ -38,8 +45,6 @@ export default function ForgotPasswordPage() {
           exit={{ x: 100, opacity: 0 }}
           transition={{ duration: 1, type: "spring" }}
         >
-     
-
           <ResetPasswordFlow />
         </motion.div>
       </div>

@@ -8,22 +8,24 @@ export default function UserManagementPage() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen rounded-[20px]">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-          <p className="text-sm text-gray-500 mt-2">
+    <div className="p-4 sm:p-6 lg:p-4 bg-white min-h-screen rounded-[20px]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+            User Management
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">
             Manage all users in your system.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <Button
             onClick={() => setIsAddUserModalOpen(true)}
-            className="flex items-center gap-2 btn-primary"
+            className="flex items-center justify-center gap-2 btn-primary w-full sm:w-auto h-9 sm:h-10 text-sm sm:text-base"
           >
-            <Plus size={18} />
-            <span>Add New User</span>
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="whitespace-nowrap">Add New User</span>
           </Button>
           <AddUserModal
             open={isAddUserModalOpen}
