@@ -16,10 +16,10 @@ export interface Reagent {
   createdAt: string;
   updatedAt: string;
   createdBy: string | {
-    _id: string;
-    fullName: string;
-    email: string;
-  };
+        _id: string;
+        fullName: string;
+        email: string;
+      };
   category?: string;
   storageConditions?: string;
   safetyInstructions?: string;
