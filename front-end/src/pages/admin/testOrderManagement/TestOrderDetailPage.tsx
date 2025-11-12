@@ -71,7 +71,7 @@ export default function TestOrderDetailPage() {
         <div className="mb-6">
           <Button
             variant="outline"
-            onClick={() => navigate("/admin/test-order")}
+            onClick={() => navigate(-1)}
             className="flex items-center gap-2 mb-4"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -135,13 +135,16 @@ export default function TestOrderDetailPage() {
           )}
 
           {activeTab === "results" && (
-            <TestResultsSection testResults={order.testResults || []} />
+            <TestResultsSection
+              testResults={order.testResults || []}
+              testOrderId={orderId as string}
+            />
           )}
 
           {activeTab === "comments" && (
             <CommentsSection
               comments={order.comments || []}
-              testOrderId={orderId}
+              testOrderId={orderId as string}
             />
           )}
         </div>

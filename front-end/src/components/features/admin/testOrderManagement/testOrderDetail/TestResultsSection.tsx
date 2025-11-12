@@ -1,4 +1,4 @@
-import { TrendingUp, AlertTriangle } from "lucide-react";
+import { TrendingUp, AlertTriangle, Plus, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -8,6 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import AddTestResultModal from "./AddTestResultModal";
+import { useCreateTestOrderReviewByAIMutation } from "@/services/testOrderApi";
+import { toast } from "sonner";
 
 interface TestResult {
   _id: string;
@@ -28,6 +33,7 @@ interface TestResult {
 
 interface TestResultsSectionProps {
   testResults: TestResult[];
+  testOrderId: string;
 }
 
 const getResultStatusColor = (status: string) => {
@@ -50,13 +56,47 @@ const getFlagBadge = (flag: string) => {
 
 export default function TestResultsSection({
   testResults,
+  testOrderId,
 }: TestResultsSectionProps) {
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [aiReviewTestOrd, { isLoading }] =
+    useCreateTestOrderReviewByAIMutation();
+  const handleAddTestResult = () => {
+    setAddModalOpen(true);
+  };
+
+  const handleAIReviewTestResult = async () => {
+    try {
+      const response = await aiReviewTestOrd({ testOrderId }).unwrap();
+      console.log("AI Review completed:", response);
+
+      toast.success("AI review completed successfully");
+    } catch (error) {
+      console.error("AI Review failed:", error);
+
+      toast.error("Failed to complete AI review");
+    }
+  };
+
   if (!testResults || testResults.length === 0) {
     return (
-      <div className="text-center py-12">
-        <TrendingUp className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-        <p className="text-lg text-gray-600">No test results available</p>
-      </div>
+      <>
+        <div className="text-center py-12">
+          <TrendingUp className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+          <p className="text-lg text-gray-600 mb-4">
+            No test results available
+          </p>
+          <Button className="btn-primary" onClick={handleAddTestResult}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Test Result
+          </Button>
+        </div>
+        <AddTestResultModal
+          open={addModalOpen}
+          onOpenChange={setAddModalOpen}
+          testOrderId={testOrderId}
+        />
+      </>
     );
   }
 
@@ -92,10 +132,23 @@ export default function TestResultsSection({
       {/* Results Table */}
       <Card className="border-indigo-100 shadow-sm">
         <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
-          <CardTitle className="flex items-center gap-2 text-indigo-700">
-            <TrendingUp className="w-6 h-6" />
-            Test Results ({testResults.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-indigo-700">
+              <TrendingUp className="w-6 h-6" />
+              Test Results ({testResults.length})
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white cursor-pointer"
+                onClick={handleAIReviewTestResult}
+                disabled={isLoading}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                {isLoading ? "Reviewing..." : "AI Review"}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -176,21 +229,30 @@ export default function TestResultsSection({
       </Card>
 
       {/* HL7 Info */}
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader className="bg-gray-50">
-          <CardTitle className="text-gray-700">
-            HL7 Message Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <p className="text-xs text-gray-600 mb-2">HL7 Message ID</p>
-            <p className="font-mono text-sm text-gray-900 break-all">
-              {testResults[0]?.hl7MessageId}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {testResults[0]?.hl7MessageId && (
+        <Card className="border-gray-200 shadow-sm">
+          <CardHeader className="bg-gray-50">
+            <CardTitle className="text-gray-700">
+              HL7 Message Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <p className="text-xs text-gray-600 mb-2">HL7 Message ID</p>
+              <p className="font-mono text-sm text-gray-900 break-all">
+                {testResults[0].hl7MessageId}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Add Test Result Modal */}
+      <AddTestResultModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        testOrderId={testOrderId}
+      />
     </div>
   );
 }

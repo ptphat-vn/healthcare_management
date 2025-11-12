@@ -19,7 +19,7 @@ export interface EventLog {
   service?: string;
   role: string;
 }
- 
+
 export interface Operator {
   id: string;
   name: string;

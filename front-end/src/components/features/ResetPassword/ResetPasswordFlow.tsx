@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-import StepEmail from "@/components/ResetPassword/StepEmail";
-import StepOTP from "@/components/ResetPassword/StepOTP";
-import StepNewPassword from "@/components/ResetPassword/StepNewPassword";
+import StepEmail from "@/components/features/ResetPassword/StepEmail";
+import StepOTP from "@/components/features/ResetPassword/StepOTP";
+import StepNewPassword from "@/components/features/ResetPassword/StepNewPassword";
 
 import {
   useForgotPasswordMutation,
   useResetPasswordMutation,
 } from "@/services/baseApi";
-import type { ForgotPasswordRequest, ResetPasswordRequest } from "@/types/request.type";
+import type {
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+} from "@/types/request.type";
 import { forgotPasswordSchema } from "@/schemas/authSchema";
 
 type Step = 1 | 2 | 3;
@@ -37,7 +40,9 @@ export default function ResetPasswordFlow() {
       return;
     }
     try {
-      await forgotPassword({ email: (parsed.data as ForgotPasswordRequest).email }).unwrap();
+      await forgotPassword({
+        email: (parsed.data as ForgotPasswordRequest).email,
+      }).unwrap();
       toast.success("We have sent you a message with the authentication code");
       setStep(2);
     } catch (e: unknown) {
