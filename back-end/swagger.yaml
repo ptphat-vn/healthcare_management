@@ -18,7 +18,7 @@ info:
     - `lab_manager`: Lab Manager with management privileges
     - `service`: Service provider with operational privileges  
     - `lab_user`: Lab User with testing privileges
-    - `patient`: Default user role with read-only access
+    - `patient`: Default user role with read-only access. Patients can only view their own medical records and test orders.
 
     ### Privileges
     The system supports granular privileges for different operations:
@@ -80,6 +80,12 @@ info:
     ## Authorization
     Each endpoint requires specific privileges. Users must have the required privileges to access the endpoint.
     Admin users (with `*` privilege) have access to all endpoints.
+    
+    **Patient Access Restrictions:**
+    Users with the `patient` role have additional data access restrictions:
+    - Can only view their own medical records (filtered automatically)
+    - Can only view their own test orders and test results (filtered automatically)
+    - Attempting to access another patient's data will result in a 403 Forbidden error
 
     ## User Status
     - `0`: Inactive (soft deleted)
@@ -1612,7 +1618,11 @@ paths:
       tags:
         - Test Orders
       summary: Get list of test orders
-      description: Retrieve a paginated list of test orders with search and filter options
+      description: |
+        Retrieve a paginated list of test orders with search and filter options.
+        
+        **Patient Access Restriction:** Users with role `patient` can only view their own test orders and test results. 
+        The system automatically filters results to show only test orders associated with the authenticated patient's medical records.
       security:
         - bearerAuth: []
       parameters:
@@ -1680,13 +1690,19 @@ paths:
                         $ref: '#/components/schemas/Pagination'
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - Patient users can only access their own test orders
 
   /test-orders/{id}:
     get:
       tags:
         - Test Orders
       summary: Get test order details
-      description: Retrieve detailed information of a specific test order
+      description: |
+        Retrieve detailed information of a specific test order, including test results.
+        
+        **Patient Access Restriction:** Users with role `patient` can only view test order details (including test results) 
+        that belong to their own medical records. Attempting to access another patient's test order will result in a 403 Forbidden error.
       security:
         - bearerAuth: []
       parameters:
@@ -1712,6 +1728,8 @@ paths:
                     $ref: '#/components/schemas/TestOrderDetail'
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - Patient users can only access their own test orders
         '404':
           description: Test order not found
 
@@ -2479,7 +2497,11 @@ paths:
       tags:
         - Patient Medical Records
       summary: Get list of patient medical records
-      description: Retrieve a paginated list of patient medical records with search and filter options
+      description: |
+        Retrieve a paginated list of patient medical records with search and filter options.
+        
+        **Patient Access Restriction:** Users with role `patient` can only view their own medical records. 
+        The system automatically filters results to show only the authenticated patient's medical record.
       security:
         - bearerAuth: []
       parameters:
@@ -2604,13 +2626,19 @@ paths:
                         $ref: '#/components/schemas/Pagination'
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - Patient users can only access their own medical records
 
   /patient-records/{id}:
     get:
       tags:
         - Patient Medical Records
       summary: Get patient medical record details
-      description: Retrieve detailed information of a specific patient medical record
+      description: |
+        Retrieve detailed information of a specific patient medical record, including test orders and clinical notes.
+        
+        **Patient Access Restriction:** Users with role `patient` can only view their own medical record details. 
+        Attempting to access another patient's medical record will result in a 403 Forbidden error.
       security:
         - bearerAuth: []
       parameters:
@@ -2672,10 +2700,12 @@ paths:
                                 type: string
                               email:
                                 type: string
-        '404':
-          description: Patient record not found
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - Patient users can only access their own medical records
+        '404':
+          description: Patient record not found
 
     put:
       tags:
