@@ -4177,6 +4177,7 @@ paths:
               type: object
               required:
                 - name
+                - categories
               properties:
                 name:
                   type: string
@@ -4196,6 +4197,20 @@ paths:
                 description:
                   type: string
                   example: 'Automated blood analysis instrument'
+                categories:
+                  type: array
+                  description: At least one category is required
+                  items:
+                    type: string
+                    enum:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - Molecular/PCR
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
+                  example: ['Hematology']
                 status:
                   type: string
                   enum: [Active, Inactive, Maintenance, Out of Service]
@@ -4324,6 +4339,19 @@ paths:
                 description:
                   type: string
                   example: 'Automated blood analysis instrument'
+                categories:
+                  type: array
+                  description: Update instrument categories; at least one if provided
+                  items:
+                    type: string
+                    enum:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - Molecular/PCR
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
                 isActive:
                   type: boolean
                   example: true
@@ -4568,7 +4596,7 @@ paths:
                       - "Lot number {lotNumber} not found for this reagent"
                       - "Lot number {lotNumber} not found or unit mismatch for this reagent"
         '409':
-          description: Conflict - Instrument not active or insufficient inventory
+          description: Conflict - Instrument not active, categories mismatch, or insufficient inventory
           content:
             application/json:
               schema:
@@ -4580,6 +4608,9 @@ paths:
                     description: |
                       Possible messages:
                       - "Instrument is not active"
+                      - "Instrument {instrumentName} has no categories configured. Please update the instrument categories before assigning reagents."
+                      - "Reagent {reagentName} has no categories configured. Please update the reagent categories before assigning it to instruments."
+                      - "Instrument {instrumentName} and reagent {reagentName} do not share a common category."
                       - "No inventory available for this reagent"
                       - "No inventory available for this reagent in the unit: {unit}"
                       - "Insufficient quantity in lot {lotNumber}. Available: {available} {unit}, Requested: {requested} {unit}"
@@ -5803,6 +5834,20 @@ components:
         description:
           type: string
           example: 'Automated blood analysis instrument'
+        categories:
+          type: array
+          description: Instrument categories; must match reagent categories to assign reagents
+          items:
+            type: string
+            enum:
+              - Hematology
+              - Biochemistry
+              - Immunology
+              - Molecular/PCR
+              - Microbiology
+              - Coagulation
+              - Enzyme
+          example: ['Hematology', 'Biochemistry']
         isActive:
           type: boolean
           example: true

@@ -64,6 +64,37 @@ export const addReagentToInstrument = async (
   if (!reagent) {
     throw new HttpError(404, 'Reagent not found')
   }
+  const instrumentCategories = Array.isArray(instrument.categories)
+    ? instrument.categories.map((category) => category as string)
+    : []
+  const reagentCategories = Array.isArray(reagent.categories)
+    ? reagent.categories.map((category) => category as string)
+    : []
+
+  if (instrumentCategories.length === 0) {
+    throw new HttpError(
+      409,
+      `Instrument ${instrument.name} has no categories configured. Please update the instrument categories before assigning reagents.`
+    )
+  }
+
+  if (reagentCategories.length === 0) {
+    throw new HttpError(
+      409,
+      `Reagent ${reagent.name} has no categories configured. Please update the reagent categories before assigning it to instruments.`
+    )
+  }
+
+  const hasMatchingCategory = reagentCategories.some((category) =>
+    instrumentCategories.includes(category)
+  )
+
+  if (!hasMatchingCategory) {
+    throw new HttpError(
+      409,
+      `Instrument ${instrument.name} and reagent ${reagent.name} do not share a common category.`
+    )
+  }
   const reagentName = reagent.name
 
   // Get inventory using FIFO
