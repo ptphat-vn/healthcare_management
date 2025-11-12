@@ -3,6 +3,7 @@ import * as reagentService from '~/services/reagent.service'
 import * as vendorSupplyService from '~/services/reagent-vendor-supply.service'
 import * as usageHistoryService from '~/services/reagent-usage-history.service'
 import * as reagentInventoryService from '~/services/reagent-inventory.service'
+import { REAGENT_CATEGORIES } from '~/models/reagent.model'
 
 // REAGENT MASTER DATA
 
@@ -15,6 +16,7 @@ export const createReagentController = async (req: Request, res: Response, next:
     const created = await reagentService.createReagent(req.body, authUserId)
     return res.status(200).json({ message: 'Reagent created successfully', data: created })
   } catch (err) {
+    console.error('Error in createReagentController:', err)
     next(err)
   }
 }
@@ -83,6 +85,17 @@ export const deleteReagentController = async (req: Request, res: Response, next:
     }
     const deleted = await reagentService.deleteReagent(id, authUserId)
     return res.status(200).json({ message: 'Reagent deleted successfully', data: deleted })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const getReagentCategoriesController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    return res.status(200).json({ 
+      message: 'Get reagent categories successfully', 
+      data: REAGENT_CATEGORIES 
+    })
   } catch (err) {
     next(err)
   }
