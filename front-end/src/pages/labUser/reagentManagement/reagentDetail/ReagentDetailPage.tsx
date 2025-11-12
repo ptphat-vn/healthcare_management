@@ -86,7 +86,10 @@ export default function ReagentDetailPage() {
           </h2>
           <dl className="divide-y divide-gray-200">
             <InfoRow label="Reagent Name" value={reagent.name} />
+            <InfoRow label="Catalog Number" value={reagent.catalogNumber} />
             <InfoRow label="Manufacturer" value={reagent.manufacturer} />
+            <InfoRow label="CAS Number" value={reagent.casNumber} />
+            <InfoRow label="Category" value={reagent.category} />
           </dl>
         </div>
 
@@ -108,10 +111,7 @@ export default function ReagentDetailPage() {
               </dd>
             </div>
             <InfoRow label="Dilution Ratio" value={reagent.ratio} />
-            <InfoRow
-              label="Storage Conditions"
-              value={reagent.storageConditions}
-            />
+            <InfoRow label="Storage Conditions" value={reagent.storageConditions} />
           </dl>
         </div>
 
