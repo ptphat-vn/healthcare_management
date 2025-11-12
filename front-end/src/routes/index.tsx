@@ -35,6 +35,7 @@ import InstrumentManagementPage from "@/pages/service/instrumentManager/Instrume
 import ReagentManagementPage from "@/pages/labUser/reagentManagement/ReagentManagementPage";
 import ReagentDetailPage from "@/pages/labUser/reagentManagement/reagentDetail/ReagentDetailPage";
 import InstrumentDetailPage from "@/pages/service/instrumentManager/InstrumentDetailPage";
+import InstrumentReagentDetailPage from "@/pages/service/instrumentManager/InstrumentReagentDetailPage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -170,7 +171,14 @@ export const router = createBrowserRouter([
       { path: "dashboard", element: <ServiceDashboard /> },
       { path: "instruments", element: <InstrumentManagementPage /> },
       { path: "instruments/:id", element: <InstrumentDetailPage /> },
+      {
+        path: "instruments/:instrumentId/reagents/:assignmentId",
+        element: <InstrumentReagentDetailPage />,
+      },
+      { path: "reagent/:id", element: <ReagentDetailPage /> },
       { path: "profile", element: <ProfilePage /> },
+      {path: "reagent-management", element: <ReagentManagementPage />},
+      
     ],
   },
 ]);

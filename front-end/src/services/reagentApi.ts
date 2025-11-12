@@ -83,6 +83,37 @@ export const reagentApi = createApi({
       }),
       invalidatesTags: ["Reagents"],
     }),
+
+    // Get reagent inventory (FIFO)
+    getReagentInventory: builder.query<
+      {
+        message: string;
+        data: Array<{
+          vendorSupplyId: string;
+          reagentId: string;
+          reagentName: string;
+          lotNumber: string;
+          expirationDate: string;
+          quantityReceived: number;
+          quantityUsed: number;
+          quantityAvailable: number;
+          unitOfMeasure: string;
+          status: string;
+          daysUntilExpiration: number;
+          isExpired: boolean;
+          isExpiringSoon: boolean;
+        }>;
+      },
+      { reagentId?: string; includeExpired?: boolean }
+    >({
+      query: (params) => ({
+        url: "/reagents/inventory/fifo",
+        params: {
+          reagentId: params.reagentId,
+          includeExpired: params.includeExpired || false,
+        },
+      }),
+    }),
   }),
 });
 
@@ -92,4 +123,5 @@ export const {
   useCreateReagentMutation,
   useUpdateReagentMutation,
   useDeleteReagentMutation,
+  useGetReagentInventoryQuery,
 } = reagentApi;
