@@ -14,6 +14,7 @@ export const updateUserController = async (req: Request, res: Response, next: Ne
       'address',
       'email',
       'phoneNumber',
+      'identifyNumber',
       'roleId',
       'status'
     ] as const
@@ -131,5 +132,69 @@ export const updateAvatarController = async (req: Request, res: Response, next: 
     })
   } catch (error: any) {
     res.status(400).json({ message: error.message || 'Failed to update avatar' })
+  }
+}
+
+export const getAllLabUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const search = (req.query.search as string) || undefined
+    const status = req.query.status ? parseInt(req.query.status as string) : 1
+    const page = req.query.page ? parseInt(req.query.page as string) : 1
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 50
+
+    const data = await userService.listUsersByRoleCodes({
+      search,
+      status,
+      page,
+      limit,
+      roleCodes: ['doctor', 'consultant', 'lab_user']
+    })
+
+    const safe = data.users.map((u: any) => ({
+      _id: u._id,
+      fullName: u.fullName,
+      email: u.email,
+      avatar: u.avatar,
+      roleCode: u.roleCode,
+      status: u.status
+    }))
+
+    return res
+      .status(200)
+      .json({ message: 'Lab users fetched', data: { user: safe, pagination: data.pagination } })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const getAllPatient = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const search = (req.query.search as string) || undefined
+    const status = req.query.status ? parseInt(req.query.status as string) : 1
+    const page = req.query.page ? parseInt(req.query.page as string) : 1
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 50
+
+    const data = await userService.listUsersByRoleCodes({
+      search,
+      status,
+      page,
+      limit,
+      roleCodes: ['patient']
+    })
+
+    const safe = data.users.map((u: any) => ({
+      _id: u._id,
+      fullName: u.fullName,
+      email: u.email,
+      avatar: u.avatar,
+      roleCode: u.roleCode,
+      status: u.status
+    }))
+
+    return res
+      .status(200)
+      .json({ message: 'Patients fetched', data: { user: safe, pagination: data.pagination } })
+  } catch (err) {
+    next(err)
   }
 }

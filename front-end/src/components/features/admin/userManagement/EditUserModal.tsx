@@ -43,7 +43,8 @@ export default function EditUserModal({
         gender: data.gender?.toLowerCase() as "male" | "female",
         dateOfBirth: data.dateOfBirth,
         address: data.address,
-        roleId: data.roleId,
+        // Chỉ thêm roleId nếu nó không phải là chuỗi rỗng
+        ...(data.roleId && data.roleId.trim() ? { roleId: data.roleId } : {}),
         status: data.status,
       };
 

@@ -11,6 +11,8 @@ import {
   Users,
   FlaskConical,
   X,
+  MessageSquare,
+  MessageCircle,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -124,6 +126,11 @@ export default function SideBar({ open, onOpenChange }: SideBarProps) {
         to: "/lab_user/reagent-management",
         icon: <ClipboardPlus />,
       },
+      {
+        label: "Chat",
+        to: "/lab_user/chat",
+        icon: <MessageCircle />,
+      },
     ],
     consultant: [
       {
@@ -154,6 +161,11 @@ export default function SideBar({ open, onOpenChange }: SideBarProps) {
         label: "Medical Record",
         to: "/patient/medical-record",
         icon: <ClipboardPlus />,
+      },
+      {
+        label: "Chat",
+        to: "/patient/chat",
+        icon: <MessageCircle />,
       },
       { label: "Profile", to: "/patient/profile", icon: <User /> },
     ],

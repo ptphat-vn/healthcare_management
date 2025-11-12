@@ -1,5 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { getChatCollection, ChatMessageDocument } from '~/models/chat.model'
+import { getUsersCollection } from '~/models/user.model'
+import { getRolesCollection } from '~/models/role.model'
 
 export const getConversationId = (userA: string, userB: string) => {
   // deterministic id for a 1:1 conversation
@@ -35,4 +37,78 @@ export const getConversationMessages = async (conversationId: string, page = 1, 
   const items = await cursor.toArray()
   const total = await col.countDocuments({ conversationId })
   return { messages: items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 } }
+}
+
+export const getRecentConversations = async (authUserId: string, limit = 20) => {
+  const chatCol = getChatCollection()
+  const usersCol = getUsersCollection()
+  const rolesCol = getRolesCollection()
+
+  const authUserIdObj = new ObjectId(authUserId)
+
+  // Aggregate để lấy conversationId unique và tin nhắn cuối cùng
+  const pipeline = [
+    {
+      $match: {
+        $or: [
+          { senderId: authUserIdObj },
+          { receiverId: authUserIdObj }
+        ]
+      }
+    },
+    {
+      $sort: { createdAt: -1 }
+    },
+    {
+      $group: {
+        _id: '$conversationId',
+        lastMessage: { $first: '$content' },
+        lastMessageTime: { $first: '$createdAt' },
+        senderId: { $first: '$senderId' },
+        receiverId: { $first: '$receiverId' }
+      }
+    },
+    {
+      $sort: { lastMessageTime: -1 }
+    },
+    {
+      $limit: limit
+    }
+  ]
+
+  const conversations = await chatCol.aggregate(pipeline).toArray()
+
+  // Lấy thông tin user đối tác
+  const partnerIds = conversations.map((conv: any) => {
+    const senderId = String(conv.senderId)
+    const receiverId = String(conv.receiverId)
+    return senderId === authUserId ? new ObjectId(receiverId) : new ObjectId(senderId)
+  })
+
+  if (partnerIds.length === 0) return []
+
+  const partners = await usersCol.find({ _id: { $in: partnerIds } } as any).toArray()
+  const partnerMap = new Map(partners.map((u: any) => [String(u._id), u]))
+
+  // Lấy roleCodes
+  const roleIds = Array.from(new Set(partners.map((u: any) => u.roleId).filter(Boolean))) as ObjectId[]
+  const roleDocs = roleIds.length ? await rolesCol.find({ _id: { $in: roleIds } } as any).toArray() : []
+  const roleMap = new Map(roleDocs.map((r: any) => [String(r._id), r.code]))
+
+  // Map conversations với thông tin partner
+  return conversations.map((conv: any) => {
+    const senderId = String(conv.senderId)
+    const receiverId = String(conv.receiverId)
+    const partnerId = senderId === authUserId ? receiverId : senderId
+    const partner = partnerMap.get(partnerId)
+
+    return {
+      userId: partnerId,
+      userName: partner?.fullName || `User ${partnerId.substring(0, 8)}...`,
+      avatar: partner?.avatar,
+      roleCode: partner?.roleId ? roleMap.get(String(partner.roleId)) : undefined,
+      lastMessage: conv.lastMessage?.substring(0, 50),
+      lastMessageTime: conv.lastMessageTime
+    }
+  })
 }

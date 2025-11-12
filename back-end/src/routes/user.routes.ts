@@ -9,7 +9,9 @@ import {
   getAllUsers,
   getUserDetail,
   updateUserProfileController,
-  updateAvatarController
+  updateAvatarController,
+  getAllLabUser,
+  getAllPatient
 } from '~/controllers/user.controller'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 import { privilegeMiddleware } from '~/middlewares/privilege.middleware'
@@ -45,6 +47,9 @@ userRouter.post(
   privilegeMiddleware(['lock_unlock_user']),
   blockUserController
 )
+// Chat peers listing (auth only)
+userRouter.get('/user/lab-users', authMiddleware, getAllLabUser)
+userRouter.get('/user/patients', authMiddleware, getAllPatient)
 userRouter.get('/user/all', authMiddleware, privilegeMiddleware(['view_user']), getAllUsers)
 userRouter.get('/user/:id', authMiddleware, privilegeMiddleware(['view_user']), getUserDetail)
 userRouter.put('/user/avatar', authMiddleware, uploadSingle, updateAvatarController)

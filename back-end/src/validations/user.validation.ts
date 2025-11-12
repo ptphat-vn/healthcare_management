@@ -27,6 +27,7 @@ export const updateUserSchema = z.object({
   address: z.string().min(1).optional(),
   email: z.string().email().optional(),
   phoneNumber: z.string().regex(/^[0-9]{10,11}$/).optional(),
+  identifyNumber: z.string().regex(/^[0-9]{9,12}$/).optional(),  // Add this line
   roleId: z.string().min(1, 'Role ID is required').optional(),
   status: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
 })

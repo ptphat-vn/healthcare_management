@@ -25,6 +25,11 @@ import type {
   ResetPasswordRequest,
 } from "@/types/request.type";
 
+import type { 
+  ConversationResponse,
+   SendMessageRequest,
+    ChatMessage } from "@/types/chat-type";
+
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
   prepareHeaders: (headers, { getState }) => {
@@ -101,6 +106,7 @@ export const baseApi = createApi({
     "medicalRecord",
     "Instrument",
     "Comment",
+    "Chat",
   ],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
@@ -177,6 +183,28 @@ export const baseApi = createApi({
         body,
       }),
     }),
+    getConversation: builder.query<
+      APIResponse<ConversationResponse>,
+      { userId: string; page?: number; limit?: number }
+    >({
+      query: ({ userId, page = 1, limit = 50 }) => ({
+        url: `/chats/${userId}?page=${page}&limit=${limit}`,
+        method: "GET",
+      }),
+      providesTags: ["Chat"],
+    }),
+    
+    sendMessage: builder.mutation<
+      APIResponse<ChatMessage>,
+      { userId: string; message: SendMessageRequest }
+    >({
+      query: ({ userId, message }) => ({
+        url: `/chats/${userId}`,
+        method: "POST",
+        body: message,
+      }),
+      invalidatesTags: ["Chat"],
+    }),
   }),
 });
 export const {
@@ -189,4 +217,6 @@ export const {
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useVerifyOTPMutation,
+  useGetConversationQuery,
+  useSendMessageMutation,
 } = baseApi;
