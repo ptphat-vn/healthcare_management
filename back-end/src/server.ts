@@ -21,6 +21,7 @@ import { ensureDefaultRoles } from '~/services/role.service'
 import { initializeDefaultFlaggingConfigs } from '~/services/flagging-config.service'
 import { ensureDefaultReagents } from '~/services/reagent.service'
 import chatRouter from '~/routes/chat.routes'
+import notificationRouter from '~/routes/notification.routes'
 import { setIo } from '~/utils/socket'
 import { initSockets } from '~/sockets'
 
@@ -65,6 +66,7 @@ app.use('/api', patientMedicalRecordRouter)
 app.use('/api', aiRouter)
 app.use('/api', reagentRouter)
 app.use('/api', chatRouter)
+app.use('/api', notificationRouter)
 app.use('/api', instrumentRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
