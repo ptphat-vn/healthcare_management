@@ -5,9 +5,8 @@ import {
   type UpdateInstrumentFormData,
 } from "@/schemas/instrumentSchema";
 import Input from "@/components/ui/input/Input";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { DialogFooter } from "@/components/ui/dialog";
+import { useEffect } from "react";
 
 interface EditInstrumentFormProps {
   defaultValues: UpdateInstrumentFormData;
@@ -25,109 +24,133 @@ export default function EditInstrumentForm({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<UpdateInstrumentFormData>({
     resolver: zodResolver(updateInstrumentSchema),
     defaultValues,
   });
 
+  useEffect(() => {
+    if (defaultValues) {
+      reset(defaultValues);
+    }
+  }, [defaultValues, reset]);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid grid-cols-2 gap-2">
-        {/* Tên thiết bị */}
-        <Input
-          {...register("name")}
-          label="Tên thiết bị"
-          required
-          error={errors.name?.message}
-          placeholder="Nhập tên thiết bị"
-          autoComplete="off"
-        />
-
-        {/* Model */}
-        <Input
-          {...register("model")}
-          label="Model"
-          required
-          error={errors.model?.message}
-          placeholder="Nhập model thiết bị"
-          autoComplete="off"
-        />
-
-        {/* Manufacturer */}
-        <Input
-          {...register("manufacturer")}
-          label="Manufacturer"
-          required
-          error={errors.manufacturer?.message}
-          placeholder="Nhập tên hãng sản xuất"
-          autoComplete="off"
-        />
-
-        {/* Serial Number */}
-        <Input
-          {...register("serialNumber")}
-          label="SerialNumber"
-          required
-          error={errors.serialNumber?.message}
-          placeholder="Nhập số seri"
-          autoComplete="off"
-        />
-
-        {/* Location */}
-        <Input
-          {...register("location")}
-          label="Vị trí"
-          required
-          error={errors.location?.message}
-          placeholder="Nhập vị trí"
-          autoComplete="off"
-        />
-
-        {/* Status */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium leading-none">
-            Trạng thái <span className="text-red-500">*</span>
-          </label>
-          <select
-            {...register("status")}
-            className="flex h-9 w-full rounded-sm border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="Active">Hoạt động</option>
-            <option value="Inactive">Không hoạt động</option>
-            <option value="Maintenance">Đang bảo trì</option>
-            <option value="Out of Service">Ngưng sử dụng</option>
-          </select>
-          {errors.status?.message && (
-            <p className="text-xs text-red-500">{errors.status.message}</p>
-          )}
-        </div>
-
-        {/* Description */}
-        <div className="col-span-2 space-y-1">
-          <label className="text-sm font-medium leading-none">
-            Mô tả <span className="text-red-500">*</span>
-          </label>
-          <Textarea
-            {...register("description")}
-            placeholder="Nhập mô tả thiết bị"
-            className={`min-h-[60px] flex w-full rounded-sm border ${
-              errors.description?.message ? "border-red-500" : "border-input"
-            } bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
+    <div className="flex flex-col gap-1">
+      <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            {...register("name")}
+            label="Instrument Name"
+            required
+            error={errors.name?.message}
+            placeholder="Enter instrument name"
+            autoComplete="off"
           />
-          {errors.description?.message && (
-            <p className="text-xs text-red-500">{errors.description.message}</p>
-          )}
+          <Input
+            {...register("model")}
+            label="Model"
+            required
+            error={errors.model?.message}
+            placeholder="Enter model"
+            autoComplete="off"
+          />
         </div>
-      </div>
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Hủy
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
-        </Button>
-      </DialogFooter>
-    </form>
+
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            {...register("manufacturer")}
+            label="Manufacturer"
+            required
+            error={errors.manufacturer?.message}
+            placeholder="Enter manufacturer"
+            autoComplete="off"
+          />
+          <Input
+            {...register("serialNumber")}
+            label="Serial Number"
+            required
+            error={errors.serialNumber?.message}
+            placeholder="Enter serial number"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            {...register("location")}
+            label="Location"
+            required
+            error={errors.location?.message}
+            placeholder="Enter location"
+            autoComplete="off"
+          />
+          <div className="flex flex-col space-y-1">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Status
+              <span className="text-red-500">*</span>
+            </label>
+            <select
+              {...register("status")}
+              className={`flex h-10 w-full rounded-sm border ${errors.status?.message ? "border-red-500" : "border-input"
+                } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Out of Service">Out of Service</option>
+            </select>
+            {errors.status?.message && (
+              <p className="text-xs text-red-500">{errors.status.message}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2">
+          <div className="flex flex-col space-y-1">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Description 
+              <span className="text-red-500">*</span>
+            </label>
+            <Textarea
+              {...register("description")}
+              placeholder="Enter description"
+              className={`min-h-[80px] flex w-full rounded-sm border ${errors.description?.message ? "border-red-500" : "border-input"
+                } bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+            />
+            {errors.description?.message && (
+              <p className="text-xs text-red-500">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+          >
+            {isLoading ? "Updating..." : "Update Instrument"}
+          </button>
+        </div>
+
+        {errors.root?.message && (
+          <span className="text-xs text-red-500 break-words">
+            {errors.root?.message}
+          </span>
+        )}
+      </form>
+    </div>
   );
 }

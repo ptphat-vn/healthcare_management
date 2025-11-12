@@ -1,5 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetInstrumentByIdQuery } from "@/services/instrumentApi";
+import {
+  useGetInstrumentByIdQuery,
+  useGetInstrumentReagentsQuery,
+  useRemoveReagentFromInstrumentMutation,
+} from "@/services/instrumentApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -14,14 +18,26 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  Beaker,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import { toast } from "sonner";
+import AddReagentDialog from "@/components/features/service/reagentInstrument/AddReagentDialog";
+import ReagentsTable from "@/components/features/service/reagentInstrument/ReagentsTable";
 export default function InstrumentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data, isLoading, error } = useGetInstrumentByIdQuery(id || "");
+  const {
+    data: reagentsData,
+    isLoading: isLoadingReagents,
+    refetch: refetchReagents,
+  } = useGetInstrumentReagentsQuery(id || "");
+  const [removeReagent, { isLoading: isRemoving }] =
+    useRemoveReagentFromInstrumentMutation();
+
   console.log(data);
+  console.log("Reagents data:", reagentsData);
 
   if (isLoading) {
     return (
@@ -60,7 +76,21 @@ export default function InstrumentDetailPage() {
   }
 
   const instrument = data.data;
+  const reagentsResponse = reagentsData?.data;
+  const reagents = Array.isArray(reagentsResponse?.reagents) 
+    ? reagentsResponse.reagents 
+    : [];
   console.log(instrument);
+
+  const handleDeleteReagent = async (assignmentId: string, reagentName: string) => {
+    try {
+      await removeReagent(assignmentId).unwrap();
+      toast.success("Reagent removed successfully");
+      refetchReagents();
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to remove reagent");
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -109,27 +139,36 @@ export default function InstrumentDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
+    <div className="p-6 bg-gray-50 min-h-screen rounded-[20px]">
+      {/* Header */}
+      <div className="mb-6">
+        <Button
+          variant="outline"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Instrument List
+        </Button>
+
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {instrument.name}
-              </h1>
-              <p className="text-gray-600 mt-1">Instrument Details</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Instrument Details
+            </h1>
+            <p className="text-gray-600">
+              Complete information about {instrument.name}
+            </p>
           </div>
           {getStatusBadge(instrument.status)}
         </div>
+      </div>
 
+      {/* Content */}
+      <div className="space-y-6">
         {/* Main Info Card */}
         <Card>
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
               <Settings className="w-6 h-6 text-blue-600" />
               General Information
@@ -219,7 +258,7 @@ export default function InstrumentDetailPage() {
 
         {/* Metadata Card */}
         <Card>
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
               <Clock className="w-6 h-6 text-purple-600" />
               System Information
@@ -269,6 +308,45 @@ export default function InstrumentDetailPage() {
                 </p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Reagent Management Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Beaker className="w-6 h-6 text-green-600" />
+                Assigned Reagents ({reagents.length})
+              </CardTitle>
+              <AddReagentDialog 
+                instrumentId={id || ""} 
+                onSuccess={refetchReagents}
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            {isLoadingReagents ? (
+              <div className="text-center py-8">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
+                <p className="mt-2 text-gray-600">Loading reagents...</p>
+              </div>
+            ) : reagents.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <Beaker className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-600 font-medium mb-2">No reagents assigned</p>
+                <p className="text-sm text-gray-500">
+                  This instrument doesn't have any reagents assigned yet.
+                </p>
+              </div>
+            ) : (
+              <ReagentsTable
+                instrumentId={id || ""}
+                reagents={reagents}
+                onDelete={handleDeleteReagent}
+                isDeleting={isRemoving}
+              />
+            )}
           </CardContent>
         </Card>
       </div>
