@@ -2,15 +2,16 @@ import { useState } from "react";
 import type { InstrumentStatus } from "@/types/instrument.type";
 import InstrumentTable from "./InstrumentTable";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
-import { Button } from "@/components/ui/button";
-import { X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useGetAllInstrumentsQuery } from "@/services/instrumentApi";
 
 export default function InstrumentList() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<InstrumentStatus | undefined>(undefined);
   const [isActive, setIsActive] = useState<boolean | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<"name" | "createdAt" | "updatedAt">("updatedAt");
+  const [sortBy, setSortBy] = useState<"name" | "createdAt" | "updatedAt">(
+    "updatedAt"
+  );
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -47,23 +48,31 @@ export default function InstrumentList() {
     setPage(1);
   };
 
-  // Custom status mapping for SearchAndFilter
-  const statusValue = 
-    status === "Active" ? "1" 
-    : status === "Maintenance" ? "2" 
-    : status === "Inactive" ? "0"
-    : status === "Out of Service" ? "3"
-    : "";
+  // Convert status to number for SearchAndFilter
+  const statusValue =
+    status === "Active"
+      ? 1
+      : status === "Maintenance"
+      ? 2
+      : status === "Inactive"
+      ? 0
+      : status === "Out of Service"
+      ? 3
+      : "";
 
-  const isActiveValue = isActive === true ? "1" : isActive === false ? "0" : "";
+  const isActiveValue = isActive === true ? 1 : isActive === false ? 0 : "";
 
   const handleStatusChange = (value: number | "") => {
     setStatus(
-      value === 1 ? "Active" 
-      : value === 2 ? "Maintenance" 
-      : value === 0 ? "Inactive"
-      : value === 3 ? "Out of Service"
-      : undefined
+      value === 1
+        ? "Active"
+        : value === 2
+        ? "Maintenance"
+        : value === 0
+        ? "Inactive"
+        : value === 3
+        ? "Out of Service"
+        : undefined
     );
     setPage(1);
   };
@@ -74,83 +83,63 @@ export default function InstrumentList() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search and main filters */}
-          <div className="flex-1">
-            <SearchAndFilter
-              searchTerm={search}
-              onSearchChange={(value) => {
-                setSearch(value);
-                setPage(1);
-              }}
-              searchPlaceholder="Search by name, model, manufacturer..."
-              sortOptions={[
-                { value: "name", label: "Instrument name" },
-                { value: "createdAt", label: "Created date" },
-                { value: "updatedAt", label: "Updated date" },
-              ]}
-              sortByValue={sortBy}
-              onSortByChange={(value) => {
-                setSortBy(value as "name" | "createdAt" | "updatedAt");
-                setPage(1);
-              }}
-              sortOrder={sortOrder}
-              onSortOrderChange={(value) => {
-                setSortOrder(value);
-                setPage(1);
-              }}
-              showClearFilters={false}
-            />
-          </div>
-
-          {/* Additional filters for Status and IsActive */}
-          <div className="flex flex-col sm:flex-row gap-3 lg:w-auto w-full">
-            <div className="w-full sm:w-40">
-              <select
-                value={statusValue}
-                onChange={(e) => handleStatusChange(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 transition"
-              >
-                <option value="">All status</option>
-                <option value="1">Active</option>
-                <option value="2">Maintenance</option>
-                <option value="0">Inactive</option>
-                <option value="3">Out of Service</option>
-              </select>
-            </div>
-            <div className="w-full sm:w-40">
-              <select
-                value={isActiveValue}
-                onChange={(e) => handleIsActiveChange(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 transition"
-              >
-                <option value="">All active states</option>
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
-              </select>
-            </div>
-            
-            {/* Clear Filters Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearFilters}
-              className="cursor-pointer flex items-center gap-2 w-full sm:w-auto rounded-lg border text-blue-600 hover:bg-blue-50 transition"
-            >
-              <X className="h-4 w-4" />
-              Clear
-            </Button>
-          </div>
-        </div>
+    <div className="space-y-3 sm:space-y-4">
+      <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
+        <SearchAndFilter
+          searchTerm={search}
+          onSearchChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+          searchPlaceholder="Search by name, model, manufacturer..."
+          // Status filter
+          status={statusValue}
+          onStatusChange={handleStatusChange}
+          statusOptions={[
+            { value: "", label: "All status" },
+            { value: "1", label: "Active" },
+            { value: "2", label: "Maintenance" },
+            { value: "0", label: "Inactive" },
+            { value: "3", label: "Out of Service" },
+          ]}
+          // Custom filter (isActive)
+          customFilter={isActiveValue}
+          onCustomFilterChange={handleIsActiveChange}
+          customFilterPlaceholder="Active state"
+          customFilterOptions={[
+            { value: "", label: "All states" },
+            { value: "1", label: "Active" },
+            { value: "0", label: "Inactive" },
+          ]}
+          // Sort options
+          sortOptions={[
+            { value: "name", label: "Name" },
+            { value: "createdAt", label: "Created" },
+            { value: "updatedAt", label: "Updated" },
+          ]}
+          sortByValue={sortBy}
+          onSortByChange={(value) => {
+            setSortBy(value as "name" | "createdAt" | "updatedAt");
+            setPage(1);
+          }}
+          sortOrder={sortOrder}
+          onSortOrderChange={(value) => {
+            setSortOrder(value);
+            setPage(1);
+          }}
+          // Clear filters
+          showClearFilters={true}
+          onClearFilters={handleClearFilters}
+        />
       </div>
 
       {/* Loading state */}
       {isLoading || isFetching ? (
-        <div className="flex justify-center items-center py-12 bg-white rounded-lg">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-          <span className="ml-2 text-gray-600">Loading instruments...</span>
+        <div className="flex justify-center items-center py-8 sm:py-12 bg-white rounded-lg">
+          <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-blue-600" />
+          <span className="ml-2 text-sm sm:text-base text-gray-600">
+            Loading instruments...
+          </span>
         </div>
       ) : (
         <InstrumentTable

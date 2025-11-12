@@ -14,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Eye, Inbox } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Eye, AlertCircle } from "lucide-react";
 import type { GenderUser, User } from "@/types/user.type";
 import EditUserModal from "@/components/features/admin/userManagement/EditUserModal";
 import DeleteUserModal from "@/components/features/admin/userManagement/DeleteUserModal";
@@ -199,7 +199,7 @@ export default function UserList() {
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-12">
                     <div className="flex flex-col items-center justify-center text-gray-500">
-                      <Inbox size={16} />
+                      <AlertCircle size={16} />
                       <p className="text-lg font-medium">No users found</p>
                       <p className="text-sm">
                         Try adjusting your search or filter criteria

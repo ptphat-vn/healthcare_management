@@ -48,6 +48,7 @@ export default function MonitoringList() {
         operator: rawLog.operator || "System",
         status: "info",
         service: "System",
+        role: rawLog.role,
       })
     );
 

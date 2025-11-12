@@ -7,7 +7,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings, User, Menu } from "lucide-react";
+import Notification from "@/components/common/Notification";
+import { Button } from "@/components/ui/button";
+
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
 
 // Role color mapping
 const getRoleHeaderClass = (roleCode: string) => {
@@ -38,15 +44,15 @@ const getRoleBadgeClass = (roleCode: string) => {
   );
 };
 
-export default function Header() {
+export default function Header({ onMenuClick }: HeaderProps) {
   const { logout, user } = useAuth();
-  const fullName = user?.data?.fullName || "User";
+  const fullName = user?.data?.fullName || "Patient";
   const initial = (fullName.charAt(0) || "U").toUpperCase();
-  const roleCode = user?.data?.roleCode || "user";
+  const roleCode = user?.data?.roleCode || "patient";
   const roleLabel = (
     user?.data?.roleName ||
     user?.data?.roleCode ||
-    "User"
+    "Patient"
   ).toString();
 
   const headerColorClass = getRoleHeaderClass(roleCode);
@@ -56,12 +62,23 @@ export default function Header() {
     <header className="sticky top-0 z-50">
       <div className={`${headerColorClass} text-white shadow-xl`}>
         <div className="w-full flex items-center justify-between h-16 md:h-20">
-          {/* Logo Section */}
-          <div className="flex items-center pl-3 sm:pl-4">
+          {/* Left Section with Menu Button */}
+          <div className="flex items-center gap-2 sm:gap-3 pl-3 sm:pl-4">
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden text-white hover:bg-white/10 h-10 w-10"
+              onClick={onMenuClick}
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+
+            {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-12 h-12 bg-white/10 backdrop-blur-sm rounded-lg ring-1 ring-white/20 hover:bg-white/20 transition-all">
+              <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-sm rounded-lg ring-1 ring-white/20 hover:bg-white/20 transition-all">
                 <svg
-                  className="w-6 h-6 text-white"
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-white"
                   viewBox="0 0 24 24"
                   fill="none"
                   aria-hidden="true"
@@ -76,7 +93,7 @@ export default function Header() {
                 </svg>
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg font-semibold tracking-tight">
+                <h1 className="text-base sm:text-lg font-semibold tracking-tight">
                   CareCenter
                 </h1>
                 <p className="text-xs text-white/80 -mt-0.5">
@@ -89,18 +106,9 @@ export default function Header() {
           <div className="flex-1" />
 
           {/* Right Section */}
-          <div className="flex items-center gap-4 pr-3 sm:pr-4">
-            {/* Notifications */}
-            <Link
-              to="/notifications"
-              className="relative p-2 rounded-lg hover:bg-white/10 transition-all"
-              aria-label="Notifications"
-            >
-              <Bell size={18} />
-              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
-                5
-              </span>
-            </Link>
+          <div className="flex items-center gap-2 sm:gap-4 pr-3 sm:pr-4">
+            {/* Notifications Component */}
+            <Notification />
 
             {/* User Menu */}
             <DropdownMenu>
@@ -108,14 +116,14 @@ export default function Header() {
                 <button
                   type="button"
                   aria-haspopup="menu"
-                  className="flex cursor-pointer items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="flex cursor-pointer items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-white/30"
                 >
-                  <div className="flex items-center justify-center w-9 h-9 bg-white/20 text-white rounded-full font-bold text-sm ring-2 ring-white/30 overflow-hidden">
+                  <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-white/20 text-white rounded-full font-bold text-xs sm:text-sm ring-2 ring-white/30 overflow-hidden">
                     {user?.data?.avatar ? (
                       <img
                         src={user.data.avatar}
                         alt={fullName}
-                        className="w-9 h-9 object-cover rounded-full"
+                        className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
                       initial
