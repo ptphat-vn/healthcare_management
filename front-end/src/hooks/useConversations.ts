@@ -13,13 +13,11 @@ export interface Conversation {
 export function useConversations(currentUserId?: string) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  // Gọi API để lấy từ server
   const { data: serverData } = useGetRecentConversationsQuery(
     { limit: 20 },
     { skip: !currentUserId }
   );
 
-  // Load từ localStorage làm cache ban đầu
   useEffect(() => {
     if (!currentUserId) return;
     const key = `chat_conversations_${currentUserId}`;
@@ -39,7 +37,6 @@ export function useConversations(currentUserId?: string) {
     }
   }, [currentUserId]);
 
-  // Ưu tiên dữ liệu từ server, fallback localStorage
   useEffect(() => {
     if (serverData?.data?.conversations) {
       const serverConversations = serverData.data.conversations.map((c: Conversation & { lastMessageTime?: string | Date }) => ({
@@ -48,7 +45,6 @@ export function useConversations(currentUserId?: string) {
       }));
       setConversations(serverConversations);
 
-      // Cập nhật localStorage làm cache
       if (currentUserId) {
         const key = `chat_conversations_${currentUserId}`;
         localStorage.setItem(key, JSON.stringify(serverConversations));
@@ -57,7 +53,6 @@ export function useConversations(currentUserId?: string) {
     }
   }, [serverData, currentUserId]);
 
-  // Lắng nghe storage events để sync giữa các tabs
   useEffect(() => {
     if (!currentUserId) return;
     const key = `chat_conversations_${currentUserId}`;
