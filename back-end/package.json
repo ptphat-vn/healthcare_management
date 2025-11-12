@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
     "@types/cors": "^2.8.19",
     "@types/nodemailer": "^7.0.3",
     "@types/swagger-jsdoc": "^6.0.4",
