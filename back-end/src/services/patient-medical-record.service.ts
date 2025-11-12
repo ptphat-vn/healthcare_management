@@ -71,6 +71,8 @@ export interface ListPatientRecordsParams {
   sortOrder?: 1 | -1
   page?: number
   limit?: number
+  authUserId?: string
+  authUserRole?: string
 }
 
 export const createPatientRecord = async (
@@ -151,7 +153,8 @@ export const createPatientRecord = async (
 export const updatePatientRecord = async (
   id: string,
   payload: UpdatePatientRecordPayload,
-  updatedBy: string
+  updatedBy: string,
+  authUserRole?: string
 ): Promise<WithId<PatientMedicalRecordDocument>> => {
   let patientObjectId: ObjectId
   try {
@@ -161,10 +164,30 @@ export const updatePatientRecord = async (
   }
 
   const patientRecords = getPatientMedicalRecordsCollection()
+  const users = getUsersCollection()
 
   const existingRecord = await patientRecords.findOne({ _id: patientObjectId, isDeleted: { $ne: true } } as any)
   if (!existingRecord) {
     throw new HttpError(404, 'Patient record not found')
+  }
+
+  if (authUserRole === 'patient') {
+    let updatedByObjectId: ObjectId
+    try {
+      updatedByObjectId = new ObjectId(updatedBy)
+    } catch {
+      throw new HttpError(422, 'Invalid updatedBy user id')
+    }
+    const authUser = await users.findOne({ _id: updatedByObjectId } as any)
+    if (!authUser) {
+      throw new HttpError(404, 'Authenticated user not found')
+    }
+    if (!authUser.patientId) {
+      throw new HttpError(403, 'User does not have a patientId')
+    }
+    if (existingRecord.patientId !== authUser.patientId) {
+      throw new HttpError(403, 'Access denied: You can only update your own medical records')
+    }
   }
 
   if (payload.identifyNumber && payload.identifyNumber !== existingRecord.identifyNumber) {
@@ -179,7 +202,12 @@ export const updatePatientRecord = async (
   }
 
   const now = new Date()
-  const updatedByObjectId = new ObjectId(updatedBy)
+  let updatedByObjectId: ObjectId
+  try {
+    updatedByObjectId = new ObjectId(updatedBy)
+  } catch {
+    throw new HttpError(422, 'Invalid updatedBy user id')
+  }
 
   const changes: Record<string, any> = {}
   for (const [key, value] of Object.entries(payload)) {
@@ -239,7 +267,8 @@ export const updatePatientRecord = async (
 
 export const deletePatientRecord = async (
   id: string,
-  deletedBy: string
+  deletedBy: string,
+  authUserRole?: string
 ): Promise<WithId<PatientMedicalRecordDocument>> => {
   let patientObjectId: ObjectId
   try {
@@ -250,10 +279,31 @@ export const deletePatientRecord = async (
 
   const patientRecords = getPatientMedicalRecordsCollection()
   const testOrders = getTestOrdersCollection()
+  const users = getUsersCollection()
 
   const existingRecord = await patientRecords.findOne({ _id: patientObjectId, isDeleted: { $ne: true } } as any)
   if (!existingRecord) {
     throw new HttpError(404, 'Patient record not found')
+  }
+
+  // If user is a patient, verify they can only delete their own record
+  if (authUserRole === 'patient') {
+    let deletedByObjectId: ObjectId
+    try {
+      deletedByObjectId = new ObjectId(deletedBy)
+    } catch {
+      throw new HttpError(422, 'Invalid deletedBy user id')
+    }
+    const authUser = await users.findOne({ _id: deletedByObjectId } as any)
+    if (!authUser) {
+      throw new HttpError(404, 'Authenticated user not found')
+    }
+    if (!authUser.patientId) {
+      throw new HttpError(403, 'User does not have a patientId')
+    }
+    if (existingRecord.patientId !== authUser.patientId) {
+      throw new HttpError(403, 'Access denied: You can only delete your own medical records')
+    }
   }
 
   const hasActiveTestOrders = await testOrders.findOne({
@@ -266,7 +316,12 @@ export const deletePatientRecord = async (
   }
 
   const now = new Date()
-  const deletedByObjectId = new ObjectId(deletedBy)
+  let deletedByObjectId: ObjectId
+  try {
+    deletedByObjectId = new ObjectId(deletedBy)
+  } catch {
+    throw new HttpError(422, 'Invalid deletedBy user id')
+  }
 
   const result = await patientRecords.findOneAndUpdate(
     { _id: patientObjectId } as any,
@@ -314,6 +369,23 @@ export const listPatientRecords = async (params: ListPatientRecordsParams) => {
   const skip = (page - 1) * limit
 
   const filter: Record<string, any> = { isDeleted: { $ne: true } }
+
+  if (params.authUserRole === 'patient' && params.authUserId) {
+    let authUserObjectId: ObjectId
+    try {
+      authUserObjectId = new ObjectId(params.authUserId)
+    } catch {
+      throw new HttpError(422, 'Invalid auth user id')
+    }
+    const authUser = await users.findOne({ _id: authUserObjectId } as any)
+    if (!authUser) {
+      throw new HttpError(404, 'Authenticated user not found')
+    }
+    if (!authUser.patientId) {
+      throw new HttpError(403, 'User does not have a patientId')
+    }
+    filter.patientId = authUser.patientId
+  }
 
   if (params.search) {
     const q = params.search
@@ -395,7 +467,7 @@ export const listPatientRecords = async (params: ListPatientRecordsParams) => {
   }
 }
 
-export const getPatientRecordDetail = async (id: string) => {
+export const getPatientRecordDetail = async (id: string, authUserId?: string, authUserRole?: string) => {
   let patientObjectId: ObjectId
   try {
     patientObjectId = new ObjectId(id)
@@ -412,6 +484,24 @@ export const getPatientRecordDetail = async (id: string) => {
     throw new HttpError(404, 'Patient record not found')
   }
 
+  if (authUserRole === 'patient' && authUserId) {
+    let authUserObjectId: ObjectId
+    try {
+      authUserObjectId = new ObjectId(authUserId)
+    } catch {
+      throw new HttpError(422, 'Invalid auth user id')
+    }
+    const authUser = await users.findOne({ _id: authUserObjectId } as any)
+    if (!authUser) {
+      throw new HttpError(404, 'Authenticated user not found')
+    }
+    if (!authUser.patientId) {
+      throw new HttpError(403, 'User does not have a patientId')
+    }
+    if (patient.patientId !== authUser.patientId) {
+      throw new HttpError(403, 'Access denied: You can only view your own medical records')
+    }
+  }
   const patientTestOrders = await testOrders
     .find({
       patientId: patient.patientId,
@@ -462,7 +552,8 @@ export const getPatientRecordDetail = async (id: string) => {
 export const addClinicalNote = async (
   patientId: string,
   note: Omit<ClinicalNote, '_id' | 'createdAt'>,
-  addedBy: string
+  addedBy: string,
+  authUserRole?: string
 ): Promise<WithId<PatientMedicalRecordDocument>> => {
   let patientObjectId: ObjectId
   try {
@@ -472,6 +563,7 @@ export const addClinicalNote = async (
   }
 
   const patientRecords = getPatientMedicalRecordsCollection()
+  const users = getUsersCollection()
 
   const existingRecord = await patientRecords.findOne({ _id: patientObjectId, isDeleted: { $ne: true } } as any)
   if (!existingRecord) {
@@ -479,7 +571,25 @@ export const addClinicalNote = async (
   }
 
   const now = new Date()
-  const addedByObjectId = new ObjectId(addedBy)
+  let addedByObjectId: ObjectId
+  try {
+    addedByObjectId = new ObjectId(addedBy)
+  } catch {
+    throw new HttpError(422, 'Invalid addedBy user id')
+  }
+
+  if (authUserRole === 'patient') {
+    const authUser = await users.findOne({ _id: addedByObjectId } as any)
+    if (!authUser) {
+      throw new HttpError(404, 'Authenticated user not found')
+    }
+    if (!authUser.patientId) {
+      throw new HttpError(403, 'User does not have a patientId')
+    }
+    if (existingRecord.patientId !== authUser.patientId) {
+      throw new HttpError(403, 'Access denied: You can only add notes to your own medical records')
+    }
+  }
 
   const newNote: ClinicalNote = {
     _id: new ObjectId(),

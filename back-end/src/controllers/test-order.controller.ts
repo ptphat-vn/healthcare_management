@@ -63,7 +63,13 @@ export const deleteTestOrderController = async (req: Request, res: Response, nex
 
 export const getTestOrderDetailController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await testOrderService.getTestOrderDetail((req.params as { id: string }).id)
+    const authUserId = (req as any).authUserId
+    const authUserRole = (req as any).authUserRole
+    const data = await testOrderService.getTestOrderDetail(
+      (req.params as { id: string }).id,
+      authUserId ? authUserId.toString() : undefined,
+      authUserRole
+    )
     return res.status(200).json({
       message: MESSAGES.GET_TEST_ORDER_DETAIL_SUCCESS,
       data
@@ -75,13 +81,18 @@ export const getTestOrderDetailController = async (req: Request, res: Response, 
 
 export const getAllTestOrdersController = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const authUserId = (req as any).authUserId
+    const authUserRole = (req as any).authUserRole
+
     const params = {
       search: req.query.search as string,
       status: req.query.status as 'pending' | 'cancelled' | 'completed' | 'reviewed' | 'ai_reviewed',
       sortBy: req.query.sortBy as 'patientName' | 'createdDate' | 'runDate' | 'status',
       sortOrder: req.query.sortOrder ? (parseInt(req.query.sortOrder as string) as 1 | -1) : undefined,
       page: req.query.page ? parseInt(req.query.page as string) : undefined,
-      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined
+      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+      authUserId: authUserId ? authUserId.toString() : undefined,
+      authUserRole: authUserRole
     }
 
     const data = await testOrderService.listTestOrders(params)
