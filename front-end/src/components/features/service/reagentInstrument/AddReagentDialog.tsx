@@ -51,6 +51,7 @@ export default function AddReagentDialog({
     { reagentId: formData.reagentId, includeExpired: false },
     { skip: !formData.reagentId }
   );
+console.log(formData.reagentId);
 
   const inventory = inventoryData?.data || [];
   const totalAvailable = inventory.reduce((sum, item) => sum + item.quantityAvailable, 0);
@@ -94,6 +95,7 @@ export default function AddReagentDialog({
         instrumentId,
         reagentData: payload,
       }).unwrap();
+      console.log(payload, "hehehe");
       
       toast.success("Reagent assigned to instrument successfully");
       setOpen(false);

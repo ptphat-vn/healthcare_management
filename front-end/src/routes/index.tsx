@@ -177,6 +177,8 @@ export const router = createBrowserRouter([
       },
       { path: "reagent/:id", element: <ReagentDetailPage /> },
       { path: "profile", element: <ProfilePage /> },
+      {path: "reagent-management", element: <ReagentManagementPage />},
+      
     ],
   },
 ]);
