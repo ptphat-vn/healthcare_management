@@ -33,7 +33,11 @@ export default function SideBar({ open, onOpenChange }: SideBarProps) {
   const { user } = useAuth();
   const role = String(user?.data.roleCode || "patient").toLowerCase();
 
-  const menus: Record<string, MenuItem[]> = {
+  // define menus per role
+  const menus: Record<
+    string,
+    { label: string; to: string; icon?: ReactNode }[]
+  > = {
     admin: [
       { label: "Dashboard", to: "/admin/dashboard", icon: <LayoutDashboard /> },
       {

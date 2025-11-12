@@ -33,26 +33,26 @@ export default function MonitoringList() {
     limit: 10,
   });
 
-  useEffect(() => {
-    if (!data?.data?.eventLogs) {
-      setEventLogs([]);
-      return;
-    }
+  // useEffect(() => {
+  //   if (!data?.data?.eventLogs) {
+  //     setEventLogs([]);
+  //     return;
+  //   }
 
-    const formattedEventLogs: EventLog[] = data.data.eventLogs.map(
-      (rawLog: any) => ({
-        id: rawLog._id || "",
-        timestamp: rawLog.timestamp || "",
-        action: rawLog.action || "",
-        message: rawLog.details || rawLog.message || "",
-        operator: rawLog.operator || "System",
-        status: "info",
-        service: "System",
-      })
-    );
+  //   // const formattedEventLogs: EventLog[] = data.data.eventLogs.map(
+  //   //   (rawLog: any) => ({
+  //   //     id: rawLog._id || "",
+  //   //     timestamp: rawLog.timestamp || "",
+  //   //     action: rawLog.action || "",
+  //   //     message: rawLog.details || rawLog.message || "",
+  //   //     operator: rawLog.operator || "System",
+  //   //     status: "info",
+  //   //     service: "System",
+  //   //   })
+  //   // );
 
-    setEventLogs(formattedEventLogs);
-  }, [data]);
+  //   setEventLogs(formattedEventLogs);
+  // }, [data]);
 
   const pagination = data?.data?.pagination;
   const totalPages = pagination?.totalPages || 1;
