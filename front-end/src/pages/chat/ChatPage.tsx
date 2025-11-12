@@ -24,7 +24,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex">
+    <div className="h-[calc(100vh-4rem-1.5rem)] flex -m-3">
       {/* Chat List Sidebar */}
       <div className="w-80 border-r bg-white">
         <ChatList

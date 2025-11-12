@@ -108,6 +108,11 @@ export default function SideBar() {
         to: "/lab_user/event-log",
         icon: <History />,
       },
+        {
+          label: "Chat",
+          to: "/lab_user/chat",
+          icon: <MessageCircle />,
+        },
       {
         label: "Reagent Management",
         to: "/lab_user/reagent-management",

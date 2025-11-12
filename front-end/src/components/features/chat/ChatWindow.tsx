@@ -11,6 +11,7 @@ import { useSocketConnection } from "../../../hooks/useSocketConnection";
 import { useConversations } from "../../../hooks/useConversations";
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import EmptyState from "@/components/ui/empty/EmptyState";
+import EmojiPickerButton from "@/components/ui/emoji/EmojiPickerButton";
 
 interface ChatWindowProps {
   otherUserId: string;
@@ -26,6 +27,7 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
   const [inputMessage, setInputMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+
 
   const { data, isLoading, error } = useGetConversationQuery({ userId: otherUserId, page: 1, limit: 100 });
   const [sendMessageApi] = useSendMessageMutation();
@@ -52,6 +54,10 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const handleEmojiSelect = (emoji: string) => {
+    setInputMessage((prev) => prev + emoji);
+  };
 
   const handleSend = async () => {
     const content = inputMessage.trim();
@@ -132,6 +138,7 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
 
       <div className="p-4 border-t bg-gray-50">
         <div className="flex gap-2">
+          <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}

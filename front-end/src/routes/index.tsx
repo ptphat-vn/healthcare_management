@@ -143,6 +143,7 @@ export const router = createBrowserRouter([
       { path: "event-log", element: <MonitoringServicePage /> },
       { path: "profile", element: <ProfilePage /> },
       { path: "reagent-management/:id", element: <ReagentDetailPage /> },
+      { path: "chat", element: <ChatPage /> },
     ],
   },
 
