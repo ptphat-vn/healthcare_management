@@ -3,12 +3,24 @@ import { getDb } from '~/configs/mongodb.config'
 
 export const REAGENTS_COLLECTION = 'reagents'
 
+export const REAGENT_CATEGORIES = [
+  'Hematology',     
+  'Biochemistry',      
+  'Immunology',    
+  'Molecular/PCR',     
+  'Microbiology',     
+  'Coagulation',      
+  'Enzyme'       
+] as const
+
+export type ReagentCategory = typeof REAGENT_CATEGORIES[number]
+
 export interface ReagentDocument {
   _id?: ObjectId
   name: string 
   catalogNumber?: string
   manufacturer?: string
-  casNumber?: string 
+  casNumber: string 
   description: string 
   usagePerRun: {
     min: number
@@ -17,11 +29,8 @@ export interface ReagentDocument {
   }
   // Configuration parameters
   ratio?: string // vd: "1:10 to 1:20" cho Diluent
-  preciseAmount?: { // vd: 50-200 μL cho Lysing
-    min: number
-    max: number
-    unit: 'μL'
-  }
+  categories?: string[] 
+  storageCondition?: number 
   isActive: boolean
   createdAt: Date
   updatedAt: Date

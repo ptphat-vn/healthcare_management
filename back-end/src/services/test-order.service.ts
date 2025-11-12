@@ -28,6 +28,8 @@ export interface ListTestOrdersParams {
   sortOrder?: 1 | -1
   page?: number
   limit?: number
+  authUserId?: string
+  authUserRole?: string
 }
 
 export async function createTestOrder(data: CreateTestOrderData, createdBy: string) {
@@ -183,7 +185,7 @@ export async function deleteTestOrder(id: string, deletedBy: string) {
   return { message: 'Test order deleted successfully' }
 }
 
-export async function getTestOrderDetail(id: string) {
+export async function getTestOrderDetail(id: string, authUserId?: string, authUserRole?: string) {
   let testOrderObjectId: ObjectId
   try {
     testOrderObjectId = new ObjectId(id)
@@ -193,10 +195,34 @@ export async function getTestOrderDetail(id: string) {
 
   const testOrders = getTestOrdersCollection()
   const users = getUsersCollection()
+  const medicalRecords = getPatientMedicalRecordsCollection()
 
   const testOrder = await testOrders.findOne({ _id: testOrderObjectId })
   if (!testOrder) {
     throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
+  }
+
+  if (authUserRole === 'patient' && authUserId) {
+    let authUserObjectId: ObjectId
+    try {
+      authUserObjectId = new ObjectId(authUserId)
+    } catch {
+      throw new HttpError(422, 'Invalid auth user id')
+    }
+    const authUser = await users.findOne({ _id: authUserObjectId } as any)
+    if (!authUser) {
+      throw new HttpError(404, 'Authenticated user not found')
+    }
+    if (!authUser.patientId) {
+      throw new HttpError(403, 'User does not have a patientId')
+    }
+    const medicalRecord = await medicalRecords.findOne({ _id: testOrder.medicalRecordId, isDeleted: { $ne: true } } as any)
+    if (!medicalRecord) {
+      throw new HttpError(404, 'Medical record not found for this test order')
+    }
+    if (medicalRecord.patientId !== authUser.patientId) {
+      throw new HttpError(403, 'Access denied: You can only view your own test orders')
+    }
   }
 
   // Get creator and runner information
@@ -215,6 +241,7 @@ export async function getTestOrderDetail(id: string) {
 export const listTestOrders = async (params: ListTestOrdersParams) => {
   const testOrders = getTestOrdersCollection()
   const users = getUsersCollection()
+  const medicalRecords = getPatientMedicalRecordsCollection()
   
   const page = params.page && params.page > 0 ? params.page : 1
   const limit = params.limit && params.limit > 0 ? params.limit : 10
@@ -222,6 +249,40 @@ export const listTestOrders = async (params: ListTestOrdersParams) => {
   
   // Build filter query
   const filter: Record<string, any> = {}
+  
+  if (params.authUserRole === 'patient' && params.authUserId) {
+    let authUserObjectId: ObjectId
+    try {
+      authUserObjectId = new ObjectId(params.authUserId)
+    } catch {
+      throw new HttpError(422, 'Invalid auth user id')
+    }
+    const authUser = await users.findOne({ _id: authUserObjectId } as any)
+    if (!authUser) {
+      throw new HttpError(404, 'Authenticated user not found')
+    }
+    if (!authUser.patientId) {
+      throw new HttpError(403, 'User does not have a patientId')
+    }
+    // Find medical records for this patient
+    const patientMedicalRecords = await medicalRecords
+      .find({ patientId: authUser.patientId, isDeleted: { $ne: true } } as any)
+      .toArray()
+    const medicalRecordIds = patientMedicalRecords.map(mr => mr._id)
+    if (medicalRecordIds.length === 0) {
+      // Patient has no medical records, return empty result
+      return {
+        testOrders: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0
+        }
+      }
+    }
+    filter.medicalRecordId = { $in: medicalRecordIds }
+  }
   
   // Search by patient name, phone number, or email
   if (params.search) {

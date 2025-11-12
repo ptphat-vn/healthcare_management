@@ -40,6 +40,9 @@ export const PRIVILEGES = {
 
   // Instruments
   VIEW_INSTRUMENT: 'view_instrument',
+  CREATE_INSTRUMENT: 'create_instrument',
+  MODIFY_INSTRUMENT: 'modify_instrument',
+  DELETE_INSTRUMENT: 'delete_instrument',
   ACTIVATE_INSTRUMENT: 'activate_instrument',
   DEACTIVATE_INSTRUMENT: 'deactivate_instrument',
 
