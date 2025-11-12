@@ -1,5 +1,6 @@
 import type { Collection, ObjectId } from 'mongodb'
 import { getDb } from '~/configs/mongodb.config'
+import type { ReagentCategory } from '~/models/reagent.model'
 
 export const INSTRUMENTS_COLLECTION = 'instruments'
 
@@ -11,6 +12,7 @@ export interface InstrumentDocument {
   serialNumber?: string
   location?: string
   description?: string
+  categories: ReagentCategory[]
   isActive: boolean
   status: 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service'
   createdAt: Date

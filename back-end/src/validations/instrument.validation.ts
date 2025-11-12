@@ -1,6 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
 import { z } from 'zod'
 import { MESSAGES } from '~/constants/message.constant'
+import { REAGENT_CATEGORIES } from '~/models/reagent.model'
+import type { ReagentCategory } from '~/models/reagent.model'
+
+const reagentCategories = [...REAGENT_CATEGORIES] as [ReagentCategory, ...ReagentCategory[]]
+const reagentCategoryEnum = z.enum(reagentCategories)
 
 // Instrument Validations
 export const createInstrumentSchema = z.object({
@@ -10,7 +15,10 @@ export const createInstrumentSchema = z.object({
   serialNumber: z.string().optional(),
   location: z.string().optional(),
   description: z.string().optional(),
-  status: z.enum(['Active', 'Inactive', 'Maintenance', 'Out of Service']).optional()
+  status: z.enum(['Active', 'Inactive', 'Maintenance', 'Out of Service']).optional(),
+  categories: z
+    .array(reagentCategoryEnum)
+    .min(1, 'At least one category is required for the instrument')
 })
 
 export const updateInstrumentSchema = z.object({
@@ -21,7 +29,11 @@ export const updateInstrumentSchema = z.object({
   location: z.string().optional(),
   description: z.string().optional(),
   isActive: z.boolean().optional(),
-  status: z.enum(['Active', 'Inactive', 'Maintenance', 'Out of Service']).optional()
+  status: z.enum(['Active', 'Inactive', 'Maintenance', 'Out of Service']).optional(),
+  categories: z
+    .array(reagentCategoryEnum)
+    .min(1, 'At least one category is required for the instrument')
+    .optional()
 })
 
 export const validateCreateInstrument = (req: Request, res: Response, next: NextFunction) => {

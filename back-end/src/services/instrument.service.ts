@@ -1,5 +1,6 @@
 import { ObjectId, WithId } from 'mongodb'
 import { getInstrumentsCollection, type InstrumentDocument } from '~/models/instrument.model'
+import type { ReagentCategory } from '~/models/reagent.model'
 import { getInstrumentReagentAssignmentCollection } from '~/models/instrument-reagent-assignment.model'
 import { HttpError } from '~/models/error.model'
 import { getUsersCollection } from '~/models/user.model'
@@ -14,6 +15,7 @@ export interface CreateInstrumentPayload {
   location?: string
   description?: string
   status?: 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service'
+  categories: ReagentCategory[]
 }
 
 export interface UpdateInstrumentPayload {
@@ -25,6 +27,7 @@ export interface UpdateInstrumentPayload {
   description?: string
   isActive?: boolean
   status?: 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service'
+  categories?: ReagentCategory[]
 }
 
 export interface ListInstrumentsParams {
@@ -57,6 +60,7 @@ export const createInstrument = async (
     serialNumber: payload.serialNumber,
     location: payload.location,
     description: payload.description,
+    categories: Array.from(new Set(payload.categories)),
     isActive: true,
     status: payload.status || 'Active',
     createdAt: now,
@@ -191,6 +195,10 @@ export const updateInstrument = async (
     ...payload,
     updatedAt: now,
     lastModifiedBy: updatedByObjectId
+  }
+
+  if (payload.categories) {
+    update.categories = Array.from(new Set(payload.categories))
   }
 
   await instruments.updateOne({ _id: objectId } as any, { $set: update })
