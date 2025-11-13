@@ -1,5 +1,14 @@
 import type { ReagentInstrument } from "./reagent.type";
 
+export type ReagentCategory = 
+  | 'Hematology'
+  | 'Biochemistry'
+  | 'Immunology'
+  | 'Molecular/PCR'
+  | 'Microbiology'
+  | 'Coagulation'
+  | 'Enzyme';
+
 export interface Instrument {
   _id: string;
   name: string;
@@ -8,6 +17,7 @@ export interface Instrument {
   serialNumber: string;
   location: string;
   description: string;
+  categories: ReagentCategory[];
   isActive: boolean;
   status: InstrumentStatus;
   createdAt: string;
@@ -50,6 +60,7 @@ export interface CreateInstrumentRequest {
   location?: string;
   description?: string;
   status?: InstrumentStatus;
+  categories: ReagentCategory[];
 }
 
 export interface UpdateInstrumentRequest {
@@ -61,6 +72,7 @@ export interface UpdateInstrumentRequest {
   description?: string;
   isActive?: boolean;
   status?: InstrumentStatus;
+  categories?: ReagentCategory[];
 }
 export interface InstrumentReagents {
   instrument: Instrument;

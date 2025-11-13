@@ -1,5 +1,17 @@
 import * as z from "zod";
 
+export const REAGENT_CATEGORIES = [
+  'Hematology',
+  'Biochemistry',
+  'Immunology',
+  'Molecular/PCR',
+  'Microbiology',
+  'Coagulation',
+  'Enzyme'
+] as const;
+
+export type ReagentCategory = typeof REAGENT_CATEGORIES[number];
+
 export const createInstrumentSchema = z.object({
   name: z.string().min(1, "Instrument name is required"),
   model: z.string().min(1, "Model is required"),
@@ -8,6 +20,7 @@ export const createInstrumentSchema = z.object({
   location: z.string().min(1, "Location is required"),
   description: z.string().min(1, "Description is required"),
   status: z.enum(["Active", "Inactive", "Maintenance", "Out of Service"]),
+  categories: z.array(z.enum(REAGENT_CATEGORIES)).min(1, "At least one category is required"),
 });
 
 export type CreateInstrumentFormData = z.infer<typeof createInstrumentSchema>;
@@ -21,6 +34,7 @@ export const updateInstrumentSchema = z.object({
   location: z.string().min(1, "Vị trí là bắt buộc"),
   description: z.string().min(1, "Mô tả là bắt buộc"),
   status: z.enum(["Active", "Inactive", "Maintenance", "Out of Service"]),
+  categories: z.array(z.enum(REAGENT_CATEGORIES)).min(1, "At least one category is required"),
 });
 
 export type UpdateInstrumentFormData = z.infer<typeof updateInstrumentSchema>;

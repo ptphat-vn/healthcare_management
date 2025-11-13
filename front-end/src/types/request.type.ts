@@ -93,7 +93,7 @@ export interface CommentTestOrderRequest {
 }
 export interface AddReagentToInstrumentRequest {
   reagentId: string;
-  quatity: number;
-  lotNumber: string;
-  note: string;
+  quantity: number;
+  lotNumber?: string;
+  notes?: string;
 }
