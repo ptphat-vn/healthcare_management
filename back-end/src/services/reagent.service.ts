@@ -62,7 +62,6 @@ export const createReagent = async (
     throw new HttpError(400, 'Invalid user ID')
   }
   
-  // Check if name already exists
   const existsByName = await reagents.findOne({ name: payload.name } as any)
   if (existsByName) {
     throw new HttpError(409, 'Reagent with this name already exists')
@@ -70,7 +69,6 @@ export const createReagent = async (
 
   let casNumber = payload.casNumber?.trim() || ''
   
-  // If CAS Number is not provided, automatically generate a unique random CAS Number
   if (!casNumber) {
     try {
       casNumber = await generateUniqueCasNumber(async (cas: string) => {
@@ -82,7 +80,6 @@ export const createReagent = async (
       throw new HttpError(500, `Failed to generate unique CAS Number: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or provide CAS Number manually.`)
     }
   } else {
-    // Check if manually provided CAS Number already exists
     const existsByCasNumber = await reagents.findOne({ casNumber: casNumber } as any)
     if (existsByCasNumber) {
       throw new HttpError(409, 'Reagent with this CAS Number already exists')
@@ -99,10 +96,9 @@ export const createReagent = async (
         throw new HttpError(400, `Invalid categories: ${invalidCategories.join(', ')}. Valid categories are: ${REAGENT_CATEGORIES.join(', ')}`)
       }
       
-      // Remove duplicates
       payload.categories = [...new Set(payload.categories)]
     } else {
-      // If all categories were filtered out, set to undefined
+
       payload.categories = undefined
     }
   }
@@ -161,6 +157,11 @@ export const createReagent = async (
     // swallow logging errors
   }
 
+  const createdByUser = await getUsersCollection().findOne({ _id: createdByObjectId } as any)
+  if (createdByUser) {
+    (created as ReagentDocument).createdByName = createdByUser.fullName || createdByUser.email || createdByObjectId.toString()
+  }
+
   return created as WithId<ReagentDocument>
 }
 
@@ -196,6 +197,46 @@ export const listReagents = async (params: ListReagentsParams) => {
 
   const [items, total] = await Promise.all([cursor.toArray(), reagents.countDocuments(filter as any)])
 
+  if (items.length > 0) {
+    const userIds = Array.from(
+      new Set(
+        items
+          .flatMap((item) => [item.createdBy, item.lastModifiedBy].filter(Boolean))
+          .map((id) => (id as ObjectId).toString())
+      )
+    )
+
+    if (userIds.length > 0) {
+      const users = await getUsersCollection()
+        .find(
+          { _id: { $in: userIds.map((id) => new ObjectId(id)) } } as any,
+          { projection: { fullName: 1, email: 1 } }
+        )
+        .toArray()
+
+      const nameMap = new Map<string, string>(
+        users
+          .filter((user) => user?._id)
+          .map((user) => [user._id!.toString(), user.fullName || user.email || user._id!.toString()])
+      )
+
+      items.forEach((item) => {
+        if (item.createdBy) {
+          const name = nameMap.get(item.createdBy.toString())
+          if (name) {
+            ;(item as ReagentDocument).createdByName = name
+          }
+        }
+        if (item.lastModifiedBy) {
+          const name = nameMap.get(item.lastModifiedBy.toString())
+          if (name) {
+            ;(item as ReagentDocument).lastModifiedByName = name
+          }
+        }
+      })
+    }
+  }
+
   return {
     reagents: items,
     pagination: {
@@ -219,6 +260,38 @@ export const getReagentById = async (id: string): Promise<WithId<ReagentDocument
   const reagent = await reagents.findOne({ _id: objectId } as any)
   if (!reagent) {
     throw new HttpError(404, 'Reagent not found')
+  }
+
+  const userIds = [
+    reagent.createdBy ? reagent.createdBy.toString() : null,
+    reagent.lastModifiedBy ? reagent.lastModifiedBy.toString() : null
+  ].filter(Boolean) as string[]
+
+  if (userIds.length > 0) {
+    const users = await getUsersCollection()
+      .find(
+        { _id: { $in: userIds.map((userId) => new ObjectId(userId)) } } as any,
+        { projection: { fullName: 1, email: 1 } }
+      )
+      .toArray()
+
+    const nameMap = new Map<string, string>(
+      users.map((user) => [user._id!.toString(), user.fullName || user.email || user._id!.toString()])
+    )
+
+    if (reagent.createdBy) {
+      const name = nameMap.get(reagent.createdBy.toString())
+      if (name) {
+        ;(reagent as ReagentDocument).createdByName = name
+      }
+    }
+
+    if (reagent.lastModifiedBy) {
+      const name = nameMap.get(reagent.lastModifiedBy.toString())
+      if (name) {
+        ;(reagent as ReagentDocument).lastModifiedByName = name
+      }
+    }
   }
 
   return reagent as WithId<ReagentDocument>
@@ -301,6 +374,38 @@ export const updateReagent = async (
     // swallow logging errors
   }
 
+  const userIds = [
+    updated.createdBy ? updated.createdBy.toString() : null,
+    updated.lastModifiedBy ? updated.lastModifiedBy.toString() : null
+  ].filter(Boolean) as string[]
+
+  if (userIds.length > 0) {
+    const users = await getUsersCollection()
+      .find(
+        { _id: { $in: userIds.map((userId) => new ObjectId(userId)) } } as any,
+        { projection: { fullName: 1, email: 1 } }
+      )
+      .toArray()
+
+    const nameMap = new Map<string, string>(
+      users.map((user) => [user._id!.toString(), user.fullName || user.email || user._id!.toString()])
+    )
+
+    if (updated.createdBy) {
+      const name = nameMap.get(updated.createdBy.toString())
+      if (name) {
+        ;(updated as ReagentDocument).createdByName = name
+      }
+    }
+
+    if (updated.lastModifiedBy) {
+      const name = nameMap.get(updated.lastModifiedBy.toString())
+      if (name) {
+        ;(updated as ReagentDocument).lastModifiedByName = name
+      }
+    }
+  }
+
   return updated as WithId<ReagentDocument>
 }
 
@@ -344,6 +449,27 @@ export const deleteReagent = async (id: string, deletedBy: string): Promise<With
     } as any)
   } catch {
     // swallow logging errors
+  }
+
+  if (deleted.createdBy) {
+    const creator = await getUsersCollection().findOne(
+      { _id: deleted.createdBy } as any,
+      { projection: { fullName: 1, email: 1 } }
+    )
+    if (creator) {
+      ;(deleted as ReagentDocument).createdByName = creator.fullName || creator.email || deleted.createdBy.toString()
+    }
+  }
+
+  if (deleted.lastModifiedBy) {
+    const modifier = await getUsersCollection().findOne(
+      { _id: deleted.lastModifiedBy } as any,
+      { projection: { fullName: 1, email: 1 } }
+    )
+    if (modifier) {
+      ;(deleted as ReagentDocument).lastModifiedByName =
+        modifier.fullName || modifier.email || deleted.lastModifiedBy.toString()
+    }
   }
 
   return deleted as WithId<ReagentDocument>

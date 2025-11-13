@@ -106,6 +106,7 @@ export const createVendorSupply = async (
     lotNumber: payload.lotNumber,
     expirationDate: typeof payload.expirationDate === 'string' ? new Date(payload.expirationDate) : payload.expirationDate,
     receivedBy: receivedByObjectId,
+    receivedByName: user.fullName || user.email || receivedByObjectId.toString(),
     receivedAt: now,
     initialStorageLocation: payload.initialStorageLocation,
     status: payload.status,
@@ -137,6 +138,9 @@ export const createVendorSupply = async (
   } catch {
     // swallow logging errors
   }
+
+  ;(created as ReagentVendorSupplyDocument).receivedByName =
+    user.fullName || user.email || receivedByObjectId.toString()
 
   return created as WithId<ReagentVendorSupplyDocument>
 }
@@ -184,6 +188,40 @@ export const listVendorSupplyHistory = async (params: ListVendorSupplyParams) =>
     .limit(limit)
 
   const [items, total] = await Promise.all([cursor.toArray(), vendorSupplies.countDocuments(filter as any)])
+
+  if (items.length > 0) {
+    const userIds = Array.from(
+      new Set(
+        items
+          .filter((item) => item.receivedBy && !item.receivedByName)
+          .map((item) => (item.receivedBy as ObjectId).toString())
+      )
+    )
+
+    if (userIds.length > 0) {
+      const users = await getUsersCollection()
+        .find(
+          { _id: { $in: userIds.map((id) => new ObjectId(id)) } } as any,
+          { projection: { fullName: 1, email: 1 } }
+        )
+        .toArray()
+
+      const nameMap = new Map<string, string>(
+        users
+          .filter((user) => user?._id)
+          .map((user) => [user._id!.toString(), user.fullName || user.email || user._id!.toString()])
+      )
+
+      items.forEach((item) => {
+        if (item.receivedBy && !item.receivedByName) {
+          const name = nameMap.get(item.receivedBy.toString())
+          if (name) {
+            ;(item as ReagentVendorSupplyDocument).receivedByName = name
+          }
+        }
+      })
+    }
+  }
 
   return {
     vendorSupplies: items,

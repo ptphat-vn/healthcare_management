@@ -6,6 +6,8 @@ import { getReagentInventoryFIFO } from '~/services/reagent-inventory.service'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
+import { getInstrumentsCollection } from '~/models/instrument.model'
+import { getTestOrdersCollection } from '~/models/test-order.model'
 
 export interface CreateUsageHistoryPayload {
   reagentId: string
@@ -62,26 +64,49 @@ export const recordReagentUsage = async (
   if (!user) {
     throw new HttpError(404, 'User not found')
   }
+  const performedByName = user.fullName || user.email || performedByObjectId.toString()
 
   const usageHistory = getReagentUsageHistoryCollection()
   const now = new Date()
 
   let testOrderObjectId: ObjectId | undefined
+  let testOrderName: string | undefined
   if (payload.testOrderId) {
     try {
       testOrderObjectId = new ObjectId(payload.testOrderId)
     } catch {
       throw new HttpError(422, 'Invalid testOrderId')
     }
+
+    const testOrders = getTestOrdersCollection()
+    const testOrder = await testOrders.findOne({ _id: testOrderObjectId } as any)
+    if (!testOrder) {
+      throw new HttpError(404, 'Test order not found')
+    }
+
+    if (testOrder.patientName) {
+      testOrderName = testOrder.patientName
+    } else if (Array.isArray(testOrder.requestedTests) && testOrder.requestedTests.length) {
+      testOrderName = testOrder.requestedTests.join(', ')
+    }
   }
 
   let instrumentObjectId: ObjectId | undefined
+  let instrumentName: string | undefined
   if (payload.instrumentId) {
     try {
       instrumentObjectId = new ObjectId(payload.instrumentId)
     } catch {
       throw new HttpError(422, 'Invalid instrumentId')
     }
+
+    const instruments = getInstrumentsCollection()
+    const instrument = await instruments.findOne({ _id: instrumentObjectId } as any)
+    if (!instrument) {
+      throw new HttpError(404, 'Instrument not found')
+    }
+
+    instrumentName = instrument.name
   }
 
   const inventory = await getReagentInventoryFIFO({
@@ -127,9 +152,12 @@ export const recordReagentUsage = async (
           unit: payload.unit,
           action: payload.action,
           testOrderId: testOrderObjectId,
+          testOrderName,
           instrumentId: instrumentObjectId,
+          instrumentName,
           batchLotNumber: lot.lotNumber,
           performedBy: performedByObjectId,
+          performedByName,
           performedAt: payload.performedAt
             ? typeof payload.performedAt === 'string'
               ? new Date(payload.performedAt)
@@ -184,9 +212,12 @@ export const recordReagentUsage = async (
     unit: payload.unit,
     action: payload.action,
     testOrderId: testOrderObjectId,
+    testOrderName,
     instrumentId: instrumentObjectId,
+    instrumentName,
     batchLotNumber: selectedLotNumber,
     performedBy: performedByObjectId,
+    performedByName,
     performedAt: payload.performedAt
       ? typeof payload.performedAt === 'string'
         ? new Date(payload.performedAt)
@@ -279,6 +310,121 @@ export const listUsageHistory = async (params: ListUsageHistoryParams) => {
     .limit(limit)
 
   const [items, total] = await Promise.all([cursor.toArray(), usageHistory.countDocuments(filter as any)])
+
+  const instrumentIdsNeedingLookup = Array.from(
+    new Set(
+      items
+        .filter((item) => item.instrumentId && !item.instrumentName)
+        .map((item) => (item.instrumentId as ObjectId).toString())
+    )
+  )
+
+  const testOrderIdsNeedingLookup = Array.from(
+    new Set(
+      items
+        .filter((item) => item.testOrderId && !item.testOrderName)
+        .map((item) => (item.testOrderId as ObjectId).toString())
+    )
+  )
+
+  const performerIdsNeedingLookup = Array.from(
+    new Set(
+      items
+        .filter((item) => item.performedBy && !item.performedByName)
+        .map((item) => (item.performedBy as ObjectId).toString())
+    )
+  )
+
+  const [instrumentDocs, testOrderDocs] = await Promise.all([
+    instrumentIdsNeedingLookup.length
+      ? getInstrumentsCollection()
+          .find(
+            { _id: { $in: instrumentIdsNeedingLookup.map((id) => new ObjectId(id)) } } as any,
+            { projection: { name: 1 } }
+          )
+          .toArray()
+      : Promise.resolve([]),
+    testOrderIdsNeedingLookup.length
+      ? getTestOrdersCollection()
+          .find(
+            { _id: { $in: testOrderIdsNeedingLookup.map((id) => new ObjectId(id)) } } as any,
+            { projection: { patientName: 1, requestedTests: 1 } }
+          )
+          .toArray()
+      : Promise.resolve([])
+  ])
+
+  const performerDocs = performerIdsNeedingLookup.length
+    ? await getUsersCollection()
+        .find(
+          { _id: { $in: performerIdsNeedingLookup.map((id) => new ObjectId(id)) } } as any,
+          { projection: { fullName: 1, username: 1, email: 1 } }
+        )
+        .toArray()
+    : []
+
+  if (instrumentDocs.length) {
+    const instrumentNameMap = new Map<string, string>()
+    instrumentDocs.forEach((doc) => {
+      if (doc?._id && doc?.name) {
+        instrumentNameMap.set(doc._id.toString(), doc.name)
+      }
+    })
+
+    items.forEach((item) => {
+      if (item.instrumentId && !item.instrumentName) {
+        const name = instrumentNameMap.get(item.instrumentId.toString())
+        if (name) {
+          item.instrumentName = name
+        }
+      }
+    })
+  }
+
+  if (testOrderDocs.length) {
+    const testOrderNameMap = new Map<string, string>()
+    testOrderDocs.forEach((doc) => {
+      if (!doc?._id) return
+      let derivedName = ''
+      if (doc.patientName) {
+        derivedName = doc.patientName
+      } else if (Array.isArray(doc.requestedTests) && doc.requestedTests.length) {
+        derivedName = doc.requestedTests.join(', ')
+      }
+      if (derivedName) {
+        testOrderNameMap.set(doc._id.toString(), derivedName)
+      }
+    })
+
+    items.forEach((item) => {
+      if (item.testOrderId && !item.testOrderName) {
+        const name = testOrderNameMap.get(item.testOrderId.toString())
+        if (name) {
+          item.testOrderName = name
+        }
+      }
+    })
+  }
+
+  if (performerDocs.length) {
+    const performerNameMap = new Map<string, string>()
+    performerDocs.forEach((doc: any) => {
+      if (!doc?._id) return
+      const name = doc.fullName || doc.email
+      if (name) {
+        performerNameMap.set(doc._id.toString(), name)
+      }
+    })
+
+    items.forEach((item) => {
+      if (item.performedBy && !item.performedByName) {
+        const name = performerNameMap.get(item.performedBy.toString())
+        if (name) {
+          item.performedByName = name
+        }
+      }
+    })
+  }
 
   return {
     usageHistory: items,

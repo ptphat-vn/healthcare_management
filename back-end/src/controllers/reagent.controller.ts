@@ -153,21 +153,6 @@ export const listVendorSupplyHistoryController = async (req: Request, res: Respo
   }
 }
 
-// USAGE HISTORY
-
-export const recordReagentUsageController = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const created = await usageHistoryService.recordReagentUsage(req.body)
-    const isArray = Array.isArray(created)
-    return res.status(200).json({
-      message: isArray ? 'Reagent usage recorded successfully (multi-lot allocation)' : 'Reagent usage recorded successfully',
-      data: created
-    })
-  } catch (err) {
-    next(err)
-  }
-}
-
 export const listUsageHistoryController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await usageHistoryService.listUsageHistory({

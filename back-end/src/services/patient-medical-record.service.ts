@@ -102,6 +102,7 @@ export const createPatientRecord = async (
 
   const now = new Date()
   const createdByObjectId = new ObjectId(createdBy)
+  const creatorUser = await users.findOne({ _id: createdByObjectId } as any)
 
   const doc: PatientMedicalRecordDocument = {
     patientId: user.patientId,
@@ -122,7 +123,8 @@ export const createPatientRecord = async (
     isDeleted: false,
     createdAt: now,
     updatedAt: now,
-    createdBy: createdByObjectId
+    createdBy: createdByObjectId,
+    createdByName: creatorUser?.fullName || creatorUser?.email || createdByObjectId.toString()
   }
 
   const result = await patientRecords.insertOne(doc as any)
@@ -146,6 +148,8 @@ export const createPatientRecord = async (
   } catch {
     // swallow logging errors
   }
+
+  await populateActorNames(created as PatientMedicalRecordDocument)
 
   return created as WithId<PatientMedicalRecordDocument>
 }
@@ -171,6 +175,7 @@ export const updatePatientRecord = async (
     throw new HttpError(404, 'Patient record not found')
   }
 
+  let updatedByUserDoc: any = null
   if (authUserRole === 'patient') {
     let updatedByObjectId: ObjectId
     try {
@@ -188,6 +193,7 @@ export const updatePatientRecord = async (
     if (existingRecord.patientId !== authUser.patientId) {
       throw new HttpError(403, 'Access denied: You can only update your own medical records')
     }
+    updatedByUserDoc = authUser
   }
 
   if (payload.identifyNumber && payload.identifyNumber !== existingRecord.identifyNumber) {
@@ -207,6 +213,9 @@ export const updatePatientRecord = async (
     updatedByObjectId = new ObjectId(updatedBy)
   } catch {
     throw new HttpError(422, 'Invalid updatedBy user id')
+  }
+  if (!updatedByUserDoc) {
+    updatedByUserDoc = await users.findOne({ _id: updatedByObjectId } as any)
   }
 
   const changes: Record<string, any> = {}
@@ -230,7 +239,9 @@ export const updatePatientRecord = async (
   const updateData = {
     ...payload,
     updatedAt: now,
-    lastModifiedBy: updatedByObjectId
+    lastModifiedBy: updatedByObjectId,
+    lastModifiedByName:
+      updatedByUserDoc?.fullName || updatedByUserDoc?.email || updatedByObjectId.toString()
   }
 
   const result = await patientRecords.findOneAndUpdate(
@@ -262,6 +273,8 @@ export const updatePatientRecord = async (
     // swallow logging errors
   }
 
+  await populateActorNames(updated as PatientMedicalRecordDocument)
+
   return updated as WithId<PatientMedicalRecordDocument>
 }
 
@@ -286,6 +299,7 @@ export const deletePatientRecord = async (
     throw new HttpError(404, 'Patient record not found')
   }
 
+  let deletedByUserDoc: any = null
   // If user is a patient, verify they can only delete their own record
   if (authUserRole === 'patient') {
     let deletedByObjectId: ObjectId
@@ -304,6 +318,7 @@ export const deletePatientRecord = async (
     if (existingRecord.patientId !== authUser.patientId) {
       throw new HttpError(403, 'Access denied: You can only delete your own medical records')
     }
+    deletedByUserDoc = authUser
   }
 
   const hasActiveTestOrders = await testOrders.findOne({
@@ -322,6 +337,9 @@ export const deletePatientRecord = async (
   } catch {
     throw new HttpError(422, 'Invalid deletedBy user id')
   }
+  if (!deletedByUserDoc) {
+    deletedByUserDoc = await users.findOne({ _id: deletedByObjectId } as any)
+  }
 
   const result = await patientRecords.findOneAndUpdate(
     { _id: patientObjectId } as any,
@@ -330,6 +348,8 @@ export const deletePatientRecord = async (
         isDeleted: true,
         deletedAt: now,
         deletedBy: deletedByObjectId,
+        deletedByName:
+          deletedByUserDoc?.fullName || deletedByUserDoc?.email || deletedByObjectId.toString(),
         updatedAt: now
       }
     },
@@ -355,6 +375,8 @@ export const deletePatientRecord = async (
   } catch {
     // swallow logging errors
   }
+
+  await populateActorNames(deleted as PatientMedicalRecordDocument)
 
   return deleted as WithId<PatientMedicalRecordDocument>
 }
@@ -437,22 +459,51 @@ export const listPatientRecords = async (params: ListPatientRecordsParams) => {
       lastTestByPatient.set(testOrder.patientId, testOrder)
     }
   }
-  const userIds = Array.from(new Set(patientItems.map((p) => p.createdBy).filter(Boolean))) as ObjectId[]
-  const userDocs = userIds.length ? await users.find({ _id: { $in: userIds } }).toArray() : []
+  const actorIds = Array.from(
+    new Set(
+      patientItems
+        .flatMap((patient) => [
+          patient.createdBy ? patient.createdBy.toString() : null,
+          patient.lastModifiedBy ? patient.lastModifiedBy.toString() : null,
+          patient.deletedBy ? patient.deletedBy.toString() : null
+        ])
+        .filter(Boolean)
+    )
+  ) as string[]
+  const userDocs = actorIds.length
+    ? await users.find({ _id: { $in: actorIds.map((id) => new ObjectId(id)) } }).toArray()
+    : []
   const idToUser = new Map<string, { fullName?: string; email?: string }>()
+  const idToName = new Map<string, string>()
   for (const u of userDocs as any[]) {
-    idToUser.set(String(u._id), { fullName: u.fullName, email: u.email })
+    const id = String(u._id)
+    idToUser.set(id, { fullName: u.fullName, email: u.email })
+    idToName.set(id, u.fullName || u.email || id)
   }
 
   const enrichedPatients = patientItems.map((patient: any) => {
     const lastTest = lastTestByPatient.get(patient.patientId)
-    const createdByUser = idToUser.get(String(patient.createdBy))
+    const createdById = patient.createdBy ? patient.createdBy.toString() : undefined
+    const lastModifiedById = patient.lastModifiedBy ? patient.lastModifiedBy.toString() : undefined
+    const deletedById = patient.deletedBy ? patient.deletedBy.toString() : undefined
+    const createdByUser = createdById ? idToUser.get(createdById) : undefined
+    const lastModifiedByUser = lastModifiedById ? idToUser.get(lastModifiedById) : undefined
+    const deletedByUser = deletedById ? idToUser.get(deletedById) : undefined
+    const createdByName = patient.createdByName || (createdById ? idToName.get(createdById) : undefined)
+    const lastModifiedByName =
+      patient.lastModifiedByName || (lastModifiedById ? idToName.get(lastModifiedById) : undefined)
+    const deletedByName = patient.deletedByName || (deletedById ? idToName.get(deletedById) : undefined)
 
     return {
       ...patient,
       lastTestDate: lastTest?.createdDate,
       lastTestStatus: lastTest?.status,
-      createdByUser
+      createdByUser,
+      lastModifiedByUser,
+      deletedByUser,
+      createdByName,
+      lastModifiedByName,
+      deletedByName
     }
   })
 
@@ -540,12 +591,36 @@ export const getPatientRecordDetail = async (id: string, authUserId?: string, au
 
   const createdByUser = idToUser.get(String(patient.createdBy))
   const lastModifiedByUser = patient.lastModifiedBy ? idToUser.get(String(patient.lastModifiedBy)) : null
+  const deletedByUser = patient.deletedBy ? idToUser.get(String(patient.deletedBy)) : null
+  const createdByName =
+    patient.createdByName ||
+    (patient.createdBy ? idToUser.get(String(patient.createdBy))?.fullName ||
+      idToUser.get(String(patient.createdBy))?.email ||
+      String(patient.createdBy) : undefined)
+  const lastModifiedByName =
+    patient.lastModifiedByName ||
+    (patient.lastModifiedBy
+      ? idToUser.get(String(patient.lastModifiedBy))?.fullName ||
+        idToUser.get(String(patient.lastModifiedBy))?.email ||
+        String(patient.lastModifiedBy)
+      : undefined)
+  const deletedByName =
+    patient.deletedByName ||
+    (patient.deletedBy
+      ? idToUser.get(String(patient.deletedBy))?.fullName ||
+        idToUser.get(String(patient.deletedBy))?.email ||
+        String(patient.deletedBy)
+      : undefined)
 
   return {
     ...patient,
     testOrders: enrichedTestOrders,
     createdByUser,
-    lastModifiedByUser
+    lastModifiedByUser,
+    deletedByUser,
+    createdByName,
+    lastModifiedByName,
+    deletedByName
   }
 }
 
@@ -578,6 +653,7 @@ export const addClinicalNote = async (
     throw new HttpError(422, 'Invalid addedBy user id')
   }
 
+  let addedByUserDoc: any = null
   if (authUserRole === 'patient') {
     const authUser = await users.findOne({ _id: addedByObjectId } as any)
     if (!authUser) {
@@ -589,6 +665,10 @@ export const addClinicalNote = async (
     if (existingRecord.patientId !== authUser.patientId) {
       throw new HttpError(403, 'Access denied: You can only add notes to your own medical records')
     }
+    addedByUserDoc = authUser
+  }
+  if (!addedByUserDoc) {
+    addedByUserDoc = await users.findOne({ _id: addedByObjectId } as any)
   }
 
   const newNote: ClinicalNote = {
@@ -602,7 +682,12 @@ export const addClinicalNote = async (
     { _id: patientObjectId } as any,
     {
       $push: { clinicalNotes: newNote },
-      $set: { updatedAt: now, lastModifiedBy: addedByObjectId }
+      $set: {
+        updatedAt: now,
+        lastModifiedBy: addedByObjectId,
+        lastModifiedByName:
+          addedByUserDoc?.fullName || addedByUserDoc?.email || addedByObjectId.toString()
+      }
     },
     { returnDocument: 'after' }
   )
@@ -628,5 +713,57 @@ export const addClinicalNote = async (
     // swallow logging errors
   }
 
+  await populateActorNames(updated as PatientMedicalRecordDocument)
+
   return updated as WithId<PatientMedicalRecordDocument>
+}
+
+const populateActorNames = async (
+  records: PatientMedicalRecordDocument | PatientMedicalRecordDocument[]
+) => {
+  const items = Array.isArray(records) ? records : [records]
+  const missingIds = new Set<string>()
+
+  items.forEach((item) => {
+    if (item?.createdBy && !item.createdByName) {
+      missingIds.add(item.createdBy.toString())
+    }
+    if (item?.lastModifiedBy && !item.lastModifiedByName) {
+      missingIds.add(item.lastModifiedBy.toString())
+    }
+    if (item?.deletedBy && !item.deletedByName) {
+      missingIds.add(item.deletedBy.toString())
+    }
+  })
+
+  if (missingIds.size === 0) {
+    return
+  }
+
+  const users = getUsersCollection()
+  const userDocs = await users
+    .find(
+      { _id: { $in: Array.from(missingIds).map((id) => new ObjectId(id)) } } as any,
+      { projection: { fullName: 1, email: 1 } }
+    )
+    .toArray()
+
+  const nameMap = new Map<string, string>(
+    userDocs
+      .filter((user) => user?._id)
+      .map((user) => [user._id!.toString(), user.fullName || user.email || user._id!.toString()])
+  )
+
+  items.forEach((item) => {
+    if (item.createdBy && !item.createdByName) {
+      item.createdByName = nameMap.get(item.createdBy.toString()) || item.createdBy.toString()
+    }
+    if (item.lastModifiedBy && !item.lastModifiedByName) {
+      item.lastModifiedByName =
+        nameMap.get(item.lastModifiedBy.toString()) || item.lastModifiedBy.toString()
+    }
+    if (item.deletedBy && !item.deletedByName) {
+      item.deletedByName = nameMap.get(item.deletedBy.toString()) || item.deletedBy.toString()
+    }
+  })
 }

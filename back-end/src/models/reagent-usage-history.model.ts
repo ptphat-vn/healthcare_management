@@ -10,10 +10,13 @@ export interface ReagentUsageHistoryDocument {
   quantity: number
   unit: string 
   action: 'Used' | 'Consumed' | 'Wasted' | 'Expired' | 'Returned'
-  testOrderId?: ObjectId // Nếu dùng cho test order
-  instrumentId?: ObjectId // Nếu dùng với instrument
+  testOrderId?: ObjectId 
+  testOrderName?: string
+  instrumentId?: ObjectId 
+  instrumentName?: string
   batchLotNumber?: string // Lot number của reagent được sử dụng
   performedBy: ObjectId
+  performedByName?: string
   performedAt: Date
   notes?: string
   createdAt: Date

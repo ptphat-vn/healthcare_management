@@ -46,6 +46,8 @@ export const createInstrument = async (
 ): Promise<WithId<InstrumentDocument>> => {
   const instruments = getInstrumentsCollection()
   const createdByObjectId = new ObjectId(createdBy)
+  const usersCol = getUsersCollection()
+  const creator = await usersCol.findOne({ _id: createdByObjectId } as any)
   
   const exists = await instruments.findOne({ name: payload.name } as any)
   if (exists) {
@@ -65,7 +67,8 @@ export const createInstrument = async (
     status: payload.status || 'Active',
     createdAt: now,
     updatedAt: now,
-    createdBy: createdByObjectId
+    createdBy: createdByObjectId,
+    createdByName: creator?.fullName || creator?.email || createdByObjectId.toString()
   }
 
   const result = await instruments.insertOne(doc as any)
@@ -136,6 +139,45 @@ export const listInstruments = async (params: ListInstrumentsParams) => {
 
   const [items, total] = await Promise.all([cursor.toArray(), instruments.countDocuments(filter as any)])
 
+  if (items.length > 0) {
+    const actorIds = Array.from(
+      new Set(
+        items
+          .flatMap((item) => [
+            item.createdBy ? item.createdBy.toString() : null,
+            item.lastModifiedBy ? item.lastModifiedBy.toString() : null
+          ])
+          .filter(Boolean)
+      )
+    ) as string[]
+
+    if (actorIds.length > 0) {
+      const users = await getUsersCollection()
+        .find(
+          { _id: { $in: actorIds.map((id) => new ObjectId(id)) } } as any,
+          { projection: { fullName: 1, email: 1 } }
+        )
+        .toArray()
+
+      const nameMap = new Map<string, string>(
+        users
+          .filter((u) => u?._id)
+          .map((u) => [u._id!.toString(), u.fullName || u.email || u._id!.toString()])
+      )
+
+      items.forEach((item) => {
+        if (item.createdBy) {
+          const name = nameMap.get(item.createdBy.toString())
+          if (name) (item as InstrumentDocument).createdByName = name
+        }
+        if (item.lastModifiedBy) {
+          const name = nameMap.get(item.lastModifiedBy.toString())
+          if (name) (item as InstrumentDocument).lastModifiedByName = name
+        }
+      })
+    }
+  }
+
   return {
     instruments: items,
     pagination: {
@@ -159,6 +201,35 @@ export const getInstrumentById = async (id: string): Promise<WithId<InstrumentDo
   const instrument = await instruments.findOne({ _id: objectId } as any)
   if (!instrument) {
     throw new HttpError(404, 'Instrument not found')
+  }
+
+  if (instrument) {
+    const ids = [
+      instrument.createdBy ? instrument.createdBy.toString() : null,
+      instrument.lastModifiedBy ? instrument.lastModifiedBy.toString() : null
+    ].filter(Boolean) as string[]
+
+    if (ids.length > 0) {
+      const users = await getUsersCollection()
+        .find(
+          { _id: { $in: ids.map((id) => new ObjectId(id)) } } as any,
+          { projection: { fullName: 1, email: 1 } }
+        )
+        .toArray()
+
+      const nameMap = new Map<string, string>(
+        users.map((u) => [u._id!.toString(), u.fullName || u.email || u._id!.toString()])
+      )
+
+      if (instrument.createdBy) {
+        const name = nameMap.get(instrument.createdBy.toString())
+        if (name) (instrument as InstrumentDocument).createdByName = name
+      }
+      if (instrument.lastModifiedBy) {
+        const name = nameMap.get(instrument.lastModifiedBy.toString())
+        if (name) (instrument as InstrumentDocument).lastModifiedByName = name
+      }
+    }
   }
 
   return instrument as WithId<InstrumentDocument>
@@ -201,6 +272,13 @@ export const updateInstrument = async (
     update.categories = Array.from(new Set(payload.categories))
   }
 
+  const usersCol2 = getUsersCollection()
+  const modifier = await usersCol2.findOne({ _id: updatedByObjectId } as any)
+  if (modifier) {
+    (update as InstrumentDocument).lastModifiedByName =
+      modifier.fullName || modifier.email || updatedByObjectId.toString()
+  }
+
   await instruments.updateOne({ _id: objectId } as any, { $set: update })
   const updated = await instruments.findOne({ _id: objectId } as any)
   if (!updated) {
@@ -226,6 +304,16 @@ export const updateInstrument = async (
     } as any)
   } catch {
     // swallow logging errors
+  }
+
+  // back-fill names on response
+  if (updated.createdBy && !(updated as InstrumentDocument).createdByName) {
+    const usersCol3 = getUsersCollection()
+    const creator = await usersCol3.findOne({ _id: updated.createdBy } as any)
+    if (creator) {
+      (updated as InstrumentDocument).createdByName =
+        creator.fullName || creator.email || updated.createdBy.toString()
+    }
   }
 
   return updated as WithId<InstrumentDocument>
