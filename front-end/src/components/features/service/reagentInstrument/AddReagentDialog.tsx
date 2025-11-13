@@ -47,14 +47,28 @@ export default function AddReagentDialog({
   });
 
   // Fetch inventory for selected reagent
-  const { data: inventoryData } = useGetReagentInventoryQuery(
+  const { data: inventoryData, isLoading: isLoadingInventory } = useGetReagentInventoryQuery(
     { reagentId: formData.reagentId, includeExpired: false },
     { skip: !formData.reagentId }
   );
-console.log(formData.reagentId);
 
   const inventory = inventoryData?.data || [];
   const totalAvailable = inventory.reduce((sum, item) => sum + item.quantityAvailable, 0);
+  
+  // Get selected reagent details
+  const selectedReagent = reagentsData?.data?.reagents?.find(
+    (r) => r._id === formData.reagentId
+  );
+  
+  const resetForm = () => {
+    setFormData({
+      reagentId: "",
+      lotNumber: "",
+      quantity: "",
+      notes: "",
+    });
+    setInventoryError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,17 +109,10 @@ console.log(formData.reagentId);
         instrumentId,
         reagentData: payload,
       }).unwrap();
-      console.log(payload, "hehehe");
       
       toast.success("Reagent assigned to instrument successfully");
       setOpen(false);
-      setInventoryError("");
-      setFormData({
-        reagentId: "",
-        lotNumber: "",
-        quantity: "",
-        notes: "",
-      });
+      resetForm();
       
       if (onSuccess) {
         onSuccess();
@@ -113,8 +120,9 @@ console.log(formData.reagentId);
     } catch (error: any) {
       const errorMessage = error?.data?.message || "Failed to assign reagent";
       
-      // Check if it's an inventory error
-      if (errorMessage.includes("inventory") || errorMessage.includes("stock")) {
+      // Check if it's an inventory error or category mismatch
+      if (errorMessage.includes("inventory") || errorMessage.includes("stock") || 
+          errorMessage.includes("category") || errorMessage.includes("common category")) {
         setInventoryError(errorMessage);
       }
       
@@ -128,14 +136,26 @@ console.log(formData.reagentId);
       [field]: value,
     }));
     
-    // Clear inventory error when user changes reagent selection
+    // Clear inventory error and reset quantity when user changes reagent selection
     if (field === "reagentId") {
       setInventoryError("");
+      setFormData((prev) => ({
+        ...prev,
+        lotNumber: "",
+        quantity: "",
+      }));
+    }
+  };
+  
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      resetForm();
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button className="flex items-center gap-2 btn-primary">
@@ -154,17 +174,19 @@ console.log(formData.reagentId);
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            {/* Inventory Error Alert */}
+            {/* Error Alert */}
             {inventoryError && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-red-800">
                       {inventoryError}
                     </p>
                     <p className="text-xs text-red-600 mt-1">
-                      Please add inventory for this reagent first or select a different reagent.
+                      {inventoryError.includes("category") || inventoryError.includes("common category") 
+                        ? "The instrument and reagent must have at least one matching category. Please select a compatible reagent."
+                        : "Please add inventory for this reagent first or select a different reagent."}
                     </p>
                   </div>
                 </div>
@@ -199,6 +221,25 @@ console.log(formData.reagentId);
                   )}
                 </SelectContent>
               </Select>
+              {formData.reagentId && isLoadingInventory && (
+                <p className="text-xs text-blue-600 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Loading inventory...
+                </p>
+              )}
+              {formData.reagentId && !isLoadingInventory && inventory.length === 0 && (
+                <p className="text-xs text-red-600">
+                  ⚠️ No inventory available for this reagent
+                </p>
+              )}
+              {selectedReagent && selectedReagent.category && (
+                <div className="text-xs text-gray-600 mt-1">
+                  <span className="font-medium">Category:</span>{" "}
+                  <span className="text-gray-700">
+                    {selectedReagent.category}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Lot Number */}
@@ -208,14 +249,20 @@ console.log(formData.reagentId);
               </Label>
               {inventory.length > 0 ? (
                 <Select
-                  value={formData.lotNumber}
-                  onValueChange={(value) => handleChange("lotNumber", value)}
+                  value={formData.lotNumber || "auto-fifo"}
+                  onValueChange={(value) => {
+                    if (value === "auto-fifo") {
+                      handleChange("lotNumber", "");
+                    } else {
+                      handleChange("lotNumber", value);
+                    }
+                  }}
                 >
                   <SelectTrigger id="lotNumber">
-                    <SelectValue placeholder="Auto-select using FIFO (recommended)" />
+                    <SelectValue placeholder="Select lot number" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Auto-select using FIFO</SelectItem>
+                    <SelectItem value="auto-fifo">Auto-select using FIFO (recommended)</SelectItem>
                     {inventory.map((item) => (
                       <SelectItem key={item.lotNumber} value={item.lotNumber}>
                         {item.lotNumber} - Available: {item.quantityAvailable} {item.unitOfMeasure} 
@@ -233,7 +280,7 @@ console.log(formData.reagentId);
                   disabled
                 />
               )}
-              {inventory.length > 0 && !formData.lotNumber && (
+              {inventory.length > 0 && (!formData.lotNumber || formData.lotNumber === "") && (
                 <p className="text-xs text-gray-500">
                   System will automatically select the lot with earliest expiration date (FIFO)
                 </p>
@@ -282,7 +329,7 @@ console.log(formData.reagentId);
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={isLoading}
             >
               Cancel
@@ -290,7 +337,7 @@ console.log(formData.reagentId);
             <Button
               type="submit"
               className="flex items-center gap-2 btn-primary"
-              disabled={isLoading || (!!formData.reagentId && inventory.length === 0)}
+              disabled={isLoading || (!!formData.reagentId && inventory.length === 0) || !formData.reagentId}
             >
               {isLoading ? (
                 <>
@@ -300,7 +347,7 @@ console.log(formData.reagentId);
               ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
-                  {formData.reagentId && inventory.length === 0 ? "No Inventory Available" : "Add Reagent"}
+                  Add Reagent
                 </>
               )}
             </Button>

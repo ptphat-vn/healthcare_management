@@ -35,6 +35,7 @@ export default function AddInstrumentModal({
         location: data.location,
         description: data.description,
         status: data.status,
+        categories: data.categories,
       };
 
       console.log("Creating new instrument:", requestData);

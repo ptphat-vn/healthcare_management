@@ -60,6 +60,7 @@ export default function EditInstrumentModal({
             location: instrument.location || "",
             description: instrument.description || "",
             status: instrument.status || "Active",
+            categories: instrument.categories || [],
           }}
           onSubmit={handleUpdate}
           onCancel={() => onOpenChange(false)}

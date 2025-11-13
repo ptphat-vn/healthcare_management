@@ -1,11 +1,13 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   updateInstrumentSchema,
   type UpdateInstrumentFormData,
+  REAGENT_CATEGORIES,
 } from "@/schemas/instrumentSchema";
 import Input from "@/components/ui/input/Input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect } from "react";
 
 interface EditInstrumentFormProps {
@@ -24,6 +26,7 @@ export default function EditInstrumentForm({
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm<UpdateInstrumentFormData>({
@@ -124,6 +127,44 @@ export default function EditInstrumentForm({
               <p className="text-xs text-red-500">
                 {errors.description.message}
               </p>
+            )}
+          </div>
+
+          {/* Categories */}
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium leading-none">
+              Categories <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              name="categories"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-2 gap-2 p-3 border rounded-md">
+                  {REAGENT_CATEGORIES.map((category) => (
+                    <div key={category} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`edit-category-${category}`}
+                        checked={field.value?.includes(category)}
+                        onCheckedChange={(checked) => {
+                          const updatedValue = checked
+                            ? [...(field.value || []), category]
+                            : field.value?.filter((c) => c !== category) || [];
+                          field.onChange(updatedValue);
+                        }}
+                      />
+                      <label
+                        htmlFor={`edit-category-${category}`}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {category}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+            />
+            {errors.categories?.message && (
+              <p className="text-xs text-red-500">{errors.categories.message}</p>
             )}
           </div>
         </div>
