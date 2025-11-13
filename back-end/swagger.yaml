@@ -3791,6 +3791,12 @@ paths:
       security:
         - bearerAuth: []
       parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Case-insensitive search across reagent name, vendor name, lot number, purchase order number, catalog number, and manufacturer.
         - name: reagentId
           in: query
           required: false
@@ -3804,6 +3810,12 @@ paths:
           schema:
             type: string
           description: Filter by reagent name (partial match)
+        - name: vendorName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vendor name (case-insensitive partial match)
         - name: includeExpired
           in: query
           required: false
@@ -5514,6 +5526,9 @@ components:
         reagentName:
           type: string
           example: 'Diluent'
+        vendorName:
+          type: string
+          example: 'XYZ Supplies Inc.'
         lotNumber:
           type: string
           example: 'LOT-2024-001'

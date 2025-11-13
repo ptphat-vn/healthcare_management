@@ -194,8 +194,10 @@ export const listUsageHistoryController = async (req: Request, res: Response, ne
 export const getReagentInventoryFIFOController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await reagentInventoryService.getReagentInventoryFIFO({
+      search: req.query.search as string,
       reagentId: req.query.reagentId as string,
       reagentName: req.query.reagentName as string,
+      vendorName: req.query.vendorName as string,
       includeExpired: req.query.includeExpired === 'true',
       includeExpiringSoon: req.query.includeExpiringSoon === 'true'
     })

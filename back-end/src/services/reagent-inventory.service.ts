@@ -7,6 +7,7 @@ export interface ReagentInventoryItem {
   vendorSupplyId: ObjectId
   reagentId: ObjectId
   reagentName: string
+  vendorName: string
   lotNumber: string
   expirationDate: Date
   quantityReceived: number
@@ -20,8 +21,10 @@ export interface ReagentInventoryItem {
 }
 
 export interface GetReagentInventoryParams {
+  search?: string
   reagentId?: string
   reagentName?: string
+  vendorName?: string
   includeExpired?: boolean
   includeExpiringSoon?: boolean
 }
@@ -47,6 +50,22 @@ export const getReagentInventoryFIFO = async (
 
   if (params.reagentName) {
     filter.reagentName = { $regex: params.reagentName, $options: 'i' }
+  }
+
+  if (params.vendorName) {
+    filter.vendorName = { $regex: params.vendorName, $options: 'i' }
+  }
+
+  if (params.search) {
+    const pattern = { $regex: params.search, $options: 'i' }
+    filter.$or = [
+      { reagentName: pattern },
+      { vendorName: pattern },
+      { lotNumber: pattern },
+      { purchaseOrderNumber: pattern },
+      { catalogNumber: pattern },
+      { manufacturer: pattern }
+    ]
   }
 
   const supplies = await vendorSupplies.find(filter as any).toArray()
@@ -90,6 +109,7 @@ export const getReagentInventoryFIFO = async (
       vendorSupplyId: supply._id!,
       reagentId: supply.reagentId,
       reagentName: supply.reagentName,
+      vendorName: supply.vendorName,
       lotNumber: supply.lotNumber,
       expirationDate: expirationDate,
       quantityReceived: supply.quantityReceived,
