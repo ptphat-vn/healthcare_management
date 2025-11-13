@@ -27,8 +27,8 @@ export interface CreateVendorSupplyPayload {
 }
 
 export interface ListVendorSupplyParams {
-  reagentId?: string
-  vendorId?: string
+  search?: string
+  reagentName?: string
   vendorName?: string
   startDate?: string
   endDate?: string
@@ -152,20 +152,24 @@ export const listVendorSupplyHistory = async (params: ListVendorSupplyParams) =>
   const skip = (page - 1) * limit
   const filter: Record<string, any> = {}
 
-  if (params.reagentId) {
-    try {
-      filter.reagentId = new ObjectId(params.reagentId)
-    } catch {
-      throw new HttpError(422, 'Invalid reagent id')
-    }
-  }
-
-  if (params.vendorId) {
-    filter.vendorId = params.vendorId
+  if (params.reagentName) {
+    filter.reagentName = { $regex: params.reagentName, $options: 'i' }
   }
 
   if (params.vendorName) {
     filter.vendorName = { $regex: params.vendorName, $options: 'i' }
+  }
+
+  if (params.search) {
+    const pattern = { $regex: params.search, $options: 'i' }
+    filter.$or = [
+      { reagentName: pattern },
+      { vendorName: pattern },
+      { lotNumber: pattern },
+      { purchaseOrderNumber: pattern },
+      { catalogNumber: pattern },
+      { manufacturer: pattern }
+    ]
   }
 
   if (params.startDate || params.endDate) {

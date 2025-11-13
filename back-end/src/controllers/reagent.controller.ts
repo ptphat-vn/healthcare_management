@@ -122,8 +122,8 @@ export const createVendorSupplyController = async (req: Request, res: Response, 
 export const listVendorSupplyHistoryController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await vendorSupplyService.listVendorSupplyHistory({
-      reagentId: req.query.reagentId as string,
-      vendorId: req.query.vendorId as string,
+      search: req.query.search as string,
+      reagentName: req.query.reagentName as string,
       vendorName: req.query.vendorName as string,
       startDate: req.query.startDate as string,
       endDate: req.query.endDate as string,
@@ -156,12 +156,14 @@ export const listVendorSupplyHistoryController = async (req: Request, res: Respo
 export const listUsageHistoryController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await usageHistoryService.listUsageHistory({
-      reagentId: req.query.reagentId as string,
+      search: req.query.search as string,
+      reagentName: req.query.reagentName as string,
       startDate: req.query.startDate as string,
       endDate: req.query.endDate as string,
       action: req.query.action as any,
-      testOrderId: req.query.testOrderId as string,
-      instrumentId: req.query.instrumentId as string,
+      testOrderName: req.query.testOrderName as string,
+      instrumentName: req.query.instrumentName as string,
+      performedByName: req.query.performedByName as string,
       page: req.query.page ? parseInt(req.query.page as string) : 1,
       limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
       sortBy: (req.query.sortBy as any) || 'performedAt',

@@ -24,12 +24,14 @@ export interface CreateUsageHistoryPayload {
 }
 
 export interface ListUsageHistoryParams {
-  reagentId?: string
+  search?: string
+  reagentName?: string
   startDate?: string
   endDate?: string
   action?: 'Used' | 'Consumed' | 'Wasted' | 'Expired' | 'Returned'
-  testOrderId?: string
-  instrumentId?: string
+  testOrderName?: string
+  instrumentName?: string
+  performedByName?: string
   page?: number
   limit?: number
   sortBy?: 'performedAt' | 'createdAt'
@@ -262,32 +264,36 @@ export const listUsageHistory = async (params: ListUsageHistoryParams) => {
   const skip = (page - 1) * limit
   const filter: Record<string, any> = {}
 
-  if (params.reagentId) {
-    try {
-      filter.reagentId = new ObjectId(params.reagentId)
-    } catch {
-      throw new HttpError(422, 'Invalid reagent id')
-    }
+  if (params.reagentName) {
+    filter.reagentName = { $regex: params.reagentName, $options: 'i' }
   }
 
   if (params.action) {
     filter.action = params.action
   }
 
-  if (params.testOrderId) {
-    try {
-      filter.testOrderId = new ObjectId(params.testOrderId)
-    } catch {
-      throw new HttpError(422, 'Invalid testOrderId')
-    }
+  if (params.testOrderName) {
+    filter.testOrderName = { $regex: params.testOrderName, $options: 'i' }
   }
 
-  if (params.instrumentId) {
-    try {
-      filter.instrumentId = new ObjectId(params.instrumentId)
-    } catch {
-      throw new HttpError(422, 'Invalid instrumentId')
-    }
+  if (params.instrumentName) {
+    filter.instrumentName = { $regex: params.instrumentName, $options: 'i' }
+  }
+
+  if (params.performedByName) {
+    filter.performedByName = { $regex: params.performedByName, $options: 'i' }
+  }
+
+  if (params.search) {
+    const pattern = { $regex: params.search, $options: 'i' }
+    filter.$or = [
+      { reagentName: pattern },
+      { testOrderName: pattern },
+      { instrumentName: pattern },
+      { batchLotNumber: pattern },
+      { notes: pattern },
+      { performedByName: pattern }
+    ]
   }
 
   if (params.startDate || params.endDate) {

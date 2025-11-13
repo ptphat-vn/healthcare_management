@@ -3576,8 +3576,7 @@ paths:
         - Reagents
       summary: List vendor supply history
       description: |
-        Get a paginated list of reagent vendor supply history. Can filter by reagent, vendor, or date range.
-
+        Get a paginated list of reagent vendor supply history. Can filter by reagent name, vendor name, or date range.
         **Required Privilege:** `view_reagent_supply_history`
 
         If no filters are provided, returns the full history of all reagent shipments.
@@ -3585,25 +3584,24 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: reagentId
+        - name: search
           in: query
           required: false
           schema:
             type: string
-            pattern: '^[0-9a-fA-F]{24}$'
-          description: Filter by reagent ID
-        - name: vendorId
+          description: Case-insensitive search across reagent name, vendor name, lot number, purchase order number, catalog number, and manufacturer.
+        - name: reagentName
           in: query
           required: false
           schema:
             type: string
-          description: Filter by vendor ID
+          description: Filter by reagent name (case-insensitive partial match)
         - name: vendorName
           in: query
           required: false
           schema:
             type: string
-          description: Filter by vendor name (partial match)
+          description: Filter by vendor name (case-insensitive partial match)
         - name: startDate
           in: query
           required: false
@@ -3680,13 +3678,18 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: reagentId
+        - name: search
           in: query
           required: false
           schema:
             type: string
-            pattern: '^[0-9a-fA-F]{24}$'
-          description: Filter by reagent ID
+          description: Case-insensitive search across reagent name, test order name, instrument name, lot number, notes, and performer name.
+        - name: reagentName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by reagent name (case-insensitive partial match)
         - name: action
           in: query
           required: false
@@ -3694,20 +3697,24 @@ paths:
             type: string
             enum: [Used, Consumed, Wasted, Expired, Returned]
           description: Filter by action type
-        - name: testOrderId
+        - name: testOrderName
           in: query
           required: false
           schema:
             type: string
-            pattern: '^[0-9a-fA-F]{24}$'
-          description: Filter by test order ID
-        - name: instrumentId
+          description: Filter by test order display name (patient name or requested tests)
+        - name: instrumentName
           in: query
           required: false
           schema:
             type: string
-            pattern: '^[0-9a-fA-F]{24}$'
-          description: Filter by instrument ID
+          description: Filter by instrument name
+        - name: performedByName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by performer name or email (case-insensitive)
         - name: startDate
           in: query
           required: false
@@ -4371,9 +4378,6 @@ paths:
       summary: Get instrument reagents
       description: |
         Get all active reagent assignments for a specific instrument.
-
-        Responses include human-readable helper fields (`instrumentName`, `assignedByName`, `vendorSupplyName`, `removedByName`) when available to simplify client display needs.
-
         **Required Privilege:** `view_instrument`
 
         **Access:** Admin, Lab Manager, Service
