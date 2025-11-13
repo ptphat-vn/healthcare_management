@@ -12,15 +12,18 @@ class SocketService {
   private getSocketBaseUrl() {
     // Ưu tiên VITE_SOCKET_URL; fallback: loại bỏ hậu tố /api khỏi VITE_API_URL
     const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
-    const socketUrl = (import.meta.env.VITE_SOCKET_URL as string | undefined)
-      || (apiUrl ? apiUrl.replace(/\/api\/?$/, "") : undefined);
+    const socketUrl =
+      (import.meta.env.VITE_SOCKET_URL as string | undefined) ||
+      (apiUrl ? apiUrl.replace(/\/api\/?$/, "") : undefined);
     return socketUrl;
   }
 
   connect() {
     if (this.socket?.connected) return;
 
-    const { auth: { accessToken: token } } = store.getState() as RootState;
+    const {
+      auth: { accessToken: token },
+    } = store.getState() as RootState;
     const baseUrl = this.getSocketBaseUrl();
 
     if (!token || !baseUrl) {
@@ -58,9 +61,10 @@ class SocketService {
 
     this.socket.on("connect_error", (error) => {
       this.reconnectAttempts++;
-      const code = this.reconnectAttempts >= this.maxAttempts
-        ? "MAX_RECONNECT_ATTEMPTS"
-        : "CONNECTION_ERROR";
+      const code =
+        this.reconnectAttempts >= this.maxAttempts
+          ? "MAX_RECONNECT_ATTEMPTS"
+          : "CONNECTION_ERROR";
       this.emit("error", { message: error.message, code });
     });
 
@@ -70,11 +74,19 @@ class SocketService {
     });
 
     this.socket.on("reconnect_failed", () => {
-      this.emit("error", { message: "Failed to reconnect", code: "RECONNECT_FAILED" });
+      this.emit("error", {
+        message: "Failed to reconnect",
+        code: "RECONNECT_FAILED",
+      });
     });
 
     this.socket.on("message", (msg: ChatMessage) => this.emit("message", msg));
-    this.socket.on("error", (err: { message: string }) => this.emit("error", err));
+    this.socket.on("notification", (notification: any) =>
+      this.emit("notification", notification)
+    );
+    this.socket.on("error", (err: { message: string }) =>
+      this.emit("error", err)
+    );
   }
 
   disconnect() {
