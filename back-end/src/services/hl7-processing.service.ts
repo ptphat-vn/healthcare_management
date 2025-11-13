@@ -6,6 +6,7 @@ import { getInstrumentsCollection } from '~/models/instrument.model'
 import { getInstrumentReagentAssignmentCollection } from '~/models/instrument-reagent-assignment.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getUsersCollection } from '~/models/user.model'
+import { recordReagentUsageFromTestResults } from '~/services/test-order.service'
 
 export interface HL7Message {
   messageId: string
@@ -199,6 +200,9 @@ export async function addTestResultsFromHL7(testOrderId: string, addedBy: string
   if (!testOrder) {
     throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
   }
+
+  const hadCompletedResults =
+    testOrder.status === 'completed' && Array.isArray(testOrder.testResults) && testOrder.testResults.length > 0
   
   // Generate random HL7 message with ONLY ONE random test result
   const messageId = `HL7_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -237,8 +241,15 @@ export async function addTestResultsFromHL7(testOrderId: string, addedBy: string
   if (!updated) {
     throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
   }
+
+  if (!hadCompletedResults) {
+    await recordReagentUsageFromTestResults(updated, addedBy).catch((error) => {
+      console.error('Failed to record reagent usage from HL7 results:', error)
+    })
+  }
   
   // Log the event
+  try {
     const usersCol = getUsersCollection()
     const actorUser = await usersCol.findOne({ _id: new ObjectId(addedBy) })
     const roleCol = (await import('~/models/role.model')).getRolesCollection()
@@ -249,6 +260,9 @@ export async function addTestResultsFromHL7(testOrderId: string, addedBy: string
       details: `Processed HL7 message ${messageId} with ${processedResults.length} test results for patient: ${updated.patientName}`,
       timestamp: now
     } as any)
+  } catch {
+    // swallow logging errors
+  }
   
   
   return {
@@ -273,6 +287,9 @@ export async function addTestResultsFromHL7UsingInstrument(testOrderId: string, 
   if (!testOrder) throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
   if (!instrument) throw new HttpError(404, 'Instrument not found')
   if (!instrument.isActive || instrument.status !== 'Active') throw new HttpError(409, 'Instrument is not active')
+
+  const hadCompletedResults =
+    testOrder.status === 'completed' && Array.isArray(testOrder.testResults) && testOrder.testResults.length > 0
 
   // Get active reagents on the instrument
   const reagents = await assignmentsCol
@@ -334,6 +351,12 @@ export async function addTestResultsFromHL7UsingInstrument(testOrderId: string, 
 
   const updated: any = (result as any)?.value ?? result
   if (!updated) throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
+
+  if (!hadCompletedResults) {
+    await recordReagentUsageFromTestResults(updated, addedBy).catch((error) => {
+      console.error('Failed to record reagent usage from instrument HL7 results:', error)
+    })
+  }
 
   // Log the event
   try {

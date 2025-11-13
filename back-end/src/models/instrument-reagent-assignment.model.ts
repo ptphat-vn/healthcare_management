@@ -6,6 +6,7 @@ export const INSTRUMENT_REAGENT_ASSIGNMENTS_COLLECTION = 'instrument_reagent_ass
 export interface InstrumentReagentAssignmentDocument {
   _id?: ObjectId
   instrumentId: ObjectId
+  instrumentName?: string
   reagentId: ObjectId
   reagentName: string
   lotNumber: string
@@ -13,10 +14,13 @@ export interface InstrumentReagentAssignmentDocument {
   unitOfMeasure: string
   expirationDate: Date
   vendorSupplyId: ObjectId // Reference to vendor supply for tracking
+  vendorSupplyName?: string
   assignedBy: ObjectId
+  assignedByName?: string
   assignedAt: Date
   removedAt?: Date
   removedBy?: ObjectId
+  removedByName?: string
   isActive: boolean // True when assigned, false when removed
   notes?: string
   createdAt: Date

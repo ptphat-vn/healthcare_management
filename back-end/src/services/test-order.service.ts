@@ -6,6 +6,7 @@ import { getPatientMedicalRecordsCollection } from '~/models/patient-medical-rec
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
+import { recordReagentUsage, type CreateUsageHistoryPayload } from '~/services/reagent-usage-history.service'
 
 export interface CreateTestOrderData {
   medicalRecordId: string
@@ -356,6 +357,14 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
   const testOrders = getTestOrdersCollection()
   const eventLogs = getEventLogsCollection()
 
+  const existing = await testOrders.findOne({ _id: testOrderObjectId } as any)
+  if (!existing) {
+    throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
+  }
+
+  const hadCompletedResults =
+    existing.status === 'completed' && Array.isArray(existing.testResults) && existing.testResults.length > 0
+
   const now = new Date()
   const resultsWithTimestamp = testResults.map(result => ({
     ...result,
@@ -397,7 +406,121 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
     // swallow logging errors
   }
 
+  if (!hadCompletedResults) {
+    await recordReagentUsageFromTestResults(updated, addedBy).catch((error) => {
+      console.error('Failed to record reagent usage from test results:', error)
+    })
+  }
+
   return updated
+}
+
+type ResultProcessedData = {
+  instrument?: {
+    id?: string
+    name?: string
+  }
+  instrumentId?: string
+  reagents?: Array<{
+    reagentId?: string
+    id?: string
+    reagentName?: string
+    lotNumber?: string
+    unitOfMeasure?: string
+    unit?: string
+    quantityUsed?: number
+  }>
+}
+
+export async function recordReagentUsageFromTestResults(
+  testOrder: Pick<TestOrderDocument, '_id' | 'testResults' | 'runDate'>,
+  performedBy: string
+) {
+  const results = Array.isArray(testOrder.testResults) ? (testOrder.testResults as TestResult[]) : []
+  if (results.length === 0) {
+    return
+  }
+
+  const aggregated = new Map<
+    string,
+    {
+      reagentId: string
+      reagentName: string
+      quantity: number
+      unit: string
+      instrumentId?: string
+      lotNumber?: string
+    }
+  >()
+
+  for (const result of results as any[]) {
+    const processedData: ResultProcessedData | undefined = result?.processedData
+    if (!processedData?.reagents || !Array.isArray(processedData.reagents) || processedData.reagents.length === 0) {
+      continue
+    }
+
+    const instrumentId =
+      processedData.instrument?.id ||
+      processedData.instrumentId ||
+      (processedData.instrument && (processedData.instrument as any)._id)
+
+    for (const reagent of processedData.reagents) {
+      const reagentId = reagent?.reagentId || reagent?.id
+      if (!reagentId) continue
+
+      const quantity =
+        typeof reagent?.quantityUsed === 'number' && reagent.quantityUsed > 0 ? reagent.quantityUsed : 1
+      const unit = reagent?.unitOfMeasure || reagent?.unit || 'unit'
+      const lotNumber = reagent?.lotNumber
+      const keyParts = [reagentId, lotNumber || '', instrumentId || '']
+      const key = keyParts.join('|')
+
+      const existing = aggregated.get(key)
+      if (existing) {
+        existing.quantity += quantity
+      } else {
+        aggregated.set(key, {
+          reagentId,
+          reagentName: reagent?.reagentName || 'Unknown reagent',
+          quantity,
+          unit,
+          instrumentId,
+          lotNumber
+        })
+      }
+    }
+  }
+
+  if (aggregated.size === 0) {
+    return
+  }
+
+  const performedAt = testOrder.runDate ?? new Date()
+
+  for (const entry of aggregated.values()) {
+    const payload: CreateUsageHistoryPayload = {
+      reagentId: entry.reagentId,
+      reagentName: entry.reagentName,
+      quantity: entry.quantity,
+      unit: entry.unit,
+      action: 'Used',
+      testOrderId: String(testOrder._id),
+      instrumentId: entry.instrumentId,
+      batchLotNumber: entry.lotNumber,
+      performedBy,
+      performedAt,
+      notes: 'Auto generated from test results'
+    }
+
+    try {
+      await recordReagentUsage(payload)
+    } catch (error) {
+      console.error(
+        `Failed to record reagent usage for reagent ${entry.reagentId} (test order ${testOrder._id}):`,
+        error
+      )
+    }
+  }
 }
 
 export async function addComment(id: string, content: string, addedBy: string) {

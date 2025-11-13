@@ -37,10 +37,13 @@ export interface PatientMedicalRecordDocument {
   isDeleted?: boolean
   deletedAt?: Date
   deletedBy?: ObjectId
+  deletedByName?: string
   createdAt: Date
   updatedAt: Date
   createdBy: ObjectId
+  createdByName?: string
   lastModifiedBy?: ObjectId
+  lastModifiedByName?: string
 }
 
 export interface ClinicalNote {
