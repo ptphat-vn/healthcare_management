@@ -140,33 +140,3 @@ export const validateCreateVendorSupply = (req: Request, res: Response, next: Ne
   next()
 }
 
-// Usage History Validations
-export const createUsageHistorySchema = z.object({
-  reagentId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid reagent id'),
-  reagentName: z.string().min(1, 'Reagent name is required'),
-  quantity: z.number().positive('Quantity must be positive'),
-  unit: z.string().min(1, 'Unit is required'),
-  action: z.enum(['Used', 'Consumed', 'Wasted', 'Expired', 'Returned'], {
-    message: 'Action must be Used, Consumed, Wasted, Expired, or Returned'
-  }),
-  testOrderId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid testOrderId').optional(),
-  instrumentId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid instrumentId').optional(),
-  batchLotNumber: z.string().optional(),
-  performedBy: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid performedBy user id'),
-  performedAt: z.string().refine(isValidDate, 'Invalid performedAt date format').or(z.date()).optional(),
-  notes: z.string().optional()
-})
-
-export const validateCreateUsageHistory = (req: Request, res: Response, next: NextFunction) => {
-  const parse = createUsageHistorySchema.safeParse(req.body)
-  if (!parse.success) {
-    const fieldErrors: Record<string, string> = {}
-    for (const issue of parse.error.issues) {
-      const path = issue.path.join('.') || 'form'
-      if (!fieldErrors[path]) fieldErrors[path] = issue.message
-    }
-    return res.status(422).json({ message: MESSAGES.VALIDATION_ERROR, errors: fieldErrors })
-  }
-  next()
-}
-

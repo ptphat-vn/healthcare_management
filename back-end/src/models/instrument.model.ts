@@ -18,7 +18,9 @@ export interface InstrumentDocument {
   createdAt: Date
   updatedAt: Date
   createdBy: ObjectId
+  createdByName?: string
   lastModifiedBy?: ObjectId
+  lastModifiedByName?: string
 }
 
 export const getInstrumentsCollection = (): Collection<InstrumentDocument> => {

@@ -3576,8 +3576,7 @@ paths:
         - Reagents
       summary: List vendor supply history
       description: |
-        Get a paginated list of reagent vendor supply history. Can filter by reagent, vendor, or date range.
-
+        Get a paginated list of reagent vendor supply history. Can filter by reagent name, vendor name, or date range.
         **Required Privilege:** `view_reagent_supply_history`
 
         If no filters are provided, returns the full history of all reagent shipments.
@@ -3585,25 +3584,24 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: reagentId
+        - name: search
           in: query
           required: false
           schema:
             type: string
-            pattern: '^[0-9a-fA-F]{24}$'
-          description: Filter by reagent ID
-        - name: vendorId
+          description: Case-insensitive search across reagent name, vendor name, lot number, purchase order number, catalog number, and manufacturer.
+        - name: reagentName
           in: query
           required: false
           schema:
             type: string
-          description: Filter by vendor ID
+          description: Filter by reagent name (case-insensitive partial match)
         - name: vendorName
           in: query
           required: false
           schema:
             type: string
-          description: Filter by vendor name (partial match)
+          description: Filter by vendor name (case-insensitive partial match)
         - name: startDate
           in: query
           required: false
@@ -3665,93 +3663,6 @@ paths:
                       pagination:
                         $ref: '#/components/schemas/Pagination'
 
-  /reagents/usage:
-    post:
-      tags:
-        - Reagents
-      summary: Record reagent usage
-      description: |
-        Record reagent usage. This automatically creates an entry in the usage history.
-
-        **Required Privilege:** `create_reagent_usage`
-      operationId: recordReagentUsage
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - reagentId
-                - reagentName
-                - quantity
-                - unit
-                - action
-                - performedBy
-              properties:
-                reagentId:
-                  type: string
-                  pattern: '^[0-9a-fA-F]{24}$'
-                  example: '507f1f77bcf86cd799439011'
-                reagentName:
-                  type: string
-                  example: 'Diluent'
-                quantity:
-                  type: number
-                  example: 1.5
-                unit:
-                  type: string
-                  example: 'ml'
-                action:
-                  type: string
-                  enum: [Used, Consumed, Wasted, Expired, Returned]
-                  example: 'Used'
-                testOrderId:
-                  type: string
-                  pattern: '^[0-9a-fA-F]{24}$'
-                  example: '507f1f77bcf86cd799439011'
-                instrumentId:
-                  type: string
-                  pattern: '^[0-9a-fA-F]{24}$'
-                  example: '507f1f77bcf86cd799439011'
-                batchLotNumber:
-                  type: string
-                  example: 'LOT-2024-001'
-                performedBy:
-                  type: string
-                  pattern: '^[0-9a-fA-F]{24}$'
-                  example: '507f1f77bcf86cd799439011'
-                performedAt:
-                  type: string
-                  format: date-time
-                  example: '2024-01-15T10:30:00Z'
-                notes:
-                  type: string
-                  example: 'Used for blood test analysis'
-      responses:
-        '200':
-          description: Reagent usage recorded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Reagent usage recorded successfully (multi-lot allocation)'
-                  data:
-                    oneOf:
-                      - $ref: '#/components/schemas/ReagentUsageHistory'
-                      - type: array
-                        items:
-                          $ref: '#/components/schemas/ReagentUsageHistory'
-        '404':
-          description: Reagent or user not found
-        '422':
-          description: Validation error
-
   /reagents/usage/history:
     get:
       tags:
@@ -3767,13 +3678,18 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: reagentId
+        - name: search
           in: query
           required: false
           schema:
             type: string
-            pattern: '^[0-9a-fA-F]{24}$'
-          description: Filter by reagent ID
+          description: Case-insensitive search across reagent name, test order name, instrument name, lot number, notes, and performer name.
+        - name: reagentName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by reagent name (case-insensitive partial match)
         - name: action
           in: query
           required: false
@@ -3781,20 +3697,24 @@ paths:
             type: string
             enum: [Used, Consumed, Wasted, Expired, Returned]
           description: Filter by action type
-        - name: testOrderId
+        - name: testOrderName
           in: query
           required: false
           schema:
             type: string
-            pattern: '^[0-9a-fA-F]{24}$'
-          description: Filter by test order ID
-        - name: instrumentId
+          description: Filter by test order display name (patient name or requested tests)
+        - name: instrumentName
           in: query
           required: false
           schema:
             type: string
-            pattern: '^[0-9a-fA-F]{24}$'
-          description: Filter by instrument ID
+          description: Filter by instrument name
+        - name: performedByName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by performer name or email (case-insensitive)
         - name: startDate
           in: query
           required: false
@@ -4458,7 +4378,6 @@ paths:
       summary: Get instrument reagents
       description: |
         Get all active reagent assignments for a specific instrument.
-
         **Required Privilege:** `view_instrument`
 
         **Access:** Admin, Lab Manager, Service
@@ -4522,6 +4441,9 @@ paths:
         **Lot Selection:**
         - If `lotNumber` is provided, the system will use the specified lot (must have sufficient quantity).
         - If `lotNumber` is not provided, the system will automatically select the lot using FIFO (First In First Out) methodology based on earliest expiration date that has sufficient quantity.
+
+        **Human-Readable Fields:**
+        - Responses automatically populate `instrumentName`, `assignedByName`, and `vendorSupplyName` when available for better UI presentation.
 
         **Required Privilege:** `modify_instrument`
 
@@ -4629,6 +4551,8 @@ paths:
       summary: Remove reagent from instrument
       description: |
         Remove a reagent assignment from an instrument.
+
+        Response payload includes `removedByName` (along with other human-readable fields) when available.
 
         **Required Privilege:** `modify_instrument`
 
@@ -5474,6 +5398,9 @@ components:
         deletedBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        deletedByName:
+          type: string
+          example: 'Charlie Nguyen'
         createdAt:
           type: string
           format: date-time
@@ -5485,9 +5412,15 @@ components:
         createdBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        createdByName:
+          type: string
+          example: 'Alice Nguyen'
         lastModifiedBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        lastModifiedByName:
+          type: string
+          example: 'Bob Tran'
 
     Pagination:
       type: object
@@ -5686,9 +5619,15 @@ components:
         createdBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        createdByName:
+          type: string
+          example: 'Alice Nguyen'
         lastModifiedBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        lastModifiedByName:
+          type: string
+          example: 'Bob Tran'
 
     ReagentVendorSupply:
       type: object
@@ -5744,6 +5683,9 @@ components:
         receivedBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        receivedByName:
+          type: string
+          example: 'Alice Nguyen'
         receivedAt:
           type: string
           format: date-time
@@ -5789,15 +5731,24 @@ components:
         testOrderId:
           type: string
           example: '507f1f77bcf86cd799439011'
+        testOrderName:
+          type: string
+          example: 'John Doe'
         instrumentId:
           type: string
           example: '507f1f77bcf86cd799439011'
+        instrumentName:
+          type: string
+          example: 'Blood Analyzer Model X-100'
         batchLotNumber:
           type: string
           example: 'LOT-2024-001'
         performedBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        performedByName:
+          type: string
+          example: 'Alice Nguyen'
         performedAt:
           type: string
           format: date-time
@@ -5879,6 +5830,11 @@ components:
         instrumentId:
           type: string
           example: '507f1f77bcf86cd799439012'
+        instrumentName:
+          type: string
+          nullable: true
+          description: Human-readable instrument name resolved from the instrument record.
+          example: 'Blood Analyzer Model X-100'
         reagentId:
           type: string
           example: '507f1f77bcf86cd799439013'
@@ -5901,9 +5857,19 @@ components:
         vendorSupplyId:
           type: string
           example: '507f1f77bcf86cd799439014'
+        vendorSupplyName:
+          type: string
+          nullable: true
+          description: Human-readable vendor supply label resolved from the vendor supply record.
+          example: 'Acme Labs PO-2024-001'
         assignedBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        assignedByName:
+          type: string
+          nullable: true
+          description: Human-readable name for the user who assigned the reagent.
+          example: 'Dr. Alice Nguyen'
         assignedAt:
           type: string
           format: date-time
@@ -5916,6 +5882,11 @@ components:
         removedBy:
           type: string
           nullable: true
+          example: null
+        removedByName:
+          type: string
+          nullable: true
+          description: Human-readable name for the user who removed the assignment.
           example: null
         isActive:
           type: boolean

@@ -20,6 +20,7 @@ export interface ReagentVendorSupplyDocument {
   lotNumber: string
   expirationDate: Date 
   receivedBy: ObjectId 
+  receivedByName?: string
   receivedAt: Date
   initialStorageLocation?: string
   status: 'Received' | 'Partial Shipment' | 'Returned'

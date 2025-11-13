@@ -10,15 +10,13 @@ import {
   getReagentCategoriesController,
   createVendorSupplyController,
   listVendorSupplyHistoryController,
-  recordReagentUsageController,
   listUsageHistoryController
 } from '~/controllers/reagent.controller'
 import {
   validateCreateReagent,
   validateUpdateReagent,
   validateReagentId,
-  validateCreateVendorSupply,
-  validateCreateUsageHistory
+  validateCreateVendorSupply
 } from '~/validations/reagent.validation'
 
 const router = Router()
@@ -76,12 +74,6 @@ router.get(
 )
 
 // Usage History Routes
-router.post(
-  '/reagents/usage',
-  privilegeMiddleware(['create_reagent_usage']),
-  validateCreateUsageHistory,
-  recordReagentUsageController
-)
 router.get(
   '/reagents/usage/history',
   privilegeMiddleware(['view_reagent_usage_history']),

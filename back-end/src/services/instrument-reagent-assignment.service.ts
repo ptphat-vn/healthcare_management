@@ -6,6 +6,7 @@ import { HttpError } from '~/models/error.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
+import { getReagentVendorSupplyCollection } from '~/models/reagent-vendor-supply.model'
 import { getReagentInventoryFIFO } from '~/services/reagent-inventory.service'
 import { recordReagentUsage } from '~/services/reagent-usage-history.service'
 
@@ -56,6 +57,27 @@ export const addReagentToInstrument = async (
   const user = await users.findOne({ _id: assignedByObjectId } as any)
   if (!user) {
     throw new HttpError(404, 'User not found')
+  }
+  const assignedByName = user.fullName || user.email || assignedByObjectId.toString()
+  const instrumentName = instrument.name
+  const vendorSuppliesCollection = getReagentVendorSupplyCollection()
+  const vendorSupplyNameCache = new Map<string, string>()
+  const resolveVendorSupplyName = async (vendorSupplyId?: ObjectId | null) => {
+    if (!vendorSupplyId) return undefined
+    const cacheKey = vendorSupplyId.toString()
+    if (vendorSupplyNameCache.has(cacheKey)) {
+      return vendorSupplyNameCache.get(cacheKey)
+    }
+    const vendorSupply = await vendorSuppliesCollection.findOne(
+      { _id: vendorSupplyId } as any,
+      { projection: { vendorName: 1, purchaseOrderNumber: 1 } } as any
+    )
+    const name =
+      vendorSupply?.vendorName ||
+      vendorSupply?.purchaseOrderNumber ||
+      cacheKey
+    vendorSupplyNameCache.set(cacheKey, name)
+    return name
   }
 
   // Get reagent information
@@ -154,8 +176,10 @@ export const addReagentToInstrument = async (
     // Create assignment with specified lot
     const assignments = getInstrumentReagentAssignmentCollection()
     const now = new Date()
+    const vendorSupplyName = await resolveVendorSupplyName(specifiedLot.vendorSupplyId)
     const assignmentDoc: InstrumentReagentAssignmentDocument = {
       instrumentId: instrumentObjectId,
+      instrumentName: instrumentName,
       reagentId: reagentObjectId,
       reagentName: reagentName,
       lotNumber: specifiedLot.lotNumber,
@@ -163,7 +187,9 @@ export const addReagentToInstrument = async (
       unitOfMeasure: unit,
       expirationDate: specifiedLot.expirationDate,
       vendorSupplyId: specifiedLot.vendorSupplyId,
+      vendorSupplyName,
       assignedBy: assignedByObjectId,
+      assignedByName,
       assignedAt: now,
       isActive: true,
       notes: payload.notes,
@@ -261,8 +287,10 @@ export const addReagentToInstrument = async (
     // Create assignment - use primary lot info but quantity is total from all lots
     const assignments = getInstrumentReagentAssignmentCollection()
     const now = new Date()
+    const vendorSupplyName = await resolveVendorSupplyName(primaryLot.vendorSupplyId)
     const assignmentDoc: InstrumentReagentAssignmentDocument = {
       instrumentId: instrumentObjectId,
+      instrumentName: instrumentName,
       reagentId: reagentObjectId,
       reagentName: reagentName,
       lotNumber: primaryLot.lotNumber, // Primary lot (earliest expiration)
@@ -270,7 +298,9 @@ export const addReagentToInstrument = async (
       unitOfMeasure: unit,
       expirationDate: primaryLot.expirationDate, // Earliest expiration
       vendorSupplyId: primaryLot.vendorSupplyId,
+      vendorSupplyName,
       assignedBy: assignedByObjectId,
+      assignedByName,
       assignedAt: now,
       isActive: true,
       notes: payload.notes ? `${payload.notes} (Allocated from multiple lots using FIFO)` : 'Allocated from multiple lots using FIFO',
@@ -326,8 +356,10 @@ export const addReagentToInstrument = async (
   // Create assignment
   const assignments = getInstrumentReagentAssignmentCollection()
   const now = new Date()
+  const vendorSupplyName = await resolveVendorSupplyName(selectedLot.vendorSupplyId)
   const assignmentDoc: InstrumentReagentAssignmentDocument = {
     instrumentId: instrumentObjectId,
+    instrumentName: instrumentName,
     reagentId: reagentObjectId,
     reagentName: reagentName,
     lotNumber: selectedLot.lotNumber,
@@ -335,7 +367,9 @@ export const addReagentToInstrument = async (
     unitOfMeasure: unit,
     expirationDate: selectedLot.expirationDate,
     vendorSupplyId: selectedLot.vendorSupplyId,
+    vendorSupplyName,
     assignedBy: assignedByObjectId,
+    assignedByName,
     assignedAt: now,
     isActive: true,
     notes: payload.notes,
@@ -404,6 +438,7 @@ export const removeReagentFromInstrument = async (
   if (!user) {
     throw new HttpError(404, 'User not found')
   }
+  const removedByName = user.fullName || user.email || removedByObjectId.toString()
 
   const now = new Date()
   await assignments.updateOne(
@@ -413,6 +448,7 @@ export const removeReagentFromInstrument = async (
         isActive: false,
         removedAt: now,
         removedBy: removedByObjectId,
+        removedByName,
         updatedAt: now
       }
     }
@@ -467,6 +503,77 @@ export const getInstrumentReagents = async (instrumentId: string) => {
       isActive: true
     } as any)
     .toArray()
+
+  if (activeAssignments.length > 0) {
+    const assignedByIds = new Set<string>()
+    const removedByIds = new Set<string>()
+    const vendorSupplyIds = new Set<string>()
+
+    activeAssignments.forEach((assignment) => {
+      if (!assignment.instrumentName) {
+        assignment.instrumentName = instrument.name
+      }
+      if (assignment.assignedBy && !assignment.assignedByName) {
+        assignedByIds.add(assignment.assignedBy.toString())
+      }
+      if (assignment.removedBy && !assignment.removedByName) {
+        removedByIds.add(assignment.removedBy.toString())
+      }
+      if (assignment.vendorSupplyId && !assignment.vendorSupplyName) {
+        vendorSupplyIds.add(assignment.vendorSupplyId.toString())
+      }
+    })
+
+    const userIds = Array.from(new Set([...assignedByIds, ...removedByIds]))
+    if (userIds.length > 0) {
+      const usersCol = getUsersCollection()
+      const users = await usersCol
+        .find(
+          { _id: { $in: userIds.map((id) => new ObjectId(id)) } } as any,
+          { projection: { fullName: 1, email: 1 } }
+        )
+        .toArray()
+      const userNameMap = new Map<string, string>(
+        users
+          .filter((u) => u?._id)
+          .map((u) => [u._id!.toString(), u.fullName || u.email || u._id!.toString()])
+      )
+      activeAssignments.forEach((assignment) => {
+        if (assignment.assignedBy && !assignment.assignedByName) {
+          const name = userNameMap.get(assignment.assignedBy.toString())
+          if (name) assignment.assignedByName = name
+        }
+        if (assignment.removedBy && !assignment.removedByName) {
+          const name = userNameMap.get(assignment.removedBy.toString())
+          if (name) assignment.removedByName = name
+        }
+      })
+    }
+
+    if (vendorSupplyIds.size > 0) {
+      const vendorSuppliesCol = getReagentVendorSupplyCollection()
+      const vendorSupplies = await vendorSuppliesCol
+        .find(
+          { _id: { $in: Array.from(vendorSupplyIds).map((id) => new ObjectId(id)) } } as any,
+          { projection: { vendorName: 1, purchaseOrderNumber: 1 } }
+        )
+        .toArray()
+      const vendorNameMap = new Map<string, string>(
+        vendorSupplies
+          .filter((supply) => supply?._id)
+          .map((supply) => [
+            supply._id!.toString(),
+            supply.vendorName || supply.purchaseOrderNumber || supply._id!.toString()
+          ])
+      )
+      activeAssignments.forEach((assignment) => {
+        if (assignment.vendorSupplyId && !assignment.vendorSupplyName) {
+          const name = vendorNameMap.get(assignment.vendorSupplyId.toString())
+          if (name) assignment.vendorSupplyName = name
+        }
+      })
+    }
+  }
 
   return {
     instrument: instrument,
