@@ -27,14 +27,19 @@ export interface GetReagentInventoryParams {
   vendorName?: string
   includeExpired?: boolean
   includeExpiringSoon?: boolean
+  page?: number
+  limit?: number
 }
 
 export const getReagentInventoryFIFO = async (
   params: GetReagentInventoryParams
-): Promise<ReagentInventoryItem[]> => {
+): Promise<{ inventory: ReagentInventoryItem[], pagination: { page: number, limit: number, total: number, totalPages: number } }> => {
   const vendorSupplies = getReagentVendorSupplyCollection()
   const usageHistory = getReagentUsageHistoryCollection()
   const now = new Date()
+
+  const page = params.page && params.page > 0 ? params.page : 1
+  const limit = params.limit && params.limit > 0 ? params.limit : 10
 
   const filter: Record<string, any> = {
     status: 'Received' 
@@ -130,26 +135,38 @@ export const getReagentInventoryFIFO = async (
     return 0 
   })
 
-  return inventoryItems
+  const total = inventoryItems.length
+  const skip = (page - 1) * limit
+  const paginatedItems = inventoryItems.slice(skip, skip + limit)
+
+  return {
+    inventory: paginatedItems,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1
+    }
+  }
 }
 
 export const getNextReagentLotFIFO = async (
   reagentId: string,
   requiredQuantity?: number
 ): Promise<ReagentInventoryItem | null> => {
-  const inventory = await getReagentInventoryFIFO({
+  const result = await getReagentInventoryFIFO({
     reagentId,
     includeExpired: false
   })
 
-  if (inventory.length === 0) {
+  if (result.inventory.length === 0) {
     return null
   }
 
   if (requiredQuantity !== undefined) {
-    const availableLot = inventory.find(item => item.quantityAvailable >= requiredQuantity)
+    const availableLot = result.inventory.find(item => item.quantityAvailable >= requiredQuantity)
     return availableLot || null
   }
-  return inventory[0]
+  return result.inventory[0]
 }
 

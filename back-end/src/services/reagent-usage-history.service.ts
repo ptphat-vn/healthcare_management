@@ -111,10 +111,12 @@ export const recordReagentUsage = async (
     instrumentName = instrument.name
   }
 
-  const inventory = await getReagentInventoryFIFO({
+  const inventoryResult = await getReagentInventoryFIFO({
     reagentId: payload.reagentId,
     includeExpired: false
   })
+
+  const inventory = inventoryResult.inventory
 
   if (!inventory || inventory.length === 0) {
     throw new HttpError(409, 'No inventory available for this reagent')
