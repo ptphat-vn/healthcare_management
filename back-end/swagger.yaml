@@ -3791,6 +3791,12 @@ paths:
       security:
         - bearerAuth: []
       parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Case-insensitive search across reagent name, vendor name, lot number, purchase order number, catalog number, and manufacturer.
         - name: reagentId
           in: query
           required: false
@@ -3804,6 +3810,12 @@ paths:
           schema:
             type: string
           description: Filter by reagent name (partial match)
+        - name: vendorName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vendor name (case-insensitive partial match)
         - name: includeExpired
           in: query
           required: false
@@ -3816,6 +3828,20 @@ paths:
           schema:
             type: boolean
           description: Only include lots expiring within 30 days (default false)
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+          description: Page number (default 1)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+          description: Number of items per page (default 10)
       responses:
         '200':
           description: Inventory retrieved successfully
@@ -3828,9 +3854,14 @@ paths:
                     type: string
                     example: 'Get reagent inventory successfully'
                   data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ReagentInventoryItem'
+                    type: object
+                    properties:
+                      inventory:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReagentInventoryItem'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
         '401':
           description: Unauthorized
 
@@ -5514,6 +5545,9 @@ components:
         reagentName:
           type: string
           example: 'Diluent'
+        vendorName:
+          type: string
+          example: 'XYZ Supplies Inc.'
         lotNumber:
           type: string
           example: 'LOT-2024-001'

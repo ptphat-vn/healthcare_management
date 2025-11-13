@@ -194,12 +194,31 @@ export const listUsageHistoryController = async (req: Request, res: Response, ne
 export const getReagentInventoryFIFOController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await reagentInventoryService.getReagentInventoryFIFO({
+      search: req.query.search as string,
       reagentId: req.query.reagentId as string,
       reagentName: req.query.reagentName as string,
+      vendorName: req.query.vendorName as string,
       includeExpired: req.query.includeExpired === 'true',
-      includeExpiringSoon: req.query.includeExpiringSoon === 'true'
+      includeExpiringSoon: req.query.includeExpiringSoon === 'true',
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : 10
     })
-    return res.status(200).json({ message: 'Get reagent inventory successfully', data })
+    if (data.pagination.total === 0) {
+      return res.status(200).json({
+        message: 'No Data',
+        data: {
+          inventory: [],
+          pagination: data.pagination
+        }
+      })
+    }
+    return res.status(200).json({
+      message: 'Get reagent inventory successfully',
+      data: {
+        inventory: data.inventory,
+        pagination: data.pagination
+      }
+    })
   } catch (err) {
     next(err)
   }
