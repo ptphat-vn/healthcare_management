@@ -109,6 +109,7 @@ export const baseApi = createApi({
     "Comment",
     "Chat",
     "Notification",
+    "Profile",
   ],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
@@ -137,7 +138,7 @@ export const baseApi = createApi({
         method: "PUT",
         body: userData,
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "Profile"],
     }),
     logout: builder.mutation<{ success: string; message: string }, void>({
       query: () => ({

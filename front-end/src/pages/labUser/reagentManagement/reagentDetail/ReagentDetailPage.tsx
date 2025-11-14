@@ -47,7 +47,7 @@ export default function ReagentDetailPage() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen rounded-[20px]">
+    <div className="p-6 bg-white min-h-screen rounded-[20px]">
       {/* Header */}
       <div className="mb-6">
         <Button variant="outline" onClick={() => navigate(-1)} className="mb-4">
@@ -89,7 +89,15 @@ export default function ReagentDetailPage() {
             <InfoRow label="Catalog Number" value={reagent.catalogNumber} />
             <InfoRow label="Manufacturer" value={reagent.manufacturer} />
             <InfoRow label="CAS Number" value={reagent.casNumber} />
-            <InfoRow label="Category" value={reagent.category} />
+
+            <InfoRow
+              label="Category"
+              value={
+                Array.isArray(reagent.categories)
+                  ? reagent.categories.join(", ")
+                  : reagent.categories
+              }
+            />
           </dl>
         </div>
 
@@ -111,7 +119,10 @@ export default function ReagentDetailPage() {
               </dd>
             </div>
             <InfoRow label="Dilution Ratio" value={reagent.ratio} />
-            <InfoRow label="Storage Conditions" value={reagent.storageConditions} />
+            <InfoRow
+              label="Storage Conditions"
+              value={reagent.storageCondition + " ºC"}
+            />
           </dl>
         </div>
 

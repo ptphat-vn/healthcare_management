@@ -37,6 +37,7 @@ import ReagentManagementPage from "@/pages/labUser/reagentManagement/ReagentMana
 import ReagentDetailPage from "@/pages/labUser/reagentManagement/reagentDetail/ReagentDetailPage";
 import InstrumentDetailPage from "@/pages/service/instrumentManager/InstrumentDetailPage";
 import InstrumentReagentDetailPage from "@/pages/service/instrumentManager/InstrumentReagentDetailPage";
+import InventoryPage from "@/pages/service/inventoryManagement/InventoryPage";
 
 import ChatPage from "@/pages/chat/ChatPage";
 
@@ -186,8 +187,9 @@ export const router = createBrowserRouter([
       },
       { path: "reagent/:id", element: <ReagentDetailPage /> },
       { path: "profile", element: <ProfilePage /> },
-      {path: "reagent-management", element: <ReagentManagementPage />},
-      
+      { path: "reagent-management", element: <ReagentManagementPage /> },
+      { path: "reagent-management/:id", element: <ReagentDetailPage /> },
+      { path: "inventory-management", element: <InventoryPage /> },
     ],
   },
 ]);

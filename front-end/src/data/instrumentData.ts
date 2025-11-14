@@ -12,7 +12,7 @@ export const fakeInstruments: Instrument[] = [
     lastCalibrationDate: "2024-10-20",
     responsiblePerson: "Nguyễn Văn A",
     responsiblePersonId: "USER001",
-    status: "active",
+    status: "Active",
     mode: "ready",
     nextMaintenanceDate: "2025-01-15",
     notes: "Thiết bị hoạt động tốt, cần kiểm tra định kỳ",
