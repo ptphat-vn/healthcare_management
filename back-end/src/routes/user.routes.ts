@@ -15,7 +15,7 @@ import {
 } from '~/controllers/user.controller'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 import { privilegeMiddleware } from '~/middlewares/privilege.middleware'
-import { uploadSingle } from '~/middlewares/upload.middleware'
+import { uploadAvatar } from '~/middlewares/upload.middleware'
 
 const userRouter = Router()
 // user management (admin namespace to match existing style)
@@ -52,5 +52,5 @@ userRouter.get('/user/lab-users', authMiddleware, getAllLabUser)
 userRouter.get('/user/patients', authMiddleware, getAllPatient)
 userRouter.get('/user/all', authMiddleware, privilegeMiddleware(['view_user']), getAllUsers)
 userRouter.get('/user/:id', authMiddleware, privilegeMiddleware(['view_user']), getUserDetail)
-userRouter.put('/user/avatar', authMiddleware, uploadSingle, updateAvatarController)
+userRouter.put('/user/avatar', authMiddleware, uploadAvatar.single('avatar'), updateAvatarController)
 export default userRouter

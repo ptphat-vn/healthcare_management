@@ -1,3 +1,8 @@
+import type {
+  ReagentInventory,
+  UsageReagentHistory,
+  VendorSupplyHistory,
+} from "./reagent.type";
 import type { RequestedTestName } from "./request.type";
 import type { Roles } from "./roles.type";
 import type { TestOrder } from "./testOrder.type";
@@ -88,4 +93,42 @@ export interface ReagentToInstrumentResponse {
   notes: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface ReagentHistory {
+  usageHistory: UsageReagentHistory[];
+  pagination: Pagination;
+}
+
+export interface CreateVendorSuppyResponse {
+  _id: string;
+  reagentId: string;
+  reagentName: string;
+  catalogNumber: string;
+  manufacturer: string;
+  casNumber: string;
+  vendorName: string;
+  vendorId: string;
+  purchaseOrderNumber: string;
+  orderDate: string;
+  receiptDate: string;
+  quantityReceived: number;
+  unitOfMeasure: string;
+  lotNumber: string;
+  expirationDate: string;
+  receivedBy: string;
+  receivedAt: string;
+  initialStorageLocation: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface VendorSypplyHisResponse {
+  vendorSupplies: VendorSupplyHistory[];
+  pagination: Pagination;
+}
+
+export interface GetReagentInventoryFifoResponse {
+  inventory: ReagentInventory[];
+  pagination: Pagination;
 }

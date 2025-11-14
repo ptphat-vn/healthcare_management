@@ -28,14 +28,28 @@ export const userApi = baseApi.injectEndpoints({
       providesTags: ["User"],
     }),
 
-    getAllLabUser: builder.query<APIResponse<GetAllUserResponse>, { search?: string; status?: number; page?: number; limit?: number } | void>({
-      query: (params) => ({ url: "/user/lab-users", method: "GET", params: params || {} }),
+    getAllLabUser: builder.query<
+      APIResponse<GetAllUserResponse>,
+      { search?: string; status?: number; page?: number; limit?: number } | void
+    >({
+      query: (params) => ({
+        url: "/user/lab-users",
+        method: "GET",
+        params: params || {},
+      }),
       keepUnusedDataFor: 0,
       providesTags: ["User"],
     }),
 
-    getAllPatient: builder.query<APIResponse<GetAllUserResponse>, { search?: string; status?: number; page?: number; limit?: number } | void>({
-      query: (params) => ({ url: "/user/patients", method: "GET", params: params || {} }),
+    getAllPatient: builder.query<
+      APIResponse<GetAllUserResponse>,
+      { search?: string; status?: number; page?: number; limit?: number } | void
+    >({
+      query: (params) => ({
+        url: "/user/patients",
+        method: "GET",
+        params: params || {},
+      }),
       keepUnusedDataFor: 0,
       providesTags: ["User"],
     }),
@@ -84,6 +98,7 @@ export const userApi = baseApi.injectEndpoints({
           body: formData,
         };
       },
+      invalidatesTags: ["Profile"],
     }),
   }),
 });

@@ -125,13 +125,34 @@ export const updateAvatarController = async (req: Request, res: Response, next: 
   try {
     const userId = (req as any).authUserId
     const file = req.file as Express.Multer.File
+
+    // Validate file exists
+    if (!file) {
+      throw new HttpError(400, 'No file uploaded')
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
+    if (!allowedTypes.includes(file.mimetype)) {
+      throw new HttpError(400, 'Invalid file type. Only JPEG, PNG, WebP and GIF are allowed')
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      throw new HttpError(400, 'File size exceeds 5MB limit')
+    }
+
     const avatarUrl = await userService.updateAvatarService(userId, file)
+
     res.status(200).json({
-      message: 'Avatar update successfully',
-      avatar: avatarUrl
+      message: 'Avatar updated successfully',
+      data: {
+        avatar: avatarUrl
+      }
     })
   } catch (error: any) {
-    res.status(400).json({ message: error.message || 'Failed to update avatar' })
+    next(error)
   }
 }
 
