@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetConversationQuery, useSendMessageMutation } from "@/services/chatApi";
 import type { ChatMessage } from "@/types/chat-type";
@@ -41,14 +41,19 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
 
   const conversationId = currentUserId ? `${[currentUserId, otherUserId].sort().join("_")}` : "";
 
-  const handleMessage = (msg: ChatMessage) => {
+  // Memoize handleMessage để tránh re-render không cần thiết
+  const handleMessage = useCallback((msg: ChatMessage) => {
     setMessages((prev) => {
+      // Kiểm tra xem message đã tồn tại chưa (tránh duplicate)
       if (prev.some((m) => m._id === msg._id)) return prev;
       lastMessageRef.current = msg;
       return [...prev, msg];
     });
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+    // Scroll to bottom sau một chút để đảm bảo DOM đã update
+    setTimeout(() => {
+      endRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, []); // Empty dependency array vì không phụ thuộc vào state/props nào
 
   const lastMessageRef = useRef<ChatMessage | null>(null);
 
