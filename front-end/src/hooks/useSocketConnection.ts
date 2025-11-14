@@ -60,8 +60,20 @@ export function useSocketConnection(conversationId: string, onMessage?: (msg: Ch
 
     // Wrapper function sử dụng ref để tránh dependency issues
     const handleMessage = (msg: ChatMessage) => {
+      console.log('[Socket] Received message:', {
+        conversationId: msg.conversationId,
+        expectedConversationId: conversationId,
+        messageId: msg._id,
+        messageIdType: typeof msg._id,
+        senderId: msg.senderId,
+        senderIdType: typeof msg.senderId
+      });
+      
       if (msg.conversationId === conversationId) {
+        console.log('[Socket] Message matches conversation, calling callback');
         onMessageRef.current?.(msg);
+      } else {
+        console.log('[Socket] Message conversationId mismatch, ignoring');
       }
     };
     

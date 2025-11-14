@@ -41,19 +41,49 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
 
   const conversationId = currentUserId ? `${[currentUserId, otherUserId].sort().join("_")}` : "";
 
+  // Helper function để normalize message ID
+  const normalizeMessageId = (msg: ChatMessage): string | undefined => {
+    if (!msg._id) return undefined;
+    // Nếu là string, trả về luôn
+    if (typeof msg._id === 'string') return msg._id;
+    // Nếu là object (ObjectId từ MongoDB), lấy string value
+    if (typeof msg._id === 'object') {
+      // Có thể là { $oid: "..." } hoặc có toString method
+      return (msg._id as any).$oid || String(msg._id) || (msg._id as any).toString?.();
+    }
+    return String(msg._id);
+  };
+
   // Memoize handleMessage để tránh re-render không cần thiết
   const handleMessage = useCallback((msg: ChatMessage) => {
+    // Normalize message để đảm bảo format đúng
+    const normalizedMsg: ChatMessage = {
+      ...msg,
+      _id: normalizeMessageId(msg),
+      senderId: typeof msg.senderId === 'string' ? msg.senderId : String(msg.senderId),
+      receiverId: typeof msg.receiverId === 'string' ? msg.receiverId : String(msg.receiverId),
+      createdAt: typeof msg.createdAt === 'string' ? msg.createdAt : (msg.createdAt instanceof Date ? msg.createdAt.toISOString() : new Date().toISOString())
+    };
+
     setMessages((prev) => {
-      // Kiểm tra xem message đã tồn tại chưa (tránh duplicate)
-      if (prev.some((m) => m._id === msg._id)) return prev;
-      lastMessageRef.current = msg;
-      return [...prev, msg];
+      // So sánh bằng normalized ID
+      const msgId = normalizedMsg._id;
+      if (msgId && prev.some((m) => {
+        const mId = normalizeMessageId(m);
+        return mId && mId === msgId;
+      })) {
+        return prev; // Duplicate
+      }
+      
+      lastMessageRef.current = normalizedMsg;
+      return [...prev, normalizedMsg];
     });
+    
     // Scroll to bottom sau một chút để đảm bảo DOM đã update
     setTimeout(() => {
       endRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
-  }, []); // Empty dependency array vì không phụ thuộc vào state/props nào
+  }, []); // Empty dependency array
 
   const lastMessageRef = useRef<ChatMessage | null>(null);
 

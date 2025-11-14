@@ -42,8 +42,11 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
 
       const saved = await chatService.saveMessage(payload)
 
+      // Serialize message: Convert ObjectId và Date thành string
+      const serializedMessage = chatService.serializeMessage(saved)
       
-      io.to(payload.conversationId).emit('message', saved)
+      // Emit serialized message đến conversation room
+      io.to(payload.conversationId).emit('message', serializedMessage)
 
      
       let senderName: string | undefined = undefined
@@ -62,12 +65,14 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
         conversationId: payload.conversationId,
         from: payload.senderId,
         to: payload.receiverId,
-        messageId: saved._id,
+        messageId: String(saved._id), // Serialize ObjectId thành string
         content: saved.content,
         snippet,
         senderName,
         senderAvatar,
-        createdAt: saved.createdAt,
+        createdAt: saved.createdAt instanceof Date 
+          ? saved.createdAt.toISOString() 
+          : saved.createdAt,
       }
 
       io.to(userRoomName(payload.receiverId)).emit('notification', notification)

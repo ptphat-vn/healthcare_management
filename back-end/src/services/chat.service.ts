@@ -30,6 +30,27 @@ export const saveMessage = async (payload: {
   return { _id: res.insertedId, ...doc }
 }
 
+/**
+ * Serialize message object: Convert ObjectId và Date thành string
+ * Để đảm bảo frontend có thể so sánh và sử dụng đúng
+ */
+export const serializeMessage = (message: any) => {
+  if (!message) return null;
+  
+  return {
+    _id: message._id ? String(message._id) : undefined,
+    conversationId: message.conversationId,
+    senderId: message.senderId ? String(message.senderId) : undefined,
+    receiverId: message.receiverId ? String(message.receiverId) : undefined,
+    content: message.content,
+    metadata: message.metadata,
+    read: message.read || false,
+    createdAt: message.createdAt instanceof Date 
+      ? message.createdAt.toISOString() 
+      : (typeof message.createdAt === 'string' ? message.createdAt : new Date().toISOString())
+  }
+}
+
 export const getConversationMessages = async (conversationId: string, page = 1, limit = 50) => {
   const col = getChatCollection()
   const skip = Math.max(0, page - 1) * limit
