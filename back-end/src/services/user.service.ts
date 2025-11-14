@@ -4,7 +4,7 @@ import { MESSAGES } from '~/constants/message.constant'
 import { getUsersCollection } from '~/models/user.model'
 import { getRolesCollection } from '~/models/role.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
-
+import streamifier from 'streamifier'
 import cloudinary from '~/configs/cloundinary.config'
 import fs from 'fs'
 export async function updateUser(id: string, updatePayload: Record<string, unknown>, performedBy?: string) {
@@ -313,7 +313,11 @@ export const listUsersByRoleCodes = async (params: ListUsersByRoleParams) => {
     filter.roleId = { $in: roleIds as any }
   }
 
-  const cursor = users.find(filter as any).sort({ createdAt: -1 } as any).skip(skip).limit(limit)
+  const cursor = users
+    .find(filter as any)
+    .sort({ createdAt: -1 } as any)
+    .skip(skip)
+    .limit(limit)
   const [userItems, total] = await Promise.all([cursor.toArray(), users.countDocuments(filter as any)])
 
   const usedRoleIds = Array.from(new Set(userItems.map((u) => u.roleId).filter(Boolean))) as any[]
@@ -346,140 +350,20 @@ export async function getUserDetail(id: string) {
   return { ...safeUser, roleName: role?.name ?? null }
 }
 
-export const updateAvatarService = async (userId: string, file: Express.Multer.File) => {
-  const users = getUsersCollection()
-  const objectId = new ObjectId(userId)
-
-  // 1. Validate user exists
-  const user = await users.findOne({ _id: objectId } as any)
-  if (!user) {
-    throw new HttpError(404, 'User not found!')
-  }
-
-  // 2. Validate file uploaded
-  if (!file) {
-    throw new HttpError(400, 'No file uploaded!')
-  }
-
-  let avatarUrl = ''
-  let avatarPublicId = ''
-
-  try {
-    if (cloudinary) {
-      // 3. Delete old avatar from Cloudinary if exists
-      if (user.avatarPublicId) {
-        try {
-          await cloudinary.uploader.destroy(user.avatarPublicId)
-          console.log(`Deleted old avatar: ${user.avatarPublicId}`)
-        } catch (error) {
-          console.warn('Failed to delete old avatar:', error)
-          // Continue even if deletion fails
-        }
-      }
-
-      // 4. Upload new avatar to Cloudinary
-      if (file.path) {
-        // Disk storage - file saved to disk
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: 'avatars',
-          public_id: `user_${userId}`, // Fixed ID for easy overwrite
-          overwrite: true,
-          invalidate: true, // Clear CDN cache
-          transformation: [
-            { width: 500, height: 500, crop: 'fill', gravity: 'face' },
-            { quality: 'auto:good' },
-            { fetch_format: 'auto' }
-          ]
-        })
-
-        avatarUrl = result.secure_url
-        avatarPublicId = result.public_id
-
-        // Clean up temporary file
-        try {
-          fs.unlinkSync(file.path)
-        } catch (unlinkError) {
-          console.warn('Failed to delete temp file:', unlinkError)
-        }
-      } else if (file.buffer) {
-        // Memory storage - file in buffer
-        const uploadResult = await new Promise<any>((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            {
-              folder: 'avatars',
-              public_id: `user_${userId}`,
-              overwrite: true,
-              invalidate: true,
-              transformation: [
-                { width: 500, height: 500, crop: 'fill', gravity: 'face' },
-                { quality: 'auto:good' },
-                { fetch_format: 'auto' }
-              ]
-            },
-            (error, result) => {
-              if (error) reject(error)
-              else resolve(result)
-            }
-          )
-          uploadStream.end(file.buffer)
-        })
-
-        avatarUrl = uploadResult.secure_url
-        avatarPublicId = uploadResult.public_id
-      } else {
-        throw new HttpError(400, 'Invalid file format')
-      }
-    } else {
-      // Fallback: Local storage if Cloudinary not configured
-      avatarUrl = `/uploads/${file.filename}`
-      avatarPublicId = ''
-    }
-
-    // 5. Update user avatar in database
-    const updateResult = await users.updateOne({ _id: objectId } as any, {
-      $set: {
-        avatar: avatarUrl,
-        avatarPublicId,
-        updatedAt: new Date()
-      }
+export const uploadToCloudinary = (buffer: Buffer, folder = 'avatars') => {
+  return new Promise<{ url: string; public_id: string }>((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream({ folder }, (err, result) => {
+      if (err || !result) return reject(err)
+      resolve({
+        url: result.secure_url,
+        public_id: result.public_id
+      })
     })
+    streamifier.createReadStream(buffer).pipe(uploadStream)
+  })
+}
 
-    if (updateResult.matchedCount === 0) {
-      throw new HttpError(404, 'User not found')
-    }
-
-    // 6. Log event
-    try {
-      const eventLogs = getEventLogsCollection()
-      const rolesCol = getRolesCollection()
-      const roleDoc = user.roleId ? await rolesCol.findOne({ _id: user.roleId } as any) : null
-
-      await eventLogs.insertOne({
-        operator: {
-          id: user._id,
-          name: user.fullName || '',
-          role: roleDoc?.code || ''
-        },
-        action: 'AVATAR_UPDATED',
-        details: `Avatar updated for user: ${user.fullName}`,
-        timestamp: new Date()
-      } as any)
-    } catch (logError) {
-      console.warn('Failed to log event:', logError)
-      // Don't fail the request if logging fails
-    }
-
-    return avatarUrl
-  } catch (error: any) {
-    // Clean up temp file on error
-    if (file.path && fs.existsSync(file.path)) {
-      try {
-        fs.unlinkSync(file.path)
-      } catch (unlinkError) {
-        console.warn('Failed to delete temp file on error:', unlinkError)
-      }
-    }
-
-    throw new HttpError(500, error.message || 'Failed to update avatar')
-  }
+export const deleteFromCloudinary = async (publicId: string) => {
+  if (!publicId) return
+  return cloudinary.uploader.destroy(publicId)
 }
