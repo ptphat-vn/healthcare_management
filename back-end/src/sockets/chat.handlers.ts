@@ -15,7 +15,14 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
   })
 
   socket.on('join', ({ roomId }: { roomId: string }) => {
-    if (roomId) socket.join(roomId)
+    if (roomId) {
+      socket.join(roomId);
+      console.log(`[Socket] User ${(socket.data as any).userId || 'unknown'} joined room: ${roomId}`);
+      
+      // Debug: Log số clients trong room
+      const room = io.sockets.adapter.rooms.get(roomId);
+      console.log(`[Socket] Room ${roomId} now has ${room?.size || 0} clients`);
+    }
   })
 
   socket.on('leave', ({ roomId }: { roomId: string }) => {
@@ -44,6 +51,12 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
 
       // Serialize message: Convert ObjectId và Date thành string
       const serializedMessage = chatService.serializeMessage(saved)
+      
+      // Debug: Log room và số clients
+      const room = io.sockets.adapter.rooms.get(payload.conversationId);
+      console.log(`[Chat] Emitting message to room: ${payload.conversationId}`);
+      console.log(`[Chat] Room has ${room?.size || 0} clients`);
+      console.log(`[Chat] Serialized message:`, JSON.stringify(serializedMessage, null, 2));
       
       // Emit serialized message đến conversation room
       io.to(payload.conversationId).emit('message', serializedMessage)

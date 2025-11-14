@@ -40,6 +40,10 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
   }, [update]);
 
   const conversationId = currentUserId ? `${[currentUserId, otherUserId].sort().join("_")}` : "";
+  
+  console.log('[ChatWindow] Conversation ID:', conversationId);
+  console.log('[ChatWindow] Current User ID:', currentUserId);
+  console.log('[ChatWindow] Other User ID:', otherUserId);
 
   // Helper function để normalize message ID
   const normalizeMessageId = (msg: ChatMessage): string | undefined => {
@@ -56,6 +60,8 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
 
   // Memoize handleMessage để tránh re-render không cần thiết
   const handleMessage = useCallback((msg: ChatMessage) => {
+    console.log('[ChatWindow] handleMessage called with:', msg);
+    
     // Normalize message để đảm bảo format đúng
     const normalizedMsg: ChatMessage = {
       ...msg,
@@ -65,6 +71,8 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
       createdAt: typeof msg.createdAt === 'string' ? msg.createdAt : (msg.createdAt instanceof Date ? msg.createdAt.toISOString() : new Date().toISOString())
     };
 
+    console.log('[ChatWindow] Normalized message:', normalizedMsg);
+
     setMessages((prev) => {
       // So sánh bằng normalized ID
       const msgId = normalizedMsg._id;
@@ -72,9 +80,11 @@ export default function ChatWindow({ otherUserId, otherUserName, otherUserAvatar
         const mId = normalizeMessageId(m);
         return mId && mId === msgId;
       })) {
+        console.log('[ChatWindow] Duplicate message ignored:', msgId);
         return prev; // Duplicate
       }
       
+      console.log('[ChatWindow] Adding new message to state');
       lastMessageRef.current = normalizedMsg;
       return [...prev, normalizedMsg];
     });

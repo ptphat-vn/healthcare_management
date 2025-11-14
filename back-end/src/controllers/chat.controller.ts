@@ -45,11 +45,19 @@ export const sendMessageController = async (req: Request, res: Response, next: N
     const io = getIo()
     if (io) {
       try {
+        // Debug: Log room và số clients
+        const room = io.sockets.adapter.rooms.get(conversationId);
+        console.log(`[HTTP] Emitting message to room: ${conversationId}`);
+        console.log(`[HTTP] Room has ${room?.size || 0} clients`);
+        console.log(`[HTTP] Serialized message:`, JSON.stringify(serializedMessage, null, 2));
+        
         // Emit serialized message để frontend có thể so sánh đúng
         io.to(conversationId).emit('message', serializedMessage)
       } catch (e) {
-        // ignore emit errors
+        console.error('[HTTP] Error emitting message:', e);
       }
+    } else {
+      console.warn('[HTTP] Socket.io not available');
     }
 
     // Trả về serialized message cho HTTP response

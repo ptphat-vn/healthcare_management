@@ -96,7 +96,10 @@ class SocketService {
       this.emit("error", { message: "Failed to reconnect", code: "RECONNECT_FAILED" });
     });
 
-    this.socket.on("message", (msg: ChatMessage) => this.emit("message", msg));
+    this.socket.on("message", (msg: ChatMessage) => {
+      console.log('[SocketService] Raw message received from socket:', msg);
+      this.emit("message", msg);
+    });
     this.socket.on("error", (err: { message: string }) => this.emit("error", err));
   }
 
@@ -121,19 +124,27 @@ class SocketService {
   }
 
   joinRoom(conversationId: string) {
-    if (!conversationId?.trim()) return;
+    if (!conversationId?.trim()) {
+      console.warn('[SocketService] Cannot join room - conversationId is empty');
+      return;
+    }
 
     // Kiểm tra xem đã join room này chưa
     if (this.joinedRooms.has(conversationId)) {
+      console.log(`[SocketService] Already joined room: ${conversationId}`);
       return; // Đã join rồi, không join lại
     }
 
     if (this.socket?.connected) {
+      console.log(`[SocketService] Joining room: ${conversationId}`);
       this.socket.emit("join", { roomId: conversationId });
       this.joinedRooms.add(conversationId);
+      console.log(`[SocketService] Joined rooms:`, Array.from(this.joinedRooms));
     } else {
+      console.log(`[SocketService] Socket not connected, will join when connected: ${conversationId}`);
       const handler = () => {
         if (this.socket?.connected && !this.joinedRooms.has(conversationId)) {
+          console.log(`[SocketService] Joining room after connect: ${conversationId}`);
           this.socket.emit("join", { roomId: conversationId });
           this.joinedRooms.add(conversationId);
           this.socket.off("connect", handler);
