@@ -25,10 +25,11 @@ import type {
   ResetPasswordRequest,
 } from "@/types/request.type";
 
-import type { 
+import type {
   ConversationResponse,
-   SendMessageRequest,
-    ChatMessage } from "@/types/chat-type";
+  SendMessageRequest,
+  ChatMessage,
+} from "@/types/chat-type";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
@@ -107,6 +108,7 @@ export const baseApi = createApi({
     "Instrument",
     "Comment",
     "Chat",
+    "Notification",
   ],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
@@ -193,7 +195,7 @@ export const baseApi = createApi({
       }),
       providesTags: ["Chat"],
     }),
-    
+
     sendMessage: builder.mutation<
       APIResponse<ChatMessage>,
       { userId: string; message: SendMessageRequest }
