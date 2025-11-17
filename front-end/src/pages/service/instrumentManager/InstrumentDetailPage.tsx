@@ -34,11 +34,8 @@ export default function InstrumentDetailPage() {
     isLoading: isLoadingReagents,
     refetch: refetchReagents,
   } = useGetInstrumentReagentsQuery(id || "");
-  const [removeReagent, { isLoading: isRemoving }] =
+  const [removeReagent] =
     useRemoveReagentFromInstrumentMutation();
-
-  console.log(data);
-  console.log("Reagents data:", reagentsData);
 
   if (isLoading) {
     return (
@@ -65,7 +62,7 @@ export default function InstrumentDetailPage() {
                 The instrument you're looking for doesn't exist or has been
                 removed.
               </p>
-              <Button onClick={() => navigate("/admin/instruments")}>
+              <Button onClick={() => navigate("/service/instruments")}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Instruments
               </Button>
@@ -81,9 +78,8 @@ export default function InstrumentDetailPage() {
   const reagents = Array.isArray(reagentsResponse?.reagents) 
     ? reagentsResponse.reagents 
     : [];
-  console.log(instrument);
 
-  const handleDeleteReagent = async (assignmentId: string, reagentName: string) => {
+  const handleDeleteReagent = async (assignmentId: string) => {
     try {
       await removeReagent(assignmentId).unwrap();
       toast.success("Reagent removed successfully");
@@ -145,7 +141,7 @@ export default function InstrumentDetailPage() {
       <div className="mb-6">
         <Button
           variant="outline"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/service/instruments")}
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -317,7 +313,7 @@ export default function InstrumentDetailPage() {
                   <User className="w-4 h-4" />
                   <span className="font-medium">Created By</span>
                 </div>
-                <p className="text-gray-900">{instrument.createdBy || "N/A"}</p>
+                <p className="text-gray-900">{instrument.createdByName || "N/A"}</p>
               </div>
 
               {/* Last Modified By */}
@@ -327,7 +323,7 @@ export default function InstrumentDetailPage() {
                   <span className="font-medium">Last Modified By</span>
                 </div>
                 <p className="text-gray-900">
-                  {instrument.lastModifiedBy || "N/A"}
+                  {instrument.lastModifiedByName || "N/A"}
                 </p>
               </div>
             </div>
@@ -367,7 +363,6 @@ export default function InstrumentDetailPage() {
                 instrumentId={id || ""}
                 reagents={reagents}
                 onDelete={handleDeleteReagent}
-                isDeleting={isRemoving}
               />
             )}
           </CardContent>
