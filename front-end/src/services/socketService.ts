@@ -8,6 +8,8 @@ class SocketService {
   private listeners: Map<string, Set<(data: any) => void>> = new Map();
   private reconnectAttempts = 0;
   private readonly maxAttempts = 5;
+  private currentUserId: string | null = null;
+  private joinedRooms: Set<string> = new Set();
 
   private getSocketBaseUrl() {
     // Ưu tiên VITE_SOCKET_URL; fallback: loại bỏ hậu tố /api khỏi VITE_API_URL
@@ -21,10 +23,20 @@ class SocketService {
   connect() {
     if (this.socket?.connected) return;
 
-    const {
-      auth: { accessToken: token },
-    } = store.getState() as RootState;
+    const state = store.getState() as RootState;
+    const { auth: { accessToken: token } } = state;
     const baseUrl = this.getSocketBaseUrl();
+
+    // Lấy userId từ user data trong store
+    const userId = (state as any).api?.queries?.['getProfile(undefined)']?.data?.data?._id;
+    // Hoặc lấy từ localStorage/cache nếu có
+    if (!userId) {
+      // Thử lấy từ user data khác
+      const userData = (state as any).user;
+      this.currentUserId = userData?.data?._id || null;
+    } else {
+      this.currentUserId = userId;
+    }
 
     if (!token || !baseUrl) {
       console.warn("Socket: Missing token or base URL");
@@ -45,12 +57,16 @@ class SocketService {
       reconnectionDelayMax: 5000,
       reconnectionAttempts: this.maxAttempts,
       timeout: 20000,
-      // Chỉ rõ path socket.io ở root (không kèm /api)
       path: "/socket.io",
     });
 
     this.socket.on("connect", () => {
       this.reconnectAttempts = 0;
+      // GỌI IDENTIFY NGAY SAU KHI KẾT NỐI
+      if (this.currentUserId) {
+        this.socket?.emit("identify", { userId: this.currentUserId });
+        console.log("Socket: Identified as user", this.currentUserId);
+      }
       this.emit("connect", { connected: true });
     });
 
@@ -66,10 +82,15 @@ class SocketService {
           ? "MAX_RECONNECT_ATTEMPTS"
           : "CONNECTION_ERROR";
       this.emit("error", { message: error.message, code });
+      console.error("Socket connection error:", error);
     });
 
     this.socket.on("reconnect", () => {
       this.reconnectAttempts = 0;
+      // GỌI LẠI IDENTIFY KHI RECONNECT
+      if (this.currentUserId) {
+        this.socket?.emit("identify", { userId: this.currentUserId });
+      }
       this.emit("reconnect", {});
     });
 
@@ -89,6 +110,15 @@ class SocketService {
     );
   }
 
+  // Thêm method để set userId từ bên ngoài
+  setUserId(userId: string, identifyImmediately: boolean = true) {
+    this.currentUserId = userId;
+    if (this.socket?.connected && userId && identifyImmediately) {
+      this.socket.emit("identify", { userId });
+      console.log("Socket: Identified as user", userId);
+    }
+  }
+
   disconnect() {
     if (this.socket) {
       this.socket.disconnect();
@@ -97,17 +127,25 @@ class SocketService {
       this.reconnectAttempts = 0;
     }
     this.listeners.clear();
+    this.joinedRooms.clear(); // Clear joined rooms
   }
 
   joinRoom(conversationId: string) {
     if (!conversationId?.trim()) return;
 
+    // Kiểm tra xem đã join room này chưa
+    if (this.joinedRooms.has(conversationId)) {
+      return; // Đã join rồi, không join lại
+    }
+
     if (this.socket?.connected) {
       this.socket.emit("join", { roomId: conversationId });
+      this.joinedRooms.add(conversationId);
     } else {
       const handler = () => {
-        if (this.socket?.connected) {
+        if (this.socket?.connected && !this.joinedRooms.has(conversationId)) {
           this.socket.emit("join", { roomId: conversationId });
+          this.joinedRooms.add(conversationId);
           this.socket.off("connect", handler);
         }
       };
@@ -118,6 +156,7 @@ class SocketService {
   leaveRoom(conversationId: string) {
     if (conversationId && this.socket?.connected) {
       this.socket.emit("leave", { roomId: conversationId });
+      this.joinedRooms.delete(conversationId);
     }
   }
 

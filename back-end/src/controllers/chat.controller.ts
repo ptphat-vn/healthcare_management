@@ -38,17 +38,22 @@ export const sendMessageController = async (req: Request, res: Response, next: N
   const conversationId = chatService.getConversationId(String(authUserId), userId)
   const saved = await chatService.saveMessage({ conversationId, senderId: String(authUserId), receiverId: userId, content, metadata })
 
+    // Serialize message: Convert ObjectId và Date thành string
+    const serializedMessage = chatService.serializeMessage(saved)
+
     // If socket.io is available, emit to the conversation room so recipients get message realtime
     const io = getIo()
     if (io) {
       try {
-        io.to(conversationId).emit('message', saved)
+        // Emit serialized message để frontend có thể so sánh đúng
+        io.to(conversationId).emit('message', serializedMessage)
       } catch (e) {
         // ignore emit errors
       }
     }
 
-    return res.status(201).json({ message: 'Message sent', data: saved })
+    // Trả về serialized message cho HTTP response
+    return res.status(201).json({ message: 'Message sent', data: serializedMessage })
   } catch (err) {
     next(err)
   }

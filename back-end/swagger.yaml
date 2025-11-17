@@ -3961,6 +3961,39 @@ paths:
         '401':
           description: Unauthorized
 
+  /webrtc/token:
+    get:
+      tags:
+        - WebRTC
+      summary: Get Stringee access token for current user
+      description: |
+        Get a Stringee access token for the currently authenticated user.
+
+        Token will be used on the frontend to connect to Stringee WebRTC SDK for audio/video calls.
+      operationId: getStringeeToken
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Stringee access token generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Stringee access token'
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        description: Stringee access token (JWT)
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+        '401':
+          description: Unauthorized
+
     post:
       tags:
         - Chat
