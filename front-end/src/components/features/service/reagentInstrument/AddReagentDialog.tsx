@@ -53,17 +53,20 @@ export default function AddReagentDialog({
 
   // Fetch inventory for selected reagent
   const { data: inventoryData, isLoading: isLoadingInventory } =
-    useGetReagentInventoryFIFOQuery();
+    useGetReagentInventoryFIFOQuery(
+      { 
+        reagentId: formData.reagentId, 
+        includeExpired: false,
+        page: 1,
+        limit: 100
+      },
+      { skip: !formData.reagentId }
+    );
 
-  const inventory = inventoryData?.data.inventory || [];
+  const inventory = inventoryData?.data?.inventory || [];
   const totalAvailable = inventory.reduce(
     (sum, item) => sum + item.quantityAvailable,
     0
-  );
-
-  // Get selected reagent details
-  const selectedReagent = reagentsData?.data?.reagents?.find(
-    (r) => r._id === formData.reagentId
   );
 
   const resetForm = () => {
@@ -249,23 +252,22 @@ export default function AddReagentDialog({
               {formData.reagentId &&
                 !isLoadingInventory &&
                 inventory.length === 0 && (
-                  <p className="text-xs text-red-600">
-                    ⚠️ No inventory available for this reagent
+                  <p className="text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded p-2">
+                    ⚠️ No inventory available. System will use FIFO to auto-allocate when stock becomes available.
                   </p>
                 )}
-              {selectedReagent && selectedReagent.category && (
-                <div className="text-xs text-gray-600 mt-1">
-                  <span className="font-medium">Category:</span>{" "}
-                  <span className="text-gray-700">
-                    {selectedReagent.category}
-                  </span>
-                </div>
+              {formData.reagentId && !isLoadingInventory && inventory.length > 0 && (
+                <p className="text-xs text-green-600 bg-green-50 border border-green-200 rounded p-2">
+                  ✓ {totalAvailable} {inventory[0]?.unitOfMeasure} available across {inventory.length} lot{inventory.length > 1 ? 's' : ''}
+                </p>
               )}
             </div>
 
             {/* Lot Number */}
             <div className="grid gap-2">
-              <Label htmlFor="lotNumber">Lot Number (Optional)</Label>
+              <Label htmlFor="lotNumber">
+                Lot Number <span className="text-gray-400 text-xs">(Optional - FIFO auto-select)</span>
+              </Label>
               {inventory.length > 0 ? (
                 <Select
                   value={formData.lotNumber || "auto-fifo"}
@@ -278,37 +280,31 @@ export default function AddReagentDialog({
                   }}
                 >
                   <SelectTrigger id="lotNumber">
-                    <SelectValue placeholder="Select lot number" />
+                    <SelectValue placeholder="Auto-select using FIFO" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="auto-fifo">
-                      Auto-select using FIFO (recommended)
+                      🔄 Auto-select using FIFO (earliest expiration)
                     </SelectItem>
                     {inventory.map((item) => (
                       <SelectItem key={item.lotNumber} value={item.lotNumber}>
-                        {item.lotNumber} - Available: {item.quantityAvailable}{" "}
-                        {item.unitOfMeasure}
-                        {item.isExpiringSoon && " ⚠️ Expiring soon"}
+                        <div className="flex flex-col">
+                          <span className="font-medium">{item.lotNumber}</span>
+                          <span className="text-xs text-gray-500">
+                            Available: {item.quantityAvailable} {item.unitOfMeasure}
+                            {item.isExpiringSoon && " ⚠️ Expiring soon"}
+                            {" • Exp: " + new Date(item.expirationDate).toLocaleDateString()}
+                          </span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               ) : (
-                <Input
-                  id="lotNumber"
-                  placeholder="No lots available"
-                  value={formData.lotNumber}
-                  onChange={(e) => handleChange("lotNumber", e.target.value)}
-                  disabled
-                />
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-600">
+                  🔄 FIFO auto-selection enabled - System will allocate from available lots when inventory is added
+                </div>
               )}
-              {inventory.length > 0 &&
-                (!formData.lotNumber || formData.lotNumber === "") && (
-                  <p className="text-xs text-gray-500">
-                    System will automatically select the lot with earliest
-                    expiration date (FIFO)
-                  </p>
-                )}
             </div>
 
             {/* Quantity */}
@@ -320,26 +316,23 @@ export default function AddReagentDialog({
                 id="quantity"
                 type="number"
                 min="1"
-                max={totalAvailable > 0 ? totalAvailable : undefined}
                 step="1"
-                placeholder={
-                  totalAvailable > 0
-                    ? `Max: ${totalAvailable}`
-                    : "Enter quantity"
-                }
+                placeholder="Enter quantity"
                 value={formData.quantity}
                 onChange={(e) => handleChange("quantity", e.target.value)}
                 required
-                disabled={inventory.length === 0}
               />
-              {totalAvailable > 0 &&
-                formData.quantity &&
-                Number(formData.quantity) > totalAvailable && (
-                  <p className="text-xs text-red-600">
-                    ⚠️ Requested quantity exceeds available inventory (
-                    {totalAvailable} {inventory[0]?.unitOfMeasure})
-                  </p>
-                )}
+              {totalAvailable > 0 && formData.quantity && Number(formData.quantity) > totalAvailable && (
+                <p className="text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded p-2">
+                  ⚠️ Warning: Requested {formData.quantity} exceeds current inventory ({totalAvailable} {inventory[0]?.unitOfMeasure}).
+                  System will allocate from available stock using FIFO.
+                </p>
+              )}
+              {inventory.length > 0 && totalAvailable > 0 && (
+                <p className="text-xs text-gray-500">
+                  Current inventory: {totalAvailable} {inventory[0]?.unitOfMeasure}
+                </p>
+              )}
             </div>
 
             {/* Notes */}
@@ -368,11 +361,7 @@ export default function AddReagentDialog({
             <Button
               type="submit"
               className="flex items-center gap-2 btn-primary"
-              disabled={
-                isLoading ||
-                (!!formData.reagentId && inventory.length === 0) ||
-                !formData.reagentId
-              }
+              disabled={isLoading || !formData.reagentId}
             >
               {isLoading ? (
                 <>

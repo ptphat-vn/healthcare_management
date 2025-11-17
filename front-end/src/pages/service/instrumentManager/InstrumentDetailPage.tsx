@@ -19,6 +19,7 @@ import {
   XCircle,
   Clock,
   Beaker,
+  Tag,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -238,6 +239,28 @@ export default function InstrumentDetailPage() {
                 <p className="text-gray-900 font-semibold">
                   {instrument.status}
                 </p>
+              </div>
+
+              {/* Categories */}
+              <div className="space-y-1 col-span-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Tag className="w-4 h-4" />
+                  <span className="font-medium">Categories</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {instrument.categories && instrument.categories.length > 0 ? (
+                    instrument.categories.map((category: string, index: number) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full"
+                      >
+                        {category}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-500 text-sm">No categories assigned</span>
+                  )}
+                </div>
               </div>
             </div>
 

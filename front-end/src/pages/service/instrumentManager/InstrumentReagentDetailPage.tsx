@@ -12,6 +12,7 @@ import {
   AlertCircle,
   CheckCircle,
   Package,
+  Tag,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetInstrumentReagentsQuery } from "@/services/instrumentApi";
@@ -302,6 +303,26 @@ export default function InstrumentReagentDetailPage() {
                     <p className="text-gray-900 font-semibold">
                       {data.data.instrument.location}
                     </p>
+                  </div>
+                )}
+
+                {/* Categories */}
+                {data.data.instrument.categories && data.data.instrument.categories.length > 0 && (
+                  <div className="space-y-2 col-span-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Tag className="w-4 h-4" />
+                      <span className="font-medium">Categories</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {data.data.instrument.categories.map((category: string) => (
+                        <span
+                          key={category}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        >
+                          {category}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
