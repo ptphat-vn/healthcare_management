@@ -23,6 +23,8 @@ import {
 } from "@/schemas/testOrderSchema";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EditTestOrderModalProps {
   open: boolean;
@@ -38,7 +40,7 @@ export default function EditTestOrderModal({
   onSuccess,
 }: EditTestOrderModalProps) {
   const [updateTestOrder, { isLoading }] = useUpdateTestOrderMutation();
-
+  const { user } = useAuth();
   const {
     register,
     handleSubmit,
@@ -186,7 +188,11 @@ export default function EditTestOrderModal({
             >
               Cancel
             </Button>
-            <Button className="btn-primary" type="submit" disabled={isLoading}>
+            <Button
+              className={getRoleButtonClass(user?.data.roleCode)}
+              type="submit"
+              disabled={isLoading}
+            >
               {isLoading ? "Updating..." : "Update"}
             </Button>
           </div>

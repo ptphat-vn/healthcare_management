@@ -3,9 +3,13 @@ import UserList from "@/components/features/admin/userManagement/UserList";
 import AddUserModal from "@/components/features/admin/userManagement/AddUserModal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 export default function UserManagementPage() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const { user } = useAuth();
+  console.log(user);
 
   return (
     <div className="p-4 sm:p-6 lg:p-4 bg-white min-h-screen rounded-[20px]">
@@ -22,7 +26,7 @@ export default function UserManagementPage() {
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <Button
             onClick={() => setIsAddUserModalOpen(true)}
-            className="flex items-center justify-center gap-2 btn-primary w-full sm:w-auto h-9 sm:h-10 text-sm sm:text-base"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
             <span className="whitespace-nowrap">Add New User</span>

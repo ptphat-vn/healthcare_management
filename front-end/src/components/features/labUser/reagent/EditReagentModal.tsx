@@ -71,14 +71,19 @@ export default function EditReagentModal({
     }
   }, [reagent]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleUsageChange = (field: "min" | "max" | "unit", value: string | number) => {
+  const handleUsageChange = (
+    field: "min" | "max" | "unit",
+    value: string | number
+  ) => {
     if (field !== "unit") {
       const numValue = Number(value);
-      
+
       if (numValue < 0) {
         toast.error("Dosage cannot be negative");
         return;
@@ -114,7 +119,10 @@ export default function EditReagentModal({
         return;
       }
 
-      if (!Number.isInteger(formData.usagePerRun.min) || !Number.isInteger(formData.usagePerRun.max)) {
+      if (
+        !Number.isInteger(formData.usagePerRun.min) ||
+        !Number.isInteger(formData.usagePerRun.max)
+      ) {
         toast.error("Dosage must be an integer (1, 2, 3...)");
         return;
       }
@@ -140,9 +148,7 @@ export default function EditReagentModal({
       <DialogContent className="max-w-5xl p-0 gap-0 max-h-[95vh]">
         <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <DialogTitle className="text-2xl">Edit Reagent</DialogTitle>
-          <DialogDescription>
-            Update reagent information
-          </DialogDescription>
+          <DialogDescription>Update reagent information</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="px-6 py-4">
@@ -152,11 +158,11 @@ export default function EditReagentModal({
               <Label className="text-sm font-semibold">
                 Reagent Name <span className="text-red-500">*</span>
               </Label>
-              <Input 
-                name="name" 
-                value={formData.name} 
-                onChange={handleChange} 
-                required 
+              <Input
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
                 placeholder="Enter reagent name"
                 className="h-9"
               />
@@ -167,11 +173,11 @@ export default function EditReagentModal({
               <Label className="text-sm font-semibold">
                 Catalog Number <span className="text-red-500">*</span>
               </Label>
-              <Input 
-                name="catalogNumber" 
-                value={formData.catalogNumber} 
-                onChange={handleChange} 
-                required 
+              <Input
+                name="catalogNumber"
+                value={formData.catalogNumber}
+                onChange={handleChange}
+                required
                 placeholder="e.g. DL-100"
                 className="h-9"
               />
@@ -180,21 +186,21 @@ export default function EditReagentModal({
               <Label className="text-sm font-semibold">
                 Manufacturer <span className="text-red-500">*</span>
               </Label>
-              <Input 
-                name="manufacturer" 
-                value={formData.manufacturer} 
-                onChange={handleChange} 
-                required 
+              <Input
+                name="manufacturer"
+                value={formData.manufacturer}
+                onChange={handleChange}
+                required
                 placeholder="e.g. Acme Diagnostics"
                 className="h-9"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-semibold">CAS Number</Label>
-              <Input 
-                name="casNumber" 
-                value={formData.casNumber} 
-                onChange={handleChange} 
+              <Input
+                name="casNumber"
+                value={formData.casNumber}
+                onChange={handleChange}
                 placeholder="e.g. 7732-18-5"
                 className="h-9"
               />
@@ -203,30 +209,32 @@ export default function EditReagentModal({
             {/* Row 3: Category, Ratio, Storage */}
             <div className="space-y-1.5">
               <Label className="text-sm font-semibold">Category</Label>
-              <Input 
-                name="category" 
-                value={formData.category} 
-                onChange={handleChange} 
+              <Input
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
                 placeholder="e.g. Chemical"
                 className="h-9"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-semibold">Dilution Ratio</Label>
-              <Input 
-                name="ratio" 
-                value={formData.ratio} 
-                onChange={handleChange} 
+              <Input
+                name="ratio"
+                value={formData.ratio}
+                onChange={handleChange}
                 placeholder="e.g. 1:10 to 1:20"
                 className="h-9"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold">Storage Conditions</Label>
-              <Input 
-                name="storageConditions" 
-                value={formData.storageConditions} 
-                onChange={handleChange} 
+              <Label className="text-sm font-semibold">
+                Storage Conditions
+              </Label>
+              <Input
+                name="storageConditions"
+                value={formData.storageConditions}
+                onChange={handleChange}
                 placeholder="e.g. 2-8°C"
                 className="h-9"
               />
@@ -234,7 +242,9 @@ export default function EditReagentModal({
 
             {/* Row 4: Dosage and Status */}
             <div className="col-span-2 space-y-1.5">
-              <Label className="text-sm font-semibold">Usage Per Run (Min-Max-Unit)</Label>
+              <Label className="text-sm font-semibold">
+                Usage Per Run (Min-Max-Unit)
+              </Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   type="number"
@@ -274,7 +284,9 @@ export default function EditReagentModal({
               <Label className="text-sm font-semibold">Status</Label>
               <Select
                 value={formData.isActive ? "active" : "inactive"}
-                onValueChange={(v) => setFormData(prev => ({ ...prev, isActive: v === "active" }))}
+                onValueChange={(v) =>
+                  setFormData((prev) => ({ ...prev, isActive: v === "active" }))
+                }
               >
                 <SelectTrigger className="h-9">
                   <SelectValue />
@@ -311,15 +323,15 @@ export default function EditReagentModal({
           </div>
 
           <DialogFooter className="mt-4 pt-4 border-t">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)} 
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" disabled={isLoading} className="btn-lab-user">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -39,7 +39,7 @@ export default function StepEmail({
         <button
           type="submit"
           disabled={loading}
-          className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4"
+          className="cursor-pointer btn-primary"
         >
           {loading ? "Đang gửi..." : "Send Code"}
         </button>

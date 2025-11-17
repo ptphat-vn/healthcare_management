@@ -2,12 +2,15 @@ import AddRoleModal from "@/components/features/admin/roleManagement/AddRoleModa
 import RoleList from "@/components/features/admin/roleManagement/roleList";
 
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
 export default function RoleManagementPage() {
   const [isOpen, setIsOpen] = useState(false);
   console.log(isOpen);
+  const { user } = useAuth();
 
   return (
     <div className="p-6 bg-white min-h-screen rounded-[20px]">
@@ -23,7 +26,7 @@ export default function RoleManagementPage() {
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <Button
             onClick={() => setIsOpen(true)}
-            className="flex items-center gap-2 btn-primary"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             <Plus size={18} />
             <span>Add New Role</span>

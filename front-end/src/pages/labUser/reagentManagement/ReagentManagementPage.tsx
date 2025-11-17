@@ -23,14 +23,12 @@ export default function ReagentManagementPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Reagent Management
           </h1>
-          <p className="text-gray-600">
-            Manage all reagent in your system.
-          </p>
+          <p className="text-gray-600">Manage all reagent in your system.</p>
         </div>
 
         <Button
           onClick={() => setIsAddModalOpen(true)}
-          className="btn-primary bg-blue-600 hover:bg-blue-700"
+          className="btn-lab-user"
         >
           <Plus className="h-5 w-5 mr-2" />
           Add New Reagent

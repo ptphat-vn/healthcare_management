@@ -63,7 +63,7 @@ export default function MonitoringDetail({
                     Operator
                   </h3>
                   <div className="font-medium text-gray-900">
-                    {log.operator ?? "System"}
+                    {log.operator?.name} - {log.operator?.role}
                   </div>
                 </div>
               </div>

@@ -249,7 +249,7 @@ export default function AddReagentModal({
     <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-amber-600">
+          <DialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
             Add Vendor Supply
           </DialogTitle>
           <DialogDescription className="text-xs sm:text-sm">
@@ -534,7 +534,7 @@ export default function AddReagentModal({
             </Button>
             <Button
               type="submit"
-              className="bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm"
+              className="btn-service text-xs sm:text-sm"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

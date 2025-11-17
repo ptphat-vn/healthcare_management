@@ -51,22 +51,22 @@ export default function StepNewPassword({
         onChange={(e) => setConfirm(e.target.value)}
         className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
       />
-     <div className="flex items-center justify-between">
-     <button
-    type="submit"
-    disabled={loading}
-    className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4"
-     >
-    {loading ? "Submitting..." : "Submit"}
-    </button>
-  
-    <button
-    type="button"
-    onClick={onBack}
-    className="text-sm text-gray-600 hover:text-gray-800"
-    >
-     ← Back
-    </button>
+      <div className="flex items-center justify-between">
+        <button
+          type="submit"
+          disabled={loading}
+          className="cursor-pointer btn-primary"
+        >
+          {loading ? "Submitting..." : "Submit"}
+        </button>
+
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-sm text-gray-600 hover:text-gray-800"
+        >
+          ← Back
+        </button>
       </div>
     </motion.form>
   );
