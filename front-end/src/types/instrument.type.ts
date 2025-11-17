@@ -24,6 +24,8 @@ export interface Instrument {
   updatedAt: string;
   createdBy: string;
   lastModifiedBy: string;
+  createdByName?: string;
+  lastModifiedByName?: string;
 }
 
 // Backend uses: 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service'
