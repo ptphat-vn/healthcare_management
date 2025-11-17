@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Settings, User, Menu } from "lucide-react";
 import Notification from "@/components/common/Notification";
 import { Button } from "@/components/ui/button";
+import { useGetProfileQuery } from "@/services/baseApi";
+import { useEffect } from "react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -45,18 +47,41 @@ const getRoleBadgeClass = (roleCode: string) => {
 };
 
 export default function Header({ onMenuClick }: HeaderProps) {
-  const { logout, user } = useAuth();
-  const fullName = user?.data?.fullName || "Patient";
+  const { logout, user, isAuthenticated } = useAuth();
+
+  // Refetch profile to get latest avatar
+  const { data: latestProfile, refetch } = useGetProfileQuery(undefined, {
+    skip: !isAuthenticated,
+    refetchOnMountOrArgChange: true,
+  });
+
+  // Use latest profile data if available, otherwise use cached user
+  const currentUser = latestProfile || user;
+
+  const fullName = currentUser?.data?.fullName || "Patient";
   const initial = (fullName.charAt(0) || "U").toUpperCase();
-  const roleCode = user?.data?.roleCode || "patient";
+  const roleCode = currentUser?.data?.roleCode || "patient";
   const roleLabel = (
-    user?.data?.roleName ||
-    user?.data?.roleCode ||
+    currentUser?.data?.roleName ||
+    currentUser?.data?.roleCode ||
     "Patient"
   ).toString();
 
   const headerColorClass = getRoleHeaderClass(roleCode);
   const roleBadgeClass = getRoleBadgeClass(roleCode);
+
+  // Listen for avatar update events
+  useEffect(() => {
+    const handleAvatarUpdate = () => {
+      refetch();
+    };
+
+    window.addEventListener("avatarUpdated", handleAvatarUpdate);
+
+    return () => {
+      window.removeEventListener("avatarUpdated", handleAvatarUpdate);
+    };
+  }, [refetch]);
 
   return (
     <header className="sticky top-0 z-50">
@@ -119,11 +144,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
                   className="flex cursor-pointer items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-white/30"
                 >
                   <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-white/20 text-white rounded-full font-bold text-xs sm:text-sm ring-2 ring-white/30 overflow-hidden">
-                    {user?.data?.avatar ? (
+                    {currentUser?.data?.avatar ? (
                       <img
-                        src={user.data.avatar}
+                        src={currentUser.data.avatar}
                         alt={fullName}
                         className="w-full h-full object-cover rounded-full"
+                        key={currentUser.data.avatar} // Force re-render on avatar change
                       />
                     ) : (
                       initial
@@ -147,12 +173,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
                   <p className="text-sm font-semibold text-gray-900">
                     {fullName}
                   </p>
-                  <p className="text-xs text-gray-500">{user?.data?.email}</p>
+                  <p className="text-xs text-gray-500">
+                    {currentUser?.data?.email}
+                  </p>
                 </div>
                 <DropdownMenuItem className="cursor-pointer px-3 py-2 flex items-center gap-2">
                   <User className="w-4 h-4" />
                   <Link
-                    to={`/${user?.data.roleCode}/profile`}
+                    to={`/${currentUser?.data.roleCode}/profile`}
                     className="w-full block text-sm font-medium text-gray-700"
                   >
                     Profile

@@ -40,7 +40,7 @@ export default function UserList() {
   const [status, setStatus] = useState<number | "">(1); // Mặc định Active
   const [sortBy, setSortBy] = useState<
     "fullName" | "email" | "createdAt" | "updatedAt" | undefined
-  >("");
+  >();
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
   const navigate = useNavigate();
 

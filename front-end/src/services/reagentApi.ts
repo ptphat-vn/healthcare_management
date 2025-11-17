@@ -1,6 +1,21 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { customBaseQuery } from "./baseApi";
-import type { Reagent, ListReagentsParams, CreateReagentRequest } from "@/types/reagent.type";
+import {
+  type Reagent,
+  type ListReagentsParams,
+  type CreateReagentRequest,
+  type SearchHistory,
+  type VendorSupplyHisSearch,
+  type ReagentInventorySearch,
+} from "@/types/reagent.type";
+import type {
+  APIResponse,
+  CreateVendorSuppyResponse,
+  GetReagentInventoryFifoResponse,
+  ReagentHistory,
+  VendorSypplyHisResponse,
+} from "@/types/response.type";
+import type { CreateVendorSuppyRequest } from "@/types/request.type";
 
 interface PaginationResponse {
   page: number;
@@ -38,10 +53,7 @@ export const reagentApi = createApi({
       providesTags: ["Reagents"],
     }),
 
-    getReagentById: builder.query<
-      { message: string; data: Reagent },
-      string
-    >({
+    getReagentById: builder.query<{ message: string; data: Reagent }, string>({
       query: (id) => `/reagents/${id}`,
       providesTags: (_result, _error, id) => [{ type: "Reagents", id }],
     }),
@@ -73,46 +85,69 @@ export const reagentApi = createApi({
       ],
     }),
 
-    deleteReagent: builder.mutation<
-      { message: string; data: Reagent },
-      string
+    deleteReagent: builder.mutation<{ message: string; data: Reagent }, string>(
+      {
+        query: (id) => ({
+          url: `/reagents/${id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Reagents"],
+      }
+    ),
+
+    // Get reagent inventory (FIFO)
+    getReagentInventoryFIFO: builder.query<
+      APIResponse<GetReagentInventoryFifoResponse>,
+      ReagentInventorySearch
     >({
-      query: (id) => ({
-        url: `/reagents/${id}`,
-        method: "DELETE",
+      query: (params: ReagentInventorySearch) => ({
+        url: "/reagents/inventory/fifo",
+        method: "GET",
+        params,
+      }),
+      providesTags: ["Reagents"],
+    }),
+    // category
+    getAllCategoryReagents: builder.query<APIResponse<string[]>, void>({
+      query: () => ({
+        url: "/reagents/categories",
+        method: "GET",
+      }),
+      providesTags: ["Reagents"],
+    }),
+    // history
+    getUsageReagentHistory: builder.query<
+      APIResponse<ReagentHistory>,
+      SearchHistory
+    >({
+      query: (params: SearchHistory) => ({
+        url: "/reagents/usage/history",
+        method: "GET",
+        params,
+      }),
+      providesTags: ["Reagents"],
+    }),
+    createVendorSupply: builder.mutation<
+      APIResponse<CreateVendorSuppyResponse>,
+      CreateVendorSuppyRequest
+    >({
+      query: (params: CreateVendorSuppyRequest) => ({
+        url: "/reagents/vendor-supply",
+        method: "POST",
+        body: params,
       }),
       invalidatesTags: ["Reagents"],
     }),
-
-    // Get reagent inventory (FIFO)
-    getReagentInventory: builder.query<
-      {
-        message: string;
-        data: Array<{
-          vendorSupplyId: string;
-          reagentId: string;
-          reagentName: string;
-          lotNumber: string;
-          expirationDate: string;
-          quantityReceived: number;
-          quantityUsed: number;
-          quantityAvailable: number;
-          unitOfMeasure: string;
-          status: string;
-          daysUntilExpiration: number;
-          isExpired: boolean;
-          isExpiringSoon: boolean;
-        }>;
-      },
-      { reagentId?: string; includeExpired?: boolean }
+    getVendorSupplyHistory: builder.query<
+      APIResponse<VendorSypplyHisResponse>,
+      VendorSupplyHisSearch
     >({
-      query: (params) => ({
-        url: "/reagents/inventory/fifo",
-        params: {
-          reagentId: params.reagentId,
-          includeExpired: params.includeExpired || false,
-        },
+      query: (params: VendorSupplyHisSearch) => ({
+        url: "reagents/vendor-supply/history",
+        method: "GET",
+        params,
       }),
+      providesTags: ["Reagents"],
     }),
   }),
 });
@@ -123,5 +158,9 @@ export const {
   useCreateReagentMutation,
   useUpdateReagentMutation,
   useDeleteReagentMutation,
-  useGetReagentInventoryQuery,
+  useGetReagentInventoryFIFOQuery,
+  useGetAllCategoryReagentsQuery,
+  useGetUsageReagentHistoryQuery,
+  useCreateVendorSupplyMutation,
+  useGetVendorSupplyHistoryQuery,
 } = reagentApi;

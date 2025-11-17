@@ -97,3 +97,22 @@ export interface AddReagentToInstrumentRequest {
   lotNumber?: string;
   notes?: string;
 }
+export interface CreateVendorSuppyRequest {
+  reagentId: string;
+  reagentName: string;
+  catalogNumber: string;
+  manufacturer: string;
+  casNumber: string;
+  vendorName: string;
+  vendorId: string;
+  purchaseOrderNumber: string;
+  orderDate: string;
+  receiptDate: string;
+  quantityReceived: number;
+  unitOfMeasure: string;
+  lotNumber: string;
+  expirationDate: string;
+  receivedBy: string;
+  initialStorageLocation: string;
+  status: string;
+}

@@ -80,7 +80,7 @@ info:
     ## Authorization
     Each endpoint requires specific privileges. Users must have the required privileges to access the endpoint.
     Admin users (with `*` privilege) have access to all endpoints.
-    
+
     **Patient Access Restrictions:**
     Users with the `patient` role have additional data access restrictions:
     - Can only view their own medical records (filtered automatically)
@@ -1497,9 +1497,8 @@ paths:
   /user/avatar:
     put:
       tags:
-        - User Management
-      summary: Update user avatar
-      description: Update the authenticated user's avatar image.
+        - User
+      summary: Upload user avatar
       security:
         - bearerAuth: []
       requestBody:
@@ -1508,57 +1507,54 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required:
-                - avatar
               properties:
-                avatar:
+                file:
                   type: string
                   format: binary
-                  description: The avatar image file to upload.
-      responses:
-        '200':
-          description: Avatar updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Avatar updated successfully
-                  avatar:
-                    type: string
-                    example: https://res.cloudinary.com/xxx/image/upload/v123/avatars/xxx.jpg
-        '400':
-          description: Bad request (missing file or other error)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: No file uploaded!
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Unauthorized
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: User not found
+        responses:
+          '200':
+            description: Avatar updated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Avatar updated successfully
+                    avatar:
+                      type: string
+                      example: https://res.cloudinary.com/xxx/image/upload/v123/avatars/xxx.jpg
+          '400':
+            description: Bad request (missing file or other error)
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: No file uploaded!
+          '401':
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Unauthorized
+          '404':
+            description: User not found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: User not found
 
   # Test Order Management
   /test-orders:
@@ -1622,7 +1618,7 @@ paths:
       summary: Get list of test orders
       description: |
         Retrieve a paginated list of test orders with search and filter options.
-        
+
         **Patient Access Restriction:** Users with role `patient` can only view their own test orders and test results. 
         The system automatically filters results to show only test orders associated with the authenticated patient's medical records.
       security:
@@ -1702,7 +1698,7 @@ paths:
       summary: Get test order details
       description: |
         Retrieve detailed information of a specific test order, including test results.
-        
+
         **Patient Access Restriction:** Users with role `patient` can only view test order details (including test results) 
         that belong to their own medical records. Attempting to access another patient's test order will result in a 403 Forbidden error.
       security:
@@ -2501,7 +2497,7 @@ paths:
       summary: Get list of patient medical records
       description: |
         Retrieve a paginated list of patient medical records with search and filter options.
-        
+
         **Patient Access Restriction:** Users with role `patient` can only view their own medical records. 
         The system automatically filters results to show only the authenticated patient's medical record.
       security:
@@ -2638,7 +2634,7 @@ paths:
       summary: Get patient medical record details
       description: |
         Retrieve detailed information of a specific patient medical record, including test orders and clinical notes.
-        
+
         **Patient Access Restriction:** Users with role `patient` can only view their own medical record details. 
         Attempting to access another patient's medical record will result in a 403 Forbidden error.
       security:
@@ -3791,6 +3787,12 @@ paths:
       security:
         - bearerAuth: []
       parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Case-insensitive search across reagent name, vendor name, lot number, purchase order number, catalog number, and manufacturer.
         - name: reagentId
           in: query
           required: false
@@ -3804,6 +3806,12 @@ paths:
           schema:
             type: string
           description: Filter by reagent name (partial match)
+        - name: vendorName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vendor name (case-insensitive partial match)
         - name: includeExpired
           in: query
           required: false
@@ -3816,6 +3824,20 @@ paths:
           schema:
             type: boolean
           description: Only include lots expiring within 30 days (default false)
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+          description: Page number (default 1)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+          description: Number of items per page (default 10)
       responses:
         '200':
           description: Inventory retrieved successfully
@@ -3828,9 +3850,14 @@ paths:
                     type: string
                     example: 'Get reagent inventory successfully'
                   data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ReagentInventoryItem'
+                    type: object
+                    properties:
+                      inventory:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReagentInventoryItem'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
         '401':
           description: Unauthorized
 
@@ -5514,6 +5541,9 @@ components:
         reagentName:
           type: string
           example: 'Diluent'
+        vendorName:
+          type: string
+          example: 'XYZ Supplies Inc.'
         lotNumber:
           type: string
           example: 'LOT-2024-001'

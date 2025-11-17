@@ -5,6 +5,7 @@ import * as userService from '~/services/user.service'
 import { getUsersCollection } from '~/models/user.model'
 import cloudinary from '~/configs/cloundinary.config'
 import fs from 'fs'
+import { ObjectId } from 'mongodb'
 export const updateUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const allowedFields = [
@@ -121,17 +122,53 @@ export const updateUserProfileController = async (req: Request, res: Response, n
   }
 }
 
-export const updateAvatarController = async (req: Request, res: Response, next: NextFunction) => {
+export const uploadAvatarController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).authUserId
-    const file = req.file as Express.Multer.File
-    const avatarUrl = await userService.updateAvatarService(userId, file)
-    res.status(200).json({
-      message: 'Avatar update successfully',
-      avatar: avatarUrl
+    // Lấy userId từ authenticated user (không dùng params)
+    const authUserId = (req as any).authUserId
+    if (!authUserId) {
+      throw new HttpError(401, MESSAGES.UNAUTHORIZED)
+    }
+
+    const file = req.file
+    if (!file) {
+      throw new HttpError(400, 'No file uploaded!')
+    }
+
+    const user = await getUsersCollection().findOne({ _id: new ObjectId(authUserId) })
+    if (!user) {
+      throw new HttpError(404, 'User not found')
+    }
+
+    // Xóa avatar cũ nếu có
+    if (user.avatarPublicId) {
+      await userService.deleteFromCloudinary(user.avatarPublicId)
+    }
+
+    // Upload avatar mới lên Cloudinary
+    const { url, public_id } = await userService.uploadToCloudinary(file.buffer, 'avatars')
+
+    // Update user avatar trong database
+    await getUsersCollection().updateOne(
+      { _id: new ObjectId(authUserId) },
+      {
+        $set: {
+          avatar: url,
+          avatarPublicId: public_id,
+          updatedAt: new Date()
+        }
+      }
+    )
+
+    return res.status(200).json({
+      message: 'Avatar updated successfully',
+      data: {
+        avatar: url,
+        avatarPublicId: public_id
+      }
     })
-  } catch (error: any) {
-    res.status(400).json({ message: error.message || 'Failed to update avatar' })
+  } catch (err) {
+    next(err)
   }
 }
 
@@ -159,9 +196,7 @@ export const getAllLabUser = async (req: Request, res: Response, next: NextFunct
       status: u.status
     }))
 
-    return res
-      .status(200)
-      .json({ message: 'Lab users fetched', data: { user: safe, pagination: data.pagination } })
+    return res.status(200).json({ message: 'Lab users fetched', data: { user: safe, pagination: data.pagination } })
   } catch (err) {
     next(err)
   }
@@ -191,9 +226,7 @@ export const getAllPatient = async (req: Request, res: Response, next: NextFunct
       status: u.status
     }))
 
-    return res
-      .status(200)
-      .json({ message: 'Patients fetched', data: { user: safe, pagination: data.pagination } })
+    return res.status(200).json({ message: 'Patients fetched', data: { user: safe, pagination: data.pagination } })
   } catch (err) {
     next(err)
   }
