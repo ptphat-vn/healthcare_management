@@ -9,6 +9,8 @@ import Input from "@/components/ui/input/Input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface EditInstrumentFormProps {
   defaultValues: UpdateInstrumentFormData;
@@ -23,6 +25,7 @@ export default function EditInstrumentForm({
   onCancel,
   isLoading = false,
 }: EditInstrumentFormProps) {
+  const { user } = useAuth();
   const {
     register,
     handleSubmit,
@@ -184,7 +187,7 @@ export default function EditInstrumentForm({
           <button
             type="submit"
             disabled={isLoading}
-            className="cursor-pointer btn-service"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? "Updating..." : "Update Instrument"}
           </button>

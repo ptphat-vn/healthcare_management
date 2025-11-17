@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useAuth } from "@/hooks/useAuth";
 import { useStringeeToken } from "@/hooks/useStringeeCall";
 import { StringeeContext } from "@/contexts/StringeeContext";
 import IncomingCallModal from "@/components/features/videoCall/IncomingCallModal";
@@ -12,13 +13,18 @@ interface StringeeProviderProps {
 }
 
 export default function StringeeProvider({ children }: StringeeProviderProps) {
+  const { user } = useAuth();
+  const isLoggedIn = !!user?.data?._id;
+
+  // Chỉ fetch token khi đã đăng nhập
   const { token } = useStringeeToken();
   const stringeeClientRef = useRef<any>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [incomingCall, setIncomingCall] = useState<any>(null);
 
   useEffect(() => {
-    if (!token) return;
+    // Không khởi tạo nếu chưa đăng nhập
+    if (!isLoggedIn || !token) return;
 
     // Tránh tạo client mới nếu đã có
     if (stringeeClientRef.current) {
@@ -62,7 +68,7 @@ export default function StringeeProvider({ children }: StringeeProviderProps) {
         stringeeClientRef.current = null;
       }
     };
-  }, [token]);
+  }, [token, isLoggedIn]);
 
   const handleCloseIncomingCall = () => {
     setIncomingCall(null);
@@ -77,8 +83,8 @@ export default function StringeeProvider({ children }: StringeeProviderProps) {
     >
       {children}
 
-      {/* Badge hiển thị trạng thái kết nối */}
-      {isConnected && (
+      {/* Badge hiển thị trạng thái kết nối - chỉ hiện khi đã đăng nhập */}
+      {isLoggedIn && isConnected && (
         <div className="fixed bottom-5 right-5 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full text-sm font-semibold shadow-lg z-[9999] flex items-center gap-2">
           <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
           Sẵn sàng nhận cuộc gọi

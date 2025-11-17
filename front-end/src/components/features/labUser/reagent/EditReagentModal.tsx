@@ -21,6 +21,8 @@ import { toast } from "sonner";
 import { useUpdateReagentMutation } from "@/services/reagentApi";
 import { Loader2 } from "lucide-react";
 import type { Reagent, CreateReagentRequest } from "@/types/reagent.type";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EditReagentModalProps {
   open: boolean;
@@ -36,7 +38,7 @@ export default function EditReagentModal({
   onSuccess,
 }: EditReagentModalProps) {
   const [updateReagent, { isLoading }] = useUpdateReagentMutation();
-
+  const { user } = useAuth();
   const [formData, setFormData] = useState<CreateReagentRequest>({
     name: "",
     catalogNumber: "",
@@ -331,7 +333,11 @@ export default function EditReagentModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading} className="btn-lab-user">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className={getRoleButtonClass(user?.data.roleCode)}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

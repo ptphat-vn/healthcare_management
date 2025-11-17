@@ -6,12 +6,12 @@ interface StringeeContextType {
   isConnected: boolean;
 }
 
-export const StringeeContext = createContext<StringeeContextType | null>(null);
+export const StringeeContext = createContext<StringeeContextType>({
+  client: null,
+  isConnected: false,
+});
 
 export const useStringee = () => {
   const context = useContext(StringeeContext);
-  if (!context) {
-    throw new Error("useStringee must be used within StringeeProvider");
-  }
   return context;
 };
