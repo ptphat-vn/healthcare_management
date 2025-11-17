@@ -19,6 +19,7 @@ import {
   XCircle,
   Clock,
   Beaker,
+  Tag,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -33,11 +34,8 @@ export default function InstrumentDetailPage() {
     isLoading: isLoadingReagents,
     refetch: refetchReagents,
   } = useGetInstrumentReagentsQuery(id || "");
-  const [removeReagent, { isLoading: isRemoving }] =
+  const [removeReagent] =
     useRemoveReagentFromInstrumentMutation();
-
-  console.log(data);
-  console.log("Reagents data:", reagentsData);
 
   if (isLoading) {
     return (
@@ -64,7 +62,7 @@ export default function InstrumentDetailPage() {
                 The instrument you're looking for doesn't exist or has been
                 removed.
               </p>
-              <Button onClick={() => navigate("/admin/instruments")}>
+              <Button onClick={() => navigate("/service/instruments")}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Instruments
               </Button>
@@ -80,9 +78,8 @@ export default function InstrumentDetailPage() {
   const reagents = Array.isArray(reagentsResponse?.reagents) 
     ? reagentsResponse.reagents 
     : [];
-  console.log(instrument);
 
-  const handleDeleteReagent = async (assignmentId: string, reagentName: string) => {
+  const handleDeleteReagent = async (assignmentId: string) => {
     try {
       await removeReagent(assignmentId).unwrap();
       toast.success("Reagent removed successfully");
@@ -144,7 +141,7 @@ export default function InstrumentDetailPage() {
       <div className="mb-6">
         <Button
           variant="outline"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/service/instruments")}
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -239,6 +236,28 @@ export default function InstrumentDetailPage() {
                   {instrument.status}
                 </p>
               </div>
+
+              {/* Categories */}
+              <div className="space-y-1 col-span-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Tag className="w-4 h-4" />
+                  <span className="font-medium">Categories</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {instrument.categories && instrument.categories.length > 0 ? (
+                    instrument.categories.map((category: string, index: number) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full"
+                      >
+                        {category}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-500 text-sm">No categories assigned</span>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Description */}
@@ -294,7 +313,7 @@ export default function InstrumentDetailPage() {
                   <User className="w-4 h-4" />
                   <span className="font-medium">Created By</span>
                 </div>
-                <p className="text-gray-900">{instrument.createdBy || "N/A"}</p>
+                <p className="text-gray-900">{instrument.createdByName || "N/A"}</p>
               </div>
 
               {/* Last Modified By */}
@@ -304,7 +323,7 @@ export default function InstrumentDetailPage() {
                   <span className="font-medium">Last Modified By</span>
                 </div>
                 <p className="text-gray-900">
-                  {instrument.lastModifiedBy || "N/A"}
+                  {instrument.lastModifiedByName || "N/A"}
                 </p>
               </div>
             </div>
@@ -344,7 +363,6 @@ export default function InstrumentDetailPage() {
                 instrumentId={id || ""}
                 reagents={reagents}
                 onDelete={handleDeleteReagent}
-                isDeleting={isRemoving}
               />
             )}
           </CardContent>
