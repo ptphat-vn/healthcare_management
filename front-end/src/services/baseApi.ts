@@ -20,6 +20,16 @@ import type {
   UpdateUserRequest,
 } from "@/types/request.type";
 import type { User } from "@/types/user.type";
+import type {
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+} from "@/types/request.type";
+
+import type {
+  ConversationResponse,
+  SendMessageRequest,
+  ChatMessage,
+} from "@/types/chat-type";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
@@ -84,14 +94,25 @@ const customBaseQuery: BaseQueryFn<
   return result;
 };
 
+export { customBaseQuery };
+
 export const baseApi = createApi({
   reducerPath: "api",
 
   baseQuery: customBaseQuery,
-  tagTypes: ["User", "Roles", "testOrder", "medicalRecord"],
+  tagTypes: [
+    "User",
+    "Roles",
+    "TestOrder",
+    "medicalRecord",
+    "Instrument",
+    "Comment",
+    "Chat",
+    "Notification",
+    "Profile",
+  ],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
-      // mutation là biển đổi, gửi dữ liệu xuống BE
       query: (loginData) => ({
         url: "/auth/login",
         method: "POST",
@@ -117,13 +138,75 @@ export const baseApi = createApi({
         method: "PUT",
         body: userData,
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "Profile"],
     }),
     logout: builder.mutation<{ success: string; message: string }, void>({
       query: () => ({
         url: "/auth/logout",
         method: "POST",
       }),
+    }),
+    loginGoogle: builder.mutation<
+      APIResponse<AuthResponse>,
+      { tokenGoogle: string }
+    >({
+      query: (tokenGoogle) => ({
+        url: "auth/login-google",
+        method: "POST",
+        body: tokenGoogle,
+      }),
+    }),
+    forgotPassword: builder.mutation<
+      APIResponse<{ email: string }>,
+      ForgotPasswordRequest
+    >({
+      query: (body) => ({
+        url: "/auth/forgot-password",
+        method: "POST",
+        body,
+      }),
+    }),
+    resetPassword: builder.mutation<
+      APIResponse<{ email: string }>,
+      ResetPasswordRequest
+    >({
+      query: (body) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        body,
+      }),
+    }),
+    verifyOTP: builder.mutation<
+      APIResponse<{ verified: boolean }>,
+      { email: string; otp: string }
+    >({
+      query: (body) => ({
+        url: "/auth/verify-otp",
+        method: "POST",
+        body,
+      }),
+    }),
+    getConversation: builder.query<
+      APIResponse<ConversationResponse>,
+      { userId: string; page?: number; limit?: number }
+    >({
+      query: ({ userId, page = 1, limit = 50 }) => ({
+        url: `/chats/${userId}?page=${page}&limit=${limit}`,
+        method: "GET",
+      }),
+      providesTags: ["Chat"],
+    }),
+
+    sendMessage: builder.mutation<
+      APIResponse<ChatMessage>,
+      { userId: string; message: SendMessageRequest }
+    >({
+      query: ({ userId, message }) => ({
+        url: `/chats/${userId}`,
+        method: "POST",
+        body: message,
+      }),
+      invalidatesTags: ["Chat"],
     }),
   }),
 });
@@ -132,5 +215,11 @@ export const {
   useRegisterMutation,
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useLoginGoogleMutation,
   useLogoutMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+  useVerifyOTPMutation,
+  useGetConversationQuery,
+  useSendMessageMutation,
 } = baseApi;

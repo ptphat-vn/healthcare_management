@@ -1,7 +1,8 @@
 import { useGetProfileQuery, useLogoutMutation } from "@/services/baseApi";
 import { logout } from "@/stores/authSlice";
-import type { RootState } from "@/stores/store";
+import { store, type RootState } from "@/stores/store";
 import { useDispatch, useSelector } from "react-redux";
+import { persistStore } from "redux-persist";
 import { toast } from "sonner";
 
 export function useAuth() {
@@ -20,7 +21,27 @@ export function useAuth() {
       toast.error("Đăng xuất thất bại");
       console.log(error);
     } finally {
+      // Backup chat conversations trước khi clear localStorage
+      const chatKeys: string[] = [];
+      const chatData: Record<string, string> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("chat_conversations_")) {
+          chatKeys.push(key);
+          chatData[key] = localStorage.getItem(key) || "";
+        }
+      }
+
       dispatch(logout());
+      persistStore(store).purge();
+      localStorage.clear();
+
+      // Restore chat conversations sau khi clear
+      Object.entries(chatData).forEach(([key, value]) => {
+        localStorage.setItem(key, value);
+      });
+
+      window.location.reload();
     }
   };
   return { isAuthenticated, user, logout: handleLogout };

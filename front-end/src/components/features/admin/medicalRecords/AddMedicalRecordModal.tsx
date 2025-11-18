@@ -24,6 +24,7 @@ export default function AddMedicalRecordModal({
 
   const onSubmit = async (data: CreateMedicalRecordRequest) => {
     try {
+      console.log("Submitting data:", JSON.stringify(data, null, 2)); // Debug log
       const result = await createMedicalRecord(data).unwrap();
       toast.success(result.message || "Medical record created successfully");
       onOpenChange(false);
@@ -33,8 +34,12 @@ export default function AddMedicalRecordModal({
       
       // Handle validation errors from backend
       const errorData = error as { data?: { errors?: Record<string, string>; message?: string } };
+      console.error("Error details:", errorData); // Debug log
+      
       if (errorData?.data?.errors) {
-        const errorMessages = Object.values(errorData.data.errors).join('\n');
+        const errorMessages = Object.entries(errorData.data.errors)
+          .map(([field, message]) => `${field}: ${message}`)
+          .join('\n');
         toast.error(`Validation errors:\n${errorMessages}`);
       } else {
         toast.error(errorData?.data?.message || "Failed to create medical record");

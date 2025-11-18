@@ -1,4 +1,5 @@
-import { useForm } from "react-hook-form";
+import { useMemo } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createMedicalRecordSchema,
@@ -7,6 +8,11 @@ import {
 import { transformFormToCreateRequest } from "@/utils/medicalRecordTransform";
 import { type CreateMedicalRecordRequest } from "@/types/medicalRecord.type";
 import Input from "@/components/ui/input/Input";
+import { useGetAllUserQuery } from "@/services/userApi";
+import { type User } from "@/types/user.type";
+import { Combobox } from "@/components/ui/combobox";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface NewMedicalRecordFormProps {
   onSubmit: (data: CreateMedicalRecordRequest) => void;
@@ -19,22 +25,35 @@ export function NewMedicalRecordForm({
   onClose,
   isLoading = false,
 }: NewMedicalRecordFormProps) {
+  const { user } = useAuth();
+  // Fetch all users
+  const { data: usersData, isLoading: isLoadingUsers } = useGetAllUserQuery({
+    limit: 1000, // Get enough users
+    status: 1, // Only active users
+  });
+  // Transform users to combobox options
+  const patientOptions = useMemo(() => {
+    if (!usersData?.data?.user) return [];
+
+    return usersData.data.user
+      .filter((user: User) => user.roleCode === "patient" && user.patientId)
+      .map((user: User) => ({
+        value: user._id,
+        label: user.fullName,
+        description: `${user.email} - ${user.patientId || "N/A"}`,
+      }));
+  }, [usersData]);
+
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<CreateMedicalRecordFormData>({
     resolver: zodResolver(createMedicalRecordSchema),
     defaultValues: {
-      patientId: "",
-      fullName: "",
-      phoneNumber: "",
-      email: "",
-      dateOfBirth: "",
-      gender: undefined,
+      userId: "",
       bloodType: undefined,
-      address: "",
-      identifyNumber: "",
       allergies: "",
       chronicConditions: "",
       medications: "",
@@ -56,62 +75,41 @@ export function NewMedicalRecordForm({
   return (
     <div className="flex flex-col gap-1">
       <form className="space-y-2" onSubmit={handleSubmit(onFormSubmit)}>
-        {/* Patient's Information */}
+        <div className="space-y-3">
+          <div className="flex flex-col space-y-1">
+            <label className="text-xs font-medium text-gray-700">
+              Select Patient <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              name="userId"
+              control={control}
+              rules={{ required: "Please select a patient" }}
+              render={({ field }) => (
+                <Combobox
+                  options={patientOptions}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder={
+                    isLoadingUsers ? "Loading patients..." : "Select a patient"
+                  }
+                  searchPlaceholder="Search by name, email, or patient ID..."
+                  emptyMessage={
+                    isLoadingUsers ? "Loading..." : "No patients found"
+                  }
+                  disabled={isLoadingUsers}
+                />
+              )}
+            />
+            {errors.userId && (
+              <p className="text-xs text-red-500">{errors.userId.message}</p>
+            )}
+          </div>
+        </div>
+
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
-            Patient's Information
+            Clinical Information
           </h3>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              {...register("patientId")}
-              label="Patient ID"
-              required
-              error={errors.patientId?.message}
-              placeholder="Enter patient ID"
-              autoComplete="off"
-            />
-            <Input
-              {...register("fullName")}
-              label="Full Name"
-              required
-              error={errors.fullName?.message}
-              placeholder="Enter full name"
-              autoComplete="off"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              {...register("dateOfBirth")}
-              type="date"
-              label="Date of Birth"
-              required
-              error={errors.dateOfBirth?.message}
-            />
-            <div className="flex flex-col space-y-1">
-              <label className="text-xs font-medium text-gray-700">
-                Gender <span className="text-red-500">*</span>
-              </label>
-              <select
-                {...register("gender")}
-                defaultValue=""
-                className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                  errors.gender?.message ? "border-red-500" : "border-gray-300"
-                }`}
-              >
-                <option value="" disabled>
-                  Select Gender
-                </option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-              {errors.gender?.message && (
-                <p className="text-xs text-red-500">{errors.gender.message}</p>
-              )}
-            </div>
-          </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-xs font-medium text-gray-700">
@@ -121,7 +119,9 @@ export function NewMedicalRecordForm({
                 {...register("bloodType")}
                 defaultValue=""
                 className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                  errors.bloodType?.message ? "border-red-500" : "border-gray-300"
+                  errors.bloodType?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
               >
                 <option value="">Select Blood Type</option>
@@ -135,53 +135,19 @@ export function NewMedicalRecordForm({
                 <option value="O-">O-</option>
               </select>
               {errors.bloodType?.message && (
-                <p className="text-xs text-red-500">{errors.bloodType.message}</p>
+                <p className="text-xs text-red-500">
+                  {errors.bloodType.message}
+                </p>
               )}
             </div>
-            <Input
-              {...register("phoneNumber")}
-              label="Phone Number"
-              required
-              error={errors.phoneNumber?.message}
-              placeholder="Enter phone number"
-              autoComplete="off"
-            />
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              {...register("email")}
-              type="email"
-              label="Email"
-              error={errors.email?.message}
-              placeholder="Enter email"
-              autoComplete="off"
-            />
-            <Input
-              {...register("identifyNumber")}
-              label="Identity Number"
-              error={errors.identifyNumber?.message}
-              placeholder="Enter identity number"
-              autoComplete="off"
-            />
-          </div>
-
-          <Input
-            {...register("address")}
-            label="Address"
-            required
-            error={errors.address?.message}
-            placeholder="Enter full address"
-            autoComplete="off"
-          />
         </div>
 
-        {/* Medical Information */}
+        {/* Rest of the form remains the same */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
-            Medical Information
+            Medical History
           </h3>
-          
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-sm font-medium text-gray-700">
@@ -191,12 +157,16 @@ export function NewMedicalRecordForm({
                 {...register("allergies")}
                 placeholder="Enter allergies (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.allergies?.message ? "border-red-500" : "border-gray-300"
+                  errors.allergies?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.allergies?.message && (
-                <p className="text-sm text-red-500">{errors.allergies.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.allergies.message}
+                </p>
               )}
             </div>
             <div className="flex flex-col space-y-1">
@@ -207,16 +177,19 @@ export function NewMedicalRecordForm({
                 {...register("chronicConditions")}
                 placeholder="Enter chronic conditions (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.chronicConditions?.message ? "border-red-500" : "border-gray-300"
+                  errors.chronicConditions?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.chronicConditions?.message && (
-                <p className="text-sm text-red-500">{errors.chronicConditions.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.chronicConditions.message}
+                </p>
               )}
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-sm font-medium text-gray-700">
@@ -226,12 +199,16 @@ export function NewMedicalRecordForm({
                 {...register("medications")}
                 placeholder="Enter current medications (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.medications?.message ? "border-red-500" : "border-gray-300"
+                  errors.medications?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.medications?.message && (
-                <p className="text-sm text-red-500">{errors.medications.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.medications.message}
+                </p>
               )}
             </div>
             <div className="flex flex-col space-y-1">
@@ -242,23 +219,24 @@ export function NewMedicalRecordForm({
                 {...register("previousSurgeries")}
                 placeholder="Enter previous surgeries (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.previousSurgeries?.message ? "border-red-500" : "border-gray-300"
+                  errors.previousSurgeries?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.previousSurgeries?.message && (
-                <p className="text-sm text-red-500">{errors.previousSurgeries.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.previousSurgeries.message}
+                </p>
               )}
             </div>
           </div>
         </div>
-
-        {/* Emergency Contact */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Emergency Contact
           </h3>
-          
           <div className="grid grid-cols-2 gap-3">
             <Input
               {...register("emergencyName")}
@@ -275,7 +253,6 @@ export function NewMedicalRecordForm({
               autoComplete="off"
             />
           </div>
-          
           <Input
             {...register("emergencyRelationship")}
             label="Relationship"
@@ -284,13 +261,10 @@ export function NewMedicalRecordForm({
             autoComplete="off"
           />
         </div>
-
-        {/* Insurance Information */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Insurance Information
           </h3>
-          
           <div className="grid grid-cols-2 gap-3">
             <Input
               {...register("insuranceProvider")}
@@ -307,7 +281,6 @@ export function NewMedicalRecordForm({
               autoComplete="off"
             />
           </div>
-          
           <Input
             {...register("insuranceExpiryDate")}
             type="date"
@@ -315,19 +288,18 @@ export function NewMedicalRecordForm({
             error={errors.insuranceExpiryDate?.message}
           />
         </div>
-
         <div className="flex justify-end space-x-2 pt-4">
           <button
             type="button"
             onClick={onClose}
             className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
           >
-            Close
+            Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? "Creating..." : "Create Medical Record"}
           </button>

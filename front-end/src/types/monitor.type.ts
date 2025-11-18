@@ -10,17 +10,23 @@ export type MonitoringAction =
   | string;
 
 export interface EventLog {
-  id: string; // frontend id (could map from _id on backend)
-  timestamp: string; // ISO string
+  id: string;
+  timestamp: string;
   status: MonitoringStatus;
   action: MonitoringAction;
   message: string;
-  operator?: string; // who performed the action
-  service?: string; // the service/component name
+  operator?: Operator;
+  service?: string;
+  role: string;
 }
 
+export interface Operator {
+  id: string;
+  name: string;
+  role: string;
+}
 export interface EventLogListResponse {
-  data: EventLog[];
+  eventLogs: EventLog[];
   pagination?: {
     page: number;
     limit: number;

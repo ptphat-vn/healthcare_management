@@ -32,7 +32,7 @@ export default function AddUserModal({
         email: data.email,
         phoneNumber: data.phone,
         identifyNumber: data.identifyNumber,
-        gender: data.gender?.toLowerCase() as "male" | "female",
+        gender: data.gender as "male" | "female",
         dateOfBirth: data.dateOfBirth,
         password: data.password,
         address: data.address,

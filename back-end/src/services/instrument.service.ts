@@ -1,0 +1,376 @@
+import { ObjectId, WithId } from 'mongodb'
+import { getInstrumentsCollection, type InstrumentDocument } from '~/models/instrument.model'
+import type { ReagentCategory } from '~/models/reagent.model'
+import { getInstrumentReagentAssignmentCollection } from '~/models/instrument-reagent-assignment.model'
+import { HttpError } from '~/models/error.model'
+import { getUsersCollection } from '~/models/user.model'
+import { getEventLogsCollection } from '~/models/event-log.model'
+import { getRolesCollection } from '~/models/role.model'
+
+export interface CreateInstrumentPayload {
+  name: string
+  model?: string
+  manufacturer?: string
+  serialNumber?: string
+  location?: string
+  description?: string
+  status?: 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service'
+  categories: ReagentCategory[]
+}
+
+export interface UpdateInstrumentPayload {
+  name?: string
+  model?: string
+  manufacturer?: string
+  serialNumber?: string
+  location?: string
+  description?: string
+  isActive?: boolean
+  status?: 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service'
+  categories?: ReagentCategory[]
+}
+
+export interface ListInstrumentsParams {
+  search?: string
+  status?: 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service'
+  isActive?: boolean
+  sortBy?: 'name' | 'createdAt' | 'updatedAt'
+  sortOrder?: 1 | -1
+  page?: number
+  limit?: number
+}
+
+export const createInstrument = async (
+  payload: CreateInstrumentPayload,
+  createdBy: string
+): Promise<WithId<InstrumentDocument>> => {
+  const instruments = getInstrumentsCollection()
+  const createdByObjectId = new ObjectId(createdBy)
+  const usersCol = getUsersCollection()
+  const creator = await usersCol.findOne({ _id: createdByObjectId } as any)
+  
+  const exists = await instruments.findOne({ name: payload.name } as any)
+  if (exists) {
+    throw new HttpError(409, 'Instrument with this name already exists')
+  }
+
+  const now = new Date()
+  const doc: InstrumentDocument = {
+    name: payload.name,
+    model: payload.model,
+    manufacturer: payload.manufacturer,
+    serialNumber: payload.serialNumber,
+    location: payload.location,
+    description: payload.description,
+    categories: Array.from(new Set(payload.categories)),
+    isActive: true,
+    status: payload.status || 'Active',
+    createdAt: now,
+    updatedAt: now,
+    createdBy: createdByObjectId,
+    createdByName: creator?.fullName || creator?.email || createdByObjectId.toString()
+  }
+
+  const result = await instruments.insertOne(doc as any)
+  const created = await instruments.findOne({ _id: result.insertedId } as any)
+  if (!created) {
+    throw new HttpError(500, 'Failed to create instrument')
+  }
+
+  // Event log
+  try {
+    const eventLogs = getEventLogsCollection()
+    const users = getUsersCollection()
+    const actor = await users.findOne({ _id: createdByObjectId } as any)
+    const roleCol = getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: {
+        id: actor?._id || 'system',
+        name: actor?.fullName || 'system',
+        role: actorRoleDoc?.code || 'system'
+      },
+      action: 'CREATE_INSTRUMENT',
+      details: `Created instrument: ${created.name}`,
+      timestamp: new Date()
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
+
+  return created as WithId<InstrumentDocument>
+}
+
+export const listInstruments = async (params: ListInstrumentsParams) => {
+  const instruments = getInstrumentsCollection()
+  const page = params.page && params.page > 0 ? params.page : 1
+  const limit = params.limit && params.limit > 0 ? params.limit : 10
+  const skip = (page - 1) * limit
+  const filter: Record<string, any> = {}
+
+  if (params.search) {
+    const q = params.search
+    filter.$or = [
+      { name: { $regex: q, $options: 'i' } },
+      { model: { $regex: q, $options: 'i' } },
+      { manufacturer: { $regex: q, $options: 'i' } },
+      { serialNumber: { $regex: q, $options: 'i' } },
+      { location: { $regex: q, $options: 'i' } },
+      { description: { $regex: q, $options: 'i' } }
+    ]
+  }
+
+  if (params.status) {
+    filter.status = params.status
+  }
+
+  if (params.isActive !== undefined) {
+    filter.isActive = params.isActive
+  }
+
+  const sortField = params.sortBy || 'updatedAt'
+  const sortOrder = params.sortOrder || -1
+
+  const cursor = instruments
+    .find(filter as any)
+    .sort({ [sortField]: sortOrder } as any)
+    .skip(skip)
+    .limit(limit)
+
+  const [items, total] = await Promise.all([cursor.toArray(), instruments.countDocuments(filter as any)])
+
+  if (items.length > 0) {
+    const actorIds = Array.from(
+      new Set(
+        items
+          .flatMap((item) => [
+            item.createdBy ? item.createdBy.toString() : null,
+            item.lastModifiedBy ? item.lastModifiedBy.toString() : null
+          ])
+          .filter(Boolean)
+      )
+    ) as string[]
+
+    if (actorIds.length > 0) {
+      const users = await getUsersCollection()
+        .find(
+          { _id: { $in: actorIds.map((id) => new ObjectId(id)) } } as any,
+          { projection: { fullName: 1, email: 1 } }
+        )
+        .toArray()
+
+      const nameMap = new Map<string, string>(
+        users
+          .filter((u) => u?._id)
+          .map((u) => [u._id!.toString(), u.fullName || u.email || u._id!.toString()])
+      )
+
+      items.forEach((item) => {
+        if (item.createdBy) {
+          const name = nameMap.get(item.createdBy.toString())
+          if (name) (item as InstrumentDocument).createdByName = name
+        }
+        if (item.lastModifiedBy) {
+          const name = nameMap.get(item.lastModifiedBy.toString())
+          if (name) (item as InstrumentDocument).lastModifiedByName = name
+        }
+      })
+    }
+  }
+
+  return {
+    instruments: items,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1
+    }
+  }
+}
+
+export const getInstrumentById = async (id: string): Promise<WithId<InstrumentDocument>> => {
+  let objectId: ObjectId
+  try {
+    objectId = new ObjectId(id)
+  } catch {
+    throw new HttpError(422, 'Invalid instrument id')
+  }
+
+  const instruments = getInstrumentsCollection()
+  const instrument = await instruments.findOne({ _id: objectId } as any)
+  if (!instrument) {
+    throw new HttpError(404, 'Instrument not found')
+  }
+
+  if (instrument) {
+    const ids = [
+      instrument.createdBy ? instrument.createdBy.toString() : null,
+      instrument.lastModifiedBy ? instrument.lastModifiedBy.toString() : null
+    ].filter(Boolean) as string[]
+
+    if (ids.length > 0) {
+      const users = await getUsersCollection()
+        .find(
+          { _id: { $in: ids.map((id) => new ObjectId(id)) } } as any,
+          { projection: { fullName: 1, email: 1 } }
+        )
+        .toArray()
+
+      const nameMap = new Map<string, string>(
+        users.map((u) => [u._id!.toString(), u.fullName || u.email || u._id!.toString()])
+      )
+
+      if (instrument.createdBy) {
+        const name = nameMap.get(instrument.createdBy.toString())
+        if (name) (instrument as InstrumentDocument).createdByName = name
+      }
+      if (instrument.lastModifiedBy) {
+        const name = nameMap.get(instrument.lastModifiedBy.toString())
+        if (name) (instrument as InstrumentDocument).lastModifiedByName = name
+      }
+    }
+  }
+
+  return instrument as WithId<InstrumentDocument>
+}
+
+export const updateInstrument = async (
+  id: string,
+  payload: UpdateInstrumentPayload,
+  updatedBy: string
+): Promise<WithId<InstrumentDocument>> => {
+  let objectId: ObjectId
+  try {
+    objectId = new ObjectId(id)
+  } catch {
+    throw new HttpError(422, 'Invalid instrument id')
+  }
+
+  const instruments = getInstrumentsCollection()
+  const existing = await instruments.findOne({ _id: objectId } as any)
+  if (!existing) {
+    throw new HttpError(404, 'Instrument not found')
+  }
+
+  if (payload.name && payload.name !== existing.name) {
+    const nameExists = await instruments.findOne({ name: payload.name, _id: { $ne: objectId } } as any)
+    if (nameExists) {
+      throw new HttpError(409, 'Instrument with this name already exists')
+    }
+  }
+
+  const updatedByObjectId = new ObjectId(updatedBy)
+  const now = new Date()
+  const update: Partial<InstrumentDocument> = {
+    ...payload,
+    updatedAt: now,
+    lastModifiedBy: updatedByObjectId
+  }
+
+  if (payload.categories) {
+    update.categories = Array.from(new Set(payload.categories))
+  }
+
+  const usersCol2 = getUsersCollection()
+  const modifier = await usersCol2.findOne({ _id: updatedByObjectId } as any)
+  if (modifier) {
+    (update as InstrumentDocument).lastModifiedByName =
+      modifier.fullName || modifier.email || updatedByObjectId.toString()
+  }
+
+  await instruments.updateOne({ _id: objectId } as any, { $set: update })
+  const updated = await instruments.findOne({ _id: objectId } as any)
+  if (!updated) {
+    throw new HttpError(404, 'Instrument not found after update')
+  }
+
+  // Event log
+  try {
+    const eventLogs = getEventLogsCollection()
+    const users = getUsersCollection()
+    const actor = await users.findOne({ _id: updatedByObjectId } as any)
+    const roleCol = getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: {
+        id: actor?._id || 'system',
+        name: actor?.fullName || 'system',
+        role: actorRoleDoc?.code || 'system'
+      },
+      action: 'UPDATE_INSTRUMENT',
+      details: `Updated instrument: ${updated.name}`,
+      timestamp: new Date()
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
+
+  // back-fill names on response
+  if (updated.createdBy && !(updated as InstrumentDocument).createdByName) {
+    const usersCol3 = getUsersCollection()
+    const creator = await usersCol3.findOne({ _id: updated.createdBy } as any)
+    if (creator) {
+      (updated as InstrumentDocument).createdByName =
+        creator.fullName || creator.email || updated.createdBy.toString()
+    }
+  }
+
+  return updated as WithId<InstrumentDocument>
+}
+
+export const deleteInstrument = async (id: string, deletedBy: string): Promise<WithId<InstrumentDocument>> => {
+  let objectId: ObjectId
+  try {
+    objectId = new ObjectId(id)
+  } catch {
+    throw new HttpError(422, 'Invalid instrument id')
+  }
+
+  const instruments = getInstrumentsCollection()
+  const existing = await instruments.findOne({ _id: objectId } as any)
+  if (!existing) {
+    throw new HttpError(404, 'Instrument not found')
+  }
+
+  // Check if instrument has active reagent assignments
+  const assignments = getInstrumentReagentAssignmentCollection()
+  const activeAssignments = await assignments.findOne({
+    instrumentId: objectId,
+    isActive: true
+  } as any)
+  if (activeAssignments) {
+    throw new HttpError(409, 'Cannot delete instrument with active reagent assignments')
+  }
+
+  const result = await instruments.findOneAndDelete({ _id: objectId } as any)
+  const deleted: any = (result as any)?.value ?? result
+  if (!deleted) {
+    throw new HttpError(404, 'Instrument not found')
+  }
+
+  // Event log
+  try {
+    const eventLogs = getEventLogsCollection()
+    const users = getUsersCollection()
+    const deletedByObjectId = new ObjectId(deletedBy)
+    const actor = await users.findOne({ _id: deletedByObjectId } as any)
+    const roleCol = getRolesCollection()
+    const actorRoleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+    await eventLogs.insertOne({
+      operator: {
+        id: actor?._id || 'system',
+        name: actor?.fullName || 'system',
+        role: actorRoleDoc?.code || 'system'
+      },
+      action: 'DELETE_INSTRUMENT',
+      details: `Deleted instrument: ${deleted.name}`,
+      timestamp: new Date()
+    } as any)
+  } catch {
+    // swallow logging errors
+  }
+
+  return deleted as WithId<InstrumentDocument>
+}
+

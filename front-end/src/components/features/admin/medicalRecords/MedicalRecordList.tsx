@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Table,
   TableHeader,
@@ -8,9 +9,8 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
-import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import ErrorAlert from "@/components/ui/error/ErrorAlert";
 import EmptyState from "@/components/ui/empty/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -24,10 +24,14 @@ import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
 import type { MedicalRecord } from "@/types/medicalRecord.type";
 import EditMedicalRecordModal from "./EditMedicalRecordModal";
 import DeleteMedicalRecordModal from "./DeleteMedicalRecordModal";
-import { useGetMedicalRecordsQuery, useDeleteMedicalRecordMutation } from "@/services/medicalRecordApi";
+import {
+  useGetMedicalRecordsQuery,
+  useDeleteMedicalRecordMutation,
+} from "@/services/medicalRecordApi";
 import { toast } from "sonner";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ApiError {
   data?: {
@@ -37,19 +41,29 @@ interface ApiError {
 
 export default function MedicalRecordList() {
   const navigate = useNavigate();
-  const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
+  const { user } = useAuth();
+  const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(
+    null
+  );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<number | "">("");
-  const [sortBy, setSortBy] = useState<'fullName' | 'dateOfBirth' | 'createdAt'>('createdAt');
+  const [sortBy, setSortBy] = useState<
+    "fullName" | "dateOfBirth" | "createdAt" | "lastTestDate"
+  >("createdAt");
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
 
   // API hooks
-  const { data: recordsData, isLoading, error, refetch } = useGetMedicalRecordsQuery({
+  const {
+    data: recordsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetMedicalRecordsQuery({
     search: search || undefined,
-    gender: status === 1 ? 'male' : status === 0 ? 'female' : undefined,
+    gender: status === 1 ? "male" : status === 0 ? "female" : undefined,
     sortBy,
     sortOrder,
     page: currentPage,
@@ -59,24 +73,24 @@ export default function MedicalRecordList() {
 
   const records = recordsData?.data?.patient || [];
 
-  // Helper function to calculate age from date of birth
-  const calcAge = (dob?: string) => {
-    if (!dob) return "-";
-    const d = new Date(dob);
-    if (Number.isNaN(d.getTime())) return "-";
-    const now = new Date();
-    let age = now.getFullYear() - d.getFullYear();
-    const m = now.getMonth() - d.getMonth();
-    if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
-    return age >= 0 ? String(age) : "-";
-  };
-
-  const handleChangePage = (page: number) => {
-    setCurrentPage(page);
-  };
+  // const calcAge = (dob?: string) => {
+  //   if (!dob) return "-";
+  //   const d = new Date(dob);
+  //   if (Number.isNaN(d.getTime())) return "-";
+  //   const now = new Date();
+  //   let age = now.getFullYear() - d.getFullYear();
+  //   const m = now.getMonth() - d.getMonth();
+  //   if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+  //   return age >= 0 ? String(age) : "-";
+  // };
 
   const handleView = (record: MedicalRecord) => {
-    navigate(`/admin/medical-records/${record._id || record.id}`);
+    const roleCode = user?.data?.roleCode;
+    if (roleCode === "admin") {
+      navigate(`/admin/medical-records/${record._id || record.id}`);
+    } else {
+      navigate(`/lab_user/medical-records/${record._id || record.id}`);
+    }
   };
 
   const handleEdit = (record: MedicalRecord) => {
@@ -91,7 +105,7 @@ export default function MedicalRecordList() {
 
   const handleDeleteConfirm = async () => {
     if (!selectedRecord) return;
-    
+
     try {
       const recordId = selectedRecord._id || selectedRecord.id;
       if (!recordId) {
@@ -105,27 +119,27 @@ export default function MedicalRecordList() {
       refetch();
     } catch (error: unknown) {
       console.error("Error deleting medical record:", error);
-      
-      // Handle validation errors from backend
-      const errorData = error as ApiError & { data?: { errors?: Record<string, string> } };
+
+      const errorData = error as ApiError & {
+        data?: { errors?: Record<string, string> };
+      };
       if (errorData?.data?.errors) {
-        const errorMessages = Object.values(errorData.data.errors).join('\n');
+        const errorMessages = Object.values(errorData.data.errors).join("\n");
         toast.error(`Validation errors:\n${errorMessages}`);
       } else {
-        toast.error(errorData?.data?.message || "Failed to delete medical record");
+        toast.error(
+          errorData?.data?.message || "Failed to delete medical record"
+        );
       }
     }
   };
 
-  // Loading and error states
-  if (isLoading) {
-    return <LoadingSpinner message="Loading medical records..." />;
-  }
-
   if (error) {
     return (
-      <ErrorAlert 
-        message={(error as ApiError)?.data?.message || 'An unexpected error occurred'}
+      <ErrorAlert
+        message={
+          (error as ApiError)?.data?.message || "An unexpected error occurred"
+        }
         title="Error loading medical records"
       />
     );
@@ -133,54 +147,54 @@ export default function MedicalRecordList() {
 
   return (
     <div className="w-full space-y-4">
-      {/* Search and Filter */}
-      <Card>
-        <CardContent className="p-4">
-          <SearchAndFilter
-            searchTerm={search}
-            onSearchChange={setSearch}
-            gender={status}
-            onGenderChange={setStatus}
-            sortOptions={[
-              { value: "fullName", label: "Full Name" },
-              { value: "dateOfBirth", label: "Date of Birth" },
-              { value: "createdAt", label: "Created At" }
-            ]}
-            sortByValue={sortBy}
-            onSortByChange={(value) => setSortBy(value as 'fullName' | 'dateOfBirth' | 'createdAt')}
-            sortOrder={sortOrder}
-            onSortOrderChange={setSortOrder}
-            searchPlaceholder="Search medical records..."
-            onClearFilters={() => {
-              setSearch("");
-              setStatus("");
-              setSortBy('createdAt');
-              setSortOrder(-1);
-              setCurrentPage(1);
-            }}
-            showClearFilters={true}
-          />
-        </CardContent>
-      </Card>
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <SearchAndFilter
+          searchTerm={search}
+          onSearchChange={setSearch}
+          gender={status}
+          onGenderChange={setStatus}
+          sortOptions={[
+            { value: "fullName", label: "Full Name" },
+            { value: "dateOfBirth", label: "Date of Birth" },
+            { value: "createdAt", label: "Created At" },
+            { value: "lastTestDate", label: "Last Test Date" },
+          ]}
+          sortByValue={sortBy}
+          onSortByChange={(value) =>
+            setSortBy(
+              value as "fullName" | "dateOfBirth" | "createdAt" | "lastTestDate"
+            )
+          }
+          sortOrder={sortOrder}
+          onSortOrderChange={setSortOrder}
+          searchPlaceholder="Search medical records..."
+          onClearFilters={() => {
+            setSearch("");
+            setStatus("");
+            setSortBy("createdAt");
+            setSortOrder(-1);
+            setCurrentPage(1);
+          }}
+          showClearFilters={true}
+        />
+      </div>
 
-      {/* Table */}
-      <Card className="overflow-hidden">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
             <TableHeader>
               <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
                 <TableHead className="font-semibold text-gray-700 w-16 px-3">
                   No
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 w-32 px-4">
+                {/* <TableHead className="font-semibold text-gray-700 w-32 px-4">
                   Patient ID
-                </TableHead>
+                </TableHead> */}
                 <TableHead className="font-semibold text-gray-700 w-48 px-4">
                   Full Name
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 w-20 px-3">
-                  Age
+                  Birthday
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 w-24 px-3">
                   Gender
@@ -194,8 +208,12 @@ export default function MedicalRecordList() {
                 <TableHead className="font-semibold text-gray-700 w-56 px-4">
                   Email
                 </TableHead>
+
+                <TableHead className="font-semibold text-gray-700 w-36 px-4">
+                  Last Test Date
+                </TableHead>
                 <TableHead className="font-semibold text-gray-700 w-32 px-4">
-                  Date of Birth
+                  Last Test Status
                 </TableHead>
                 <TableHead className="text-right font-semibold text-gray-700 w-24 px-3">
                   Actions
@@ -203,9 +221,50 @@ export default function MedicalRecordList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {records.length === 0 ? (
+              {isLoading ? (
+                Array.from({ length: 8 }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : records.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-12">
+                  <TableCell colSpan={12} className="text-center py-12">
                     <EmptyState
                       title="No medical records found"
                       description="Try adjusting your search or filter criteria"
@@ -236,31 +295,45 @@ export default function MedicalRecordList() {
                     <TableCell className="text-start font-medium text-gray-600 px-3">
                       {idx + 1}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900 px-4">
+                    {/* <TableCell className="font-medium text-gray-900 px-4">
                       {record.patientId}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell className="font-medium text-gray-900 px-4">
                       {record.fullName}
                     </TableCell>
-                    <TableCell className="text-gray-600 px-3">
-                      {calcAge(record.dateOfBirth)}
+                    <TableCell className="text-gray-600 px-4">
+                      {new Date(record.dateOfBirth).toLocaleDateString()}
                     </TableCell>
+                    {/* <TableCell className="text-gray-600 px-3">
+                      {calcAge(record.dateOfBirth)}
+                    </TableCell> */}
                     <TableCell className="text-gray-600 capitalize px-3">
                       {record.gender}
                     </TableCell>
                     <TableCell className="px-3">
-                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                        {record.bloodType || '-'}
+                      <Badge
+                        variant="outline"
+                        className="bg-red-50 text-red-700 border-red-200"
+                      >
+                        {record.bloodType || "-"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-gray-600 px-4">
                       {record.phoneNumber}
                     </TableCell>
                     <TableCell className="text-gray-600 px-4">
-                      {record.email || '-'}
+                      {record.email || "-"}
+                    </TableCell>
+                    {/* <TableCell className="text-gray-600 px-4">
+                      {new Date(record.dateOfBirth).toLocaleDateString()}
+                    </TableCell> */}
+                    <TableCell className="text-gray-600 px-4">
+                      {record.lastTestDate
+                        ? new Date(record.lastTestDate).toLocaleDateString()
+                        : "-"}
                     </TableCell>
                     <TableCell className="text-gray-600 px-4">
-                      {new Date(record.dateOfBirth).toLocaleDateString()}
+                      {record.lastTestStatus || "-"}
                     </TableCell>
                     <TableCell className="text-right px-3">
                       <DropdownMenu>
@@ -305,13 +378,9 @@ export default function MedicalRecordList() {
             </TableBody>
           </Table>
         </div>
-        </CardContent>
-      </Card>
+      </div>
 
-      {/* Pagination */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
           {records.length > 0 ? (
             <>
@@ -319,9 +388,15 @@ export default function MedicalRecordList() {
               <span className="font-semibold">{(currentPage - 1) * 8 + 1}</span>{" "}
               to{" "}
               <span className="font-semibold">
-                {Math.min(currentPage * 8, recordsData?.data?.pagination?.total || 0)}
+                {Math.min(
+                  currentPage * 8,
+                  recordsData?.data?.pagination?.total || 0
+                )}
               </span>{" "}
-              of <span className="font-semibold">{recordsData?.data?.pagination?.total || 0}</span>{" "}
+              of{" "}
+              <span className="font-semibold">
+                {recordsData?.data?.pagination?.total || 0}
+              </span>{" "}
               medical records
             </>
           ) : (
@@ -329,26 +404,20 @@ export default function MedicalRecordList() {
           )}
         </div>
         <div className="w-full sm:w-auto flex justify-center sm:justify-end">
-          {recordsData?.data?.pagination && recordsData.data.pagination.totalPages > 1 && (
-            <PaginationUI
-              currentPage={currentPage}
-              totalPages={recordsData.data.pagination.totalPages}
-              onPageChange={handleChangePage}
-            />
-          )}
+          {recordsData?.data?.pagination &&
+            recordsData.data.pagination.totalPages > 1 && (
+              <PaginationUI
+                currentPage={currentPage}
+                totalPages={recordsData.data.pagination.totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
         </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Modals */}
+      </div>
       <EditMedicalRecordModal
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         medicalRecord={selectedRecord}
-        onSuccess={() => {
-          alert("Medical record updated successfully!");
-        }}
       />
 
       <DeleteMedicalRecordModal

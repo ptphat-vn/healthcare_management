@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { z } from 'zod'
 import { HttpError } from '~/models/error.model'
+import type { CBCPanelTestName } from '~/models/test-order.model'
 import { MESSAGES } from '~/constants/message.constant'
 
 const isValidDate = (s: string): boolean => {
@@ -9,13 +10,24 @@ const isValidDate = (s: string): boolean => {
   return ymd.test(s) || mdy.test(s)
 }
 
+const CBC_TESTS: readonly CBCPanelTestName[] = [
+  'White Blood Cell Count',
+  'Red Blood Cell Count',
+  'Hemoglobin',
+  'Hematocrit',
+  'Platelet Count',
+  'Mean Corpuscular Volume',
+  'Mean Corpuscular Haemoglobin',
+  'Mean Corpuscular Haemoglobin Concentration'
+] as const
+
 const createTestOrderSchema = z.object({
-  patientName: z.string().min(1, 'Tên bệnh nhân không được để trống'),
-  dateOfBirth: z.string().refine(isValidDate, 'Ngày sinh phải đúng định dạng MM/DD/YYYY'),
-  gender: z.enum(['male', 'female'], { message: 'Giới tính phải là nam hoặc nữ' }),
-  address: z.string().min(1, 'Địa chỉ không được để trống'),
-  phoneNumber: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
-  email: z.string().email('Email không đúng định dạng')
+  medicalRecordId: z
+    .string()
+    .regex(/^[0-9a-fA-F]{24}$/, 'ID hồ sơ bệnh án không hợp lệ'),
+  requestedTests: z
+    .array(z.enum(CBC_TESTS as [CBCPanelTestName, ...CBCPanelTestName[]]))
+    .min(1, 'Phải chọn ít nhất một loại xét nghiệm')
 })
 
 const updateTestOrderSchema = z.object({
@@ -95,6 +107,24 @@ export const validateAddTestResult = (req: Request, res: Response, next: NextFun
 
 export const validateAddComment = (req: Request, res: Response, next: NextFunction) => {
   const parse = addCommentSchema.safeParse(req.body)
+  if (!parse.success) {
+    const fieldErrors: Record<string, string> = {}
+    for (const issue of parse.error.issues) {
+      const path = issue.path.join('.') || 'form'
+      if (!fieldErrors[path]) fieldErrors[path] = issue.message
+    }
+    return res.status(422).json({ message: MESSAGES.VALIDATION_ERROR, errors: fieldErrors })
+  }
+  next()
+}
+
+// Run with instrument validation
+const runWithInstrumentSchema = z.object({
+  instrumentId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'ID thiết bị không hợp lệ')
+})
+
+export const validateRunWithInstrument = (req: Request, res: Response, next: NextFunction) => {
+  const parse = runWithInstrumentSchema.safeParse(req.body)
   if (!parse.success) {
     const fieldErrors: Record<string, string> = {}
     for (const issue of parse.error.issues) {

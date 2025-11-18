@@ -11,11 +11,12 @@ export interface TestOrder {
   createdBy: string;
   runDate: string;
   runBy: string;
+  requestedTests: string[];
   testResults: TestResults[];
 
-  comments: Comments[];
-  createdAt: string;
-  updatedAt: string;
+  comments: Comment[];
+  createdAt?: string;
+  updatedAt?: string;
   createdByUser?: {
     fullName: string;
     email: string;
@@ -24,6 +25,8 @@ export interface TestOrder {
     fullName: string;
     email: string;
   };
+  aiSuggestions?: AISuggestions[];
+  aiDiagnosis?: string;
 }
 export interface TestResults {
   _id: string;
@@ -45,12 +48,17 @@ export interface TestResults {
   reviewedBy: string;
   aiReviewedAt: string;
 }
-export interface Comments {
+
+export interface Comment {
   _id: string;
   content: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
-  modifiedBy: string;
+  modifiedBy?: string;
   isDeleted: boolean;
-} 
+}
+export interface AISuggestions {
+  testName: string;
+  suggestedResult: string;
+}

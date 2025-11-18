@@ -1,4 +1,8 @@
-import type { APIResponse, GetAllRoleResponse } from "@/types/response.type";
+import type {
+  APIResponse,
+  CreateTestOrderResponse,
+  GetAllTestOrderResponse,
+} from "@/types/response.type";
 import { baseApi } from "./baseApi";
 import type {
   CreateTestOrderRequest,
@@ -9,7 +13,7 @@ import type { TestOrder } from "@/types/testOrder.type";
 export const testOrderApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllTestOrder: builder.query<
-      APIResponse<GetAllRoleResponse>,
+      APIResponse<GetAllTestOrderResponse>,
       {
         search?: string;
         sortBy?: "patientName" | "createdDate" | "runDate" | "status";
@@ -30,10 +34,10 @@ export const testOrderApi = baseApi.injectEndpoints({
         params: params || {},
       }),
       keepUnusedDataFor: 0,
-      providesTags: ["testOrder"],
+      providesTags: ["TestOrder"],
     }),
     createTestOrder: builder.mutation<
-      APIResponse<TestOrder>,
+      APIResponse<CreateTestOrderResponse>,
       CreateTestOrderRequest
     >({
       query: (data) => ({
@@ -41,7 +45,7 @@ export const testOrderApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["testOrder"],
+      invalidatesTags: ["TestOrder"],
     }),
     getDetailTestOrder: builder.query<APIResponse<TestOrder>, { id: string }>({
       query: ({ id }) => ({
@@ -49,7 +53,7 @@ export const testOrderApi = baseApi.injectEndpoints({
         method: "GET",
       }),
       keepUnusedDataFor: 0,
-      providesTags: ["testOrder"],
+      providesTags: ["TestOrder"],
     }),
     updateTestOrder: builder.mutation<
       APIResponse<TestOrder>,
@@ -60,14 +64,49 @@ export const testOrderApi = baseApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["testOrder"],
+      invalidatesTags: ["TestOrder"],
     }),
     deleteTestOrder: builder.mutation<APIResponse<TestOrder>, string>({
       query: (id) => ({
         url: `/test-orders/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["testOrder"],
+      invalidatesTags: ["TestOrder"],
+    }),
+    createTestResult: builder.mutation<
+      APIResponse<TestOrder>,
+      { testOrderId: string; instrumentId: string }
+    >({
+      query: ({ testOrderId, instrumentId }) => ({
+        url: `/test-orders/${testOrderId}/run-with-instrument`,
+        method: "POST",
+        body: { instrumentId },
+      }),
+      invalidatesTags: ["TestOrder"],
+    }),
+    // createTestOrderReview: builder.mutation<
+    //   APIResponse<TestOrder>,
+    //   {
+    //     testOrderId: string;
+    //     params: { testResultId: string; newResult: string };
+    //   }
+    // >({
+    //   query: ({ testOrderId, params }) => ({
+    //     url: `/test-orders/${testOrderId}/review`,
+    //     method: "POST",
+    //     body: params,
+    //   }),
+    //   invalidatesTags: ["TestOrder"],
+    // }),
+    createTestOrderReviewByAI: builder.mutation<
+      APIResponse<TestOrder>,
+      { testOrderId: string }
+    >({
+      query: ({ testOrderId }) => ({
+        url: `/test-orders/${testOrderId}/ai-review`,
+        method: "POST",
+      }),
+      invalidatesTags: ["TestOrder"],
     }),
   }),
 });
@@ -77,4 +116,7 @@ export const {
   useGetDetailTestOrderQuery,
   useDeleteTestOrderMutation,
   useUpdateTestOrderMutation,
+  useCreateTestResultMutation,
+  // useCreateTestOrderReviewMutation,
+  useCreateTestOrderReviewByAIMutation,
 } = testOrderApi;

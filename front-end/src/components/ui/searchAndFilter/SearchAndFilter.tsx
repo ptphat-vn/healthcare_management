@@ -151,7 +151,11 @@ export default function SearchAndFilter({
         {/* clear */}
         {showClearFilters &&
           onClearFilters &&
-          (searchTerm || String(status) !== "" || String(gender) !== "" || sortByValue || sortOrder) && (
+          (searchTerm ||
+            String(status) !== "" ||
+            String(gender) !== "" ||
+            sortByValue ||
+            sortOrder) && (
             <Button
               variant="outline"
               size="sm"

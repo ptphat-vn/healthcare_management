@@ -14,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Eye, AlertCircle } from "lucide-react";
 import type { GenderUser, User } from "@/types/user.type";
 import EditUserModal from "@/components/features/admin/userManagement/EditUserModal";
 import DeleteUserModal from "@/components/features/admin/userManagement/DeleteUserModal";
@@ -23,18 +23,24 @@ import { formatDate } from "@/utils/formatDate";
 import { useNavigate } from "react-router-dom";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
+import { useAuth } from "@/hooks/useAuth";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
+  const { user } = useAuth();
+  const roles = user?.data.roleCode;
+
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<number | "">("");
+  const [status, setStatus] = useState<number | "">(1); // Mặc định Active
   const [sortBy, setSortBy] = useState<
-    "fullName" | "email" | "createdAt" | "updatedAt"
-  >("");
+    "fullName" | "email" | "createdAt" | "updatedAt" | undefined
+  >();
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
   const navigate = useNavigate();
 
@@ -52,7 +58,6 @@ export default function UserList() {
       setUsers(data.data.user);
     }
   }, [data]);
-  // console.log(data);
 
   const pagination = data?.data.pagination;
   const totalPages = pagination?.totalPages || 1;
@@ -75,45 +80,18 @@ export default function UserList() {
     setCurrentPage(page);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading users...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
-    const errMsg = error || (error as any)?.message || "Unknown error";
+    const errMsg = (error as any)?.message || error || "Unknown error";
     return (
-      <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
-        <div className="flex items-center">
-          <svg
-            className="w-5 h-5 text-red-600 mr-2"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div>
-            <p className="font-semibold text-red-800">Error loading data</p>
-            <p className="text-sm text-red-600">{errMsg as any}</p>
-          </div>
-        </div>
-      </div>
+      <Alert variant="destructive" className="my-8">
+        <AlertTitle>Error loading users</AlertTitle>
+        <AlertDescription>{errMsg}</AlertDescription>
+      </Alert>
     );
   }
 
   return (
     <div className="w-full space-y-4">
-      {/* Search and Filter */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <SearchAndFilter
           searchTerm={search}
@@ -135,8 +113,8 @@ export default function UserList() {
           showClearFilters
           onClearFilters={() => {
             setSearch("");
-            setStatus("");
-            setSortBy("");
+            setStatus(1); // Reset về Active
+            setSortBy(undefined);
             setSortOrder(-1);
             setCurrentPage(1);
           }}
@@ -182,23 +160,46 @@ export default function UserList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.length === 0 ? (
+              {isLoading ? (
+                Array.from({ length: 8 }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-12">
                     <div className="flex flex-col items-center justify-center text-gray-500">
-                      <svg
-                        className="w-16 h-16 mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                        />
-                      </svg>
+                      <AlertCircle size={16} />
                       <p className="text-lg font-medium">No users found</p>
                       <p className="text-sm">
                         Try adjusting your search or filter criteria
@@ -268,7 +269,7 @@ export default function UserList() {
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem
                             onClick={() =>
-                              navigate(`/admin/user-management/${user._id}`)
+                              navigate(`/${roles}/user-management/${user._id}`)
                             }
                             className="cursor-pointer hover:bg-blue-50"
                           >

@@ -11,15 +11,17 @@ export interface User {
   roleCode?: RoleUser;
   roleName?: string;
   status: number;
+  patientId?: string;
   createdAt: string;
+  avatar?: string;
   updatedAt: string;
 }
 export type RoleUser =
-  | "user"
+  | "patient"
   | "admin"
-  | "manager"
+  | "lab_manager"
   | "consultant"
   | "service"
   | "lab_user";
 
-export type GenderUser = "male" | "female";
+export type GenderUser = "male" | "female" | "";

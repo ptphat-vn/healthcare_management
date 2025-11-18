@@ -26,6 +26,8 @@ import {
 import { toast } from "sonner";
 import { Loader2, Shield } from "lucide-react";
 import type { Roles } from "@/types/roles.type";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface AddRoleModalProps {
   open: boolean;
@@ -39,7 +41,7 @@ export default function AddRoleModal({
   role = null,
 }: AddRoleModalProps) {
   const isEditMode = !!role;
-
+  const { user } = useAuth();
   const {
     register,
     handleSubmit,
@@ -264,7 +266,7 @@ export default function AddRoleModal({
             type="submit"
             onClick={handleSubmit(onSubmit)}
             disabled={isLoading}
-            className="min-w-[100px] bg-blue-600 hover:bg-blue-700 cursor-pointer"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? (
               <>

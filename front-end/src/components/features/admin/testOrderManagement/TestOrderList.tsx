@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableHeader,
@@ -14,13 +14,16 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Eye, Loader2 } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Eye, Inbox } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import EditTestOrderModal from "./EditTestOrderModal";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
 import { formatDate } from "@/utils/formatDate";
+import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 export interface TestOrder {
   _id: string;
@@ -71,18 +74,30 @@ interface TestOrderListProps {
 
 export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [editingOrder, setEditingOrder] = useState<TestOrder | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState<TestOrder | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<
+    "patientName" | "createdDate" | "runDate" | "status"
+  >("createdDate");
+  const [status, setStatus] = useState<
+    "pending" | "cancelled" | "completed" | "reviewed" | "ai_reviewed" | ""
+  >("");
+  const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
 
   const itemsPerPage = 8;
 
   const { data, isLoading, error } = useGetAllTestOrderQuery({
+    search: searchTerm,
+    sortBy,
+    status: status || undefined,
+    sortOrder,
     page: currentPage,
     limit: itemsPerPage,
-    sortOrder: -1,
   });
 
   const testOrders: TestOrder[] = (data as any)?.data?.testOrder || [];
@@ -93,8 +108,11 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
     totalPages: 1,
   };
 
+
+
   const handleView = (order: TestOrder) => {
-    navigate(`/admin/test-order/${order._id}`);
+    const roleCode = user?.data?.roleCode || "admin";
+    navigate(`/${roleCode}/test-order/${order._id}`);
   };
 
   const handleEdit = (order: TestOrder) => {
@@ -113,155 +131,235 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
 
   return (
     <div className="w-full space-y-4">
-      {isLoading && (
-        <div className="bg-white p-12 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-2" />
-          <p className="text-gray-600">Loading test orders...</p>
-        </div>
-      )}
-
+      {/* Error Alert - Tách riêng ở trên */}
       {error && !isLoading && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800 font-medium">Error loading test orders</p>
-          <p className="text-red-600 text-sm">
-            {typeof error === "string" ? error : "An error occurred while loading data"}
-          </p>
-        </div>
-      )}
-
-      {!isLoading && !error && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
-                  <TableHead className="font-semibold text-gray-700 w-16">No</TableHead>
-                  <TableHead className="font-semibold text-gray-700 min-w-[150px]">
-                    Patient Name
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 min-w-[150px]">
-                    Contact
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 min-w-[130px]">
-                    Created Date
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 min-w-[130px]">
-                    Created By
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 min-w-[100px]">
-                    Status
-                  </TableHead>
-                  <TableHead className="text-right font-semibold text-gray-700 w-20">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {testOrders.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
-                      <div className="flex flex-col items-center justify-center text-gray-500">
-                        <svg
-                          className="w-16 h-16 mb-4 text-gray-300"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                          />
-                        </svg>
-                        <p className="text-lg font-medium">No test orders found</p>
-                        <p className="text-sm">Try adjusting your search or filter criteria</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  testOrders.map((order: TestOrder, idx: number) => (
-                    <TableRow key={order._id} className="hover:bg-blue-50/50 transition-colors">
-                      <TableCell className="text-start font-medium text-gray-600">
-                        {(currentPage - 1) * itemsPerPage + idx + 1}
-                      </TableCell>
-                      <TableCell className="font-medium text-gray-900">
-                        {order.patientName}
-                      </TableCell>
-                      <TableCell className="text-gray-600">
-                        <div>
-                          <div className="text-sm text-gray-900">{order.phoneNumber}</div>
-                          <div className="text-xs text-gray-500">{order.email}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-gray-600">
-                        {formatDate(typeof order.createdDate === "string" ? order.createdDate : order.createdDate.toString())}
-                      </TableCell>
-                      <TableCell className="text-gray-600">
-                        <div>
-                          <div className="text-sm text-gray-900">
-                            {order.createdByUser?.fullName || "N/A"}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {order.createdByUser?.email || ""}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                            order.status
-                          )}`}
-                        >
-                          {formatStatusText(order.status)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 hover:bg-blue-100 transition-colors"
-                              aria-label="Actions"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem
-                              onClick={() => handleView(order)}
-                              className="cursor-pointer hover:bg-blue-50"
-                            >
-                              <Eye className="mr-2 h-4 w-4 text-blue-600" />
-                              <span className="text-gray-700">View detail</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleEdit(order)}
-                              className="cursor-pointer hover:bg-blue-50"
-                            >
-                              <Edit className="mr-2 h-4 w-4 text-green-600" />
-                              <span className="text-gray-700">Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(order)}
-                              className="cursor-pointer hover:bg-red-50 text-red-600 focus:text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-red-600"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-red-800 font-semibold">
+              Error loading test orders
+            </h3>
+            <p className="text-red-600 text-sm mt-1">
+              {typeof error === "string"
+                ? error
+                : "An error occurred while loading data"}
+            </p>
           </div>
         </div>
       )}
 
+      {/* Search and Filter */}
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <SearchAndFilter
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          sortOptions={[
+            { value: "patientName", label: "Patient Name" },
+            { value: "createdDate", label: "Created Date" },
+            { value: "runDate", label: "Run Date" },
+            { value: "status", label: "Status" },
+          ]}
+          sortByValue={sortBy}
+          onSortByChange={setSortBy}
+          sortOrder={sortOrder}
+          onSortOrderChange={setSortOrder}
+          statusOptions={[
+            { value: "", label: "All" },
+            { value: "pending", label: "Pending" },
+            { value: "completed", label: "Completed" },
+            { value: "reviewed", label: "Reviewed" },
+            { value: "ai_reviewed", label: "AI Reviewed" },
+            { value: "cancelled", label: "Cancelled" },
+          ]}
+          statusValue={status}
+          onStatusChange={setStatus}
+        />
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                <TableHead className="font-semibold text-gray-700 w-16">
+                  No
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 min-w-[150px]">
+                  Patient Name
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 min-w-[150px]">
+                  Contact
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 min-w-[130px]">
+                  Created Date
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 min-w-[130px]">
+                  Created By
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 min-w-[100px]">
+                  Status
+                </TableHead>
+                <TableHead className="text-right font-semibold text-gray-700 w-20">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                // Skeleton Loading
+                Array.from({ length: 8 }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-8 w-8 ml-auto" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : testOrders.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-12">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <Inbox size={24} />
+                      <p className="text-lg font-medium">
+                        No test orders found
+                      </p>
+                      <p className="text-sm">
+                        Try adjusting your search or filter criteria
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                testOrders.map((order: TestOrder, idx: number) => (
+                  <TableRow
+                    key={order._id}
+                    className="hover:bg-blue-50/50 transition-colors"
+                  >
+                    <TableCell className="text-start font-medium text-gray-600">
+                      {(currentPage - 1) * itemsPerPage + idx + 1}
+                    </TableCell>
+                    <TableCell className="font-medium text-gray-900">
+                      {order.patientName}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      <div>
+                        <div className="text-sm text-gray-900">
+                          {order.phoneNumber}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {order.email}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {formatDate(
+                        typeof order.createdDate === "string"
+                          ? order.createdDate
+                          : order.createdDate.toString()
+                      )}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      <div>
+                        <div className="text-sm text-gray-900">
+                          {order.createdByUser?.fullName || "N/A"}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {order.createdByUser?.email || ""}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                          order.status
+                        )}`}
+                      >
+                        {formatStatusText(order.status)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-blue-100 transition-colors"
+                            aria-label="Actions"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuItem
+                            onClick={() => handleView(order)}
+                            className="cursor-pointer hover:bg-blue-50"
+                          >
+                            <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                            <span className="text-gray-700">View detail</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleEdit(order)}
+                            className="cursor-pointer hover:bg-blue-50"
+                          >
+                            <Edit className="mr-2 h-4 w-4 text-green-600" />
+                            <span className="text-gray-700">Edit</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(order)}
+                            className="cursor-pointer hover:bg-red-50 text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Pagination */}
       {!isLoading && !error && testOrders.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
@@ -275,8 +373,8 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
                 <span className="font-semibold">
                   {Math.min(currentPage * itemsPerPage, pagination.total)}
                 </span>{" "}
-                of{" "}
-                <span className="font-semibold">{pagination.total}</span> results
+                of <span className="font-semibold">{pagination.total}</span>{" "}
+                results
               </>
             ) : (
               "No results"
@@ -294,6 +392,7 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
         </div>
       )}
 
+      {/* Modals */}
       {isEditModalOpen && editingOrder && (
         <EditTestOrderModal
           open={isEditModalOpen}

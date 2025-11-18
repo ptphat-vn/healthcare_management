@@ -8,19 +8,38 @@ import { useAuth } from "@/hooks/useAuth";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
-import UserDashBoard from "@/pages/user/UserDashBoard";
+
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
 
 import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrderManagementPage";
 import TestOrderDetailPage from "@/pages/admin/testOrderManagement/TestOrderDetailPage";
 import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
 import MedicalRecordDetail from "@/pages/admin/medicalRecords/medicalRecordDetail/MedicalRecordDetail";
+import TestDetail from "@/pages/admin/medicalRecords/testDetail/TestDetail";
 import { useMemo } from "react";
 
 import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
 import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
 import RoleManagementPage from "@/pages/admin/roleManagement/RoleManagementPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
+import UserManagement from "@/pages/manager/UserManagement/UserManagementPage";
+import LabUserDashboard from "@/pages/labUser/LabUserDashboard";
+
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import PatientDashboardPage from "@/pages/user/PatientDashboardPage";
+import LabManagerDashboard from "@/pages/manager/LabManagerDashboard";
+
+import MedicalRecordPatientPage from "@/pages/user/medical_record/MedicalRecordPage";
+import ProfilePatient from "@/pages/user/ProfilePatient";
+import ServiceDashboard from "@/pages/service/ServiceDashboardPage";
+import InstrumentManagementPage from "@/pages/service/instrumentManager/InstrumentManagementPage";
+import ReagentManagementPage from "@/pages/labUser/reagentManagement/ReagentManagementPage";
+import ReagentDetailPage from "@/pages/labUser/reagentManagement/reagentDetail/ReagentDetailPage";
+import InstrumentDetailPage from "@/pages/service/instrumentManager/InstrumentDetailPage";
+import InstrumentReagentDetailPage from "@/pages/service/instrumentManager/InstrumentReagentDetailPage";
+import InventoryPage from "@/pages/service/inventoryManagement/InventoryPage";
+
+import ChatPage from "@/pages/chat/ChatPage";
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -49,6 +68,8 @@ export const router = createBrowserRouter([
         children: [
           { path: "login", element: <LoginPage /> },
           { path: "register", element: <RegisterPage /> },
+          { path: "forgot-password", element: <ForgotPasswordPage /> },
+          { path: "reset-password", element: <ForgotPasswordPage /> },
         ],
       },
     ],
@@ -76,30 +97,99 @@ export const router = createBrowserRouter([
       { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
       // medical record
       { path: "medical-records", element: <MedicalRecordPage /> },
+      { path: "medical-records/test/:testId", element: <TestDetail /> },
       { path: "medical-records/:id", element: <MedicalRecordDetail /> },
       // profile
       { path: "profile", element: <ProfilePage /> },
+      { path: "chat", element: <ChatPage /> },
     ],
   },
 
   // Manager
   {
-    path: "manager",
+    path: "lab_manager",
     element: (
-      <ProtectedRoute allowedRoles={["manager"]}>
+      <ProtectedRoute allowedRoles={["lab_manager"]}>
         <MainLayout />
       </ProtectedRoute>
     ),
-    children: [{ path: "dashboard", element: "Dang lam" }],
+    children: [
+      { path: "dashboard", element: <LabManagerDashboard /> },
+      { path: "user-management", element: <UserManagement /> },
+      { path: "roles-management", element: <RoleManagementPage /> },
+      { path: "user-management/:id", element: <UserDetail /> },
+      { path: "profile", element: <ProfilePage /> },
+      { path: "medical-record", element: <MedicalRecordPage /> },
+      { path: "medical-records/test/:testId", element: <TestDetail /> },
+      { path: "medical-records/:id", element: <MedicalRecordDetail /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
+      { path: "event-log", element: <MonitoringServicePage /> },
+    ],
   },
-  // USER ROUTE
-  { 
-    path: "/user",
+
+  // LAB USER ROUTE
+  {
+    path: "/lab_user",
     element: (
-      <ProtectedRoute allowedRoles={["user"]}>
+      <ProtectedRoute allowedRoles={["lab_user"]}>
         <MainLayout />
       </ProtectedRoute>
     ),
-    children: [{ path: "dashboard", element: <UserDashBoard /> }],
+    children: [
+      { path: "dashboard", element: <LabUserDashboard /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
+      { path: "medical-records", element: <MedicalRecordPage /> },
+      { path: "reagent-management", element: <ReagentManagementPage /> },
+      { path: "medical-records/test/:testId", element: <TestDetail /> },
+      { path: "medical-records/:id", element: <MedicalRecordDetail /> },
+      { path: "test-order", element: <TestOrderManagementPage /> },
+      { path: "test-order/:orderId", element: <TestOrderDetailPage /> },
+      { path: "event-log", element: <MonitoringServicePage /> },
+      { path: "profile", element: <ProfilePage /> },
+      { path: "reagent-management/:id", element: <ReagentDetailPage /> },
+      { path: "chat", element: <ChatPage /> },
+    ],
+  },
+
+  // USER ROUTE
+  {
+    path: "/patient",
+    element: (
+      <ProtectedRoute allowedRoles={["patient"]}>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { path: "dashboard", element: <PatientDashboardPage /> },
+      { path: "medical-record", element: <MedicalRecordPatientPage /> },
+      { path: "profile", element: <ProfilePatient /> },
+      { path: "chat", element: <ChatPage /> },
+    ],
+  },
+
+  //SERVICE ROUTES
+  {
+    path: "/service",
+    element: (
+      <ProtectedRoute allowedRoles={["service"]}>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { path: "dashboard", element: <ServiceDashboard /> },
+      { path: "instruments", element: <InstrumentManagementPage /> },
+      { path: "instruments/:id", element: <InstrumentDetailPage /> },
+      {
+        path: "instruments/:instrumentId/reagents/:assignmentId",
+        element: <InstrumentReagentDetailPage />,
+      },
+      { path: "reagent/:id", element: <ReagentDetailPage /> },
+      { path: "profile", element: <ProfilePage /> },
+      { path: "reagent-management", element: <ReagentManagementPage /> },
+      { path: "reagent-management/:id", element: <ReagentDetailPage /> },
+      { path: "inventory-management", element: <InventoryPage /> },
+    ],
   },
 ]);

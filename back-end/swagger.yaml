@@ -3,74 +3,90 @@ info:
   title: Healthcare Management API
   description: |
     API documentation for Healthcare Management System
-    
+
     This API provides endpoints for user authentication, user management, and healthcare-related operations.
-    
+
     ## Authentication
     Most endpoints require authentication using JWT tokens. Include the token in the Authorization header:
     `Authorization: Bearer <your-token>`
-    
+
     ## Role-Based Access Control (RBAC)
     The system uses a privilege-based authorization model where users are assigned roles with specific privileges.
-    
+
     ### User Roles
     - `admin`: Administrator with full system access (privilege: `*`)
     - `lab_manager`: Lab Manager with management privileges
     - `service`: Service provider with operational privileges  
     - `lab_user`: Lab User with testing privileges
-    - `custom`: Default user role with read-only access
-    
+    - `patient`: Default user role with read-only access. Patients can only view their own medical records and test orders.
+
     ### Privileges
     The system supports granular privileges for different operations:
-    
+
     **Role Management:**
     - `view_role`: View roles
     - `create_role`: Create new roles
     - `update_role`: Update existing roles
     - `delete_role`: Delete roles
-    
+
     **Configuration Management:**
     - `view_config`: View configurations
     - `create_config`: Create configurations
     - `modify_config`: Modify configurations
     - `delete_config`: Delete configurations
-    
+
     **User Management:**
     - `view_user`: View users
     - `modify_user`: Modify user information
     - `delete_user`: Delete users
     - `lock_unlock_user`: Lock/unlock user accounts
-    
+
     **Comments:**
     - `add_comment`: Add comments
     - `modify_comment`: Modify comments
     - `delete_comment`: Delete comments
-    
+
     **Test Orders:**
     - `create_test_order`: Create test orders
     - `delete_test_order`: Delete test orders
     - `review_test_order`: Review test orders
     - `modify_test_order`: Modify test orders
-    
+
     **Blood Testing:**
     - `execute_blood_testing`: Execute blood testing procedures
-    
+
     **Instruments:**
     - `view_instrument`: View instruments
     - `activate_instrument`: Activate instruments
     - `deactivate_instrument`: Deactivate instruments
-    
+
+    **Reagents:**
+    - `view_reagent`: View reagents
+    - `create_reagent`: Create reagents
+    - `modify_reagent`: Modify reagents
+    - `delete_reagent`: Delete reagents
+    - `view_reagent_supply_history`: View reagent vendor supply history
+    - `create_reagent_supply`: Create reagent vendor supply record
+    - `view_reagent_usage_history`: View reagent usage history
+    - `create_reagent_usage`: Record reagent usage
+
     **Event Logs:**
     - `view_event_logs`: View event logs
-    
+
     **Basic Access:**
     - `read_only`: Basic read access
     - `*`: Admin privilege (access to everything)
-    
+
     ## Authorization
     Each endpoint requires specific privileges. Users must have the required privileges to access the endpoint.
     Admin users (with `*` privilege) have access to all endpoints.
-    
+
+    **Patient Access Restrictions:**
+    Users with the `patient` role have additional data access restrictions:
+    - Can only view their own medical records (filtered automatically)
+    - Can only view their own test orders and test results (filtered automatically)
+    - Attempting to access another patient's data will result in a 403 Forbidden error
+
     ## User Status
     - `0`: Inactive (soft deleted)
     - `1`: Active
@@ -106,6 +122,12 @@ tags:
     description: Comment management operations
   - name: Flagging Configuration
     description: Flagging configuration management
+  - name: Reagents
+    description: Reagent management operations (CRUD, vendor supply history, usage history)
+  - name: Chat
+    description: Real-time chat and conversation history between patients and clinicians
+  - name: Notifications
+    description: Chat Notification
 
 paths:
   /roles:
@@ -115,9 +137,9 @@ paths:
       summary: List roles
       description: |
         Get a paginated list of roles.
-        
+
         **Required Privilege:** `view_role`
-        
+
         **Access:** Admin, Lab Manager, Service
       operationId: listRoles
       security:
@@ -163,7 +185,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Get roles successfully"
+                    example: 'Get roles successfully'
                   data:
                     type: object
                     properties:
@@ -182,17 +204,17 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Bạn không có quyền thực hiện hành động này"
+                    example: 'Bạn không có quyền thực hiện hành động này'
                   required:
                     type: array
                     items:
                       type: string
-                    example: ["view_role"]
+                    example: ['view_role']
                   current:
                     type: array
                     items:
                       type: string
-                    example: ["read_only"]
+                    example: ['read_only']
 
     post:
       tags:
@@ -200,9 +222,9 @@ paths:
       summary: Create role
       description: |
         Create a new role with specified privileges.
-        
+
         **Required Privilege:** `create_role`
-        
+
         **Access:** Admin, Lab Manager
       operationId: createRole
       security:
@@ -219,18 +241,36 @@ paths:
               properties:
                 name:
                   type: string
-                  example: "Lab Manager"
+                  example: 'Lab Manager'
                 code:
                   type: string
-                  example: "lab_manager"
+                  example: 'lab_manager'
                 description:
                   type: string
-                  example: "Manage lab and users"
+                  example: 'Manage lab and users'
                 privileges:
                   type: array
                   items:
                     type: string
-                  example: ["view_role", "create_role", "update_role", "view_config", "create_config", "modify_config", "delete_config", "view_user", "modify_user", "delete_user", "lock_unlock_user", "add_comment", "modify_comment", "delete_comment", "review_test_order", "modify_test_order"]
+                  example:
+                    [
+                      'view_role',
+                      'create_role',
+                      'update_role',
+                      'view_config',
+                      'create_config',
+                      'modify_config',
+                      'delete_config',
+                      'view_user',
+                      'modify_user',
+                      'delete_user',
+                      'lock_unlock_user',
+                      'add_comment',
+                      'modify_comment',
+                      'delete_comment',
+                      'review_test_order',
+                      'modify_test_order'
+                    ]
       responses:
         '201':
           description: Role created successfully
@@ -241,7 +281,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Role created successfully"
+                    example: 'Role created successfully'
                   data:
                     $ref: '#/components/schemas/Role'
         '403':
@@ -253,17 +293,17 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Bạn không có quyền thực hiện hành động này"
+                    example: 'Bạn không có quyền thực hiện hành động này'
                   required:
                     type: array
                     items:
                       type: string
-                    example: ["create_role"]
+                    example: ['create_role']
                   current:
                     type: array
                     items:
                       type: string
-                    example: ["read_only"]
+                    example: ['read_only']
         '409':
           description: Role code already exists
         '422':
@@ -309,14 +349,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Role updated successfully"
+                    example: 'Role updated successfully'
                   data:
                     $ref: '#/components/schemas/Role'
         '404':
           description: Role not found
         '422':
           description: Validation error
-
 
     delete:
       tags:
@@ -333,7 +372,7 @@ paths:
           description: Role ID
           schema:
             type: string
-            pattern: "^[0-9a-fA-F]{24}$"
+            pattern: '^[0-9a-fA-F]{24}$'
       responses:
         '200':
           description: Role deleted successfully
@@ -344,7 +383,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Role deleted successfully"
+                    example: 'Role deleted successfully'
                   data:
                     $ref: '#/components/schemas/Role'
         '400':
@@ -382,34 +421,34 @@ paths:
               properties:
                 fullName:
                   type: string
-                  example: "Nguyễn Văn A"
+                  example: 'Nguyễn Văn A'
                 email:
                   type: string
                   format: email
-                  example: "user@example.com"
+                  example: 'user@example.com'
                 phoneNumber:
                   type: string
-                  pattern: "^[0-9]{10,11}$"
-                  example: "0123456789"
+                  pattern: '^[0-9]{10,11}$'
+                  example: '0123456789'
                 identifyNumber:
                   type: string
-                  pattern: "^[0-9]{9,12}$"
-                  example: "123456789"
+                  pattern: '^[0-9]{9,12}$'
+                  example: '123456789'
                 gender:
                   type: string
                   enum: [male, female]
-                  example: "male"
+                  example: 'male'
                 address:
                   type: string
-                  example: "123 Main Street, City"
+                  example: '123 Main Street, City'
                 dateOfBirth:
                   type: string
                   format: date
-                  example: "1990-01-01"
+                  example: '1990-01-01'
                 password:
                   type: string
                   minLength: 8
-                  example: "password123"
+                  example: 'password123'
       responses:
         '200':
           description: Registration successful
@@ -420,37 +459,37 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Đăng ký thành công"
+                    example: 'Đăng ký thành công'
                   data:
                     type: object
                     properties:
                       id:
                         type: string
-                        example: "507f1f77bcf86cd799439011"
+                        example: '507f1f77bcf86cd799439011'
                       fullName:
                         type: string
-                        example: "Nguyễn Văn A"
+                        example: 'Nguyễn Văn A'
                       email:
                         type: string
-                        example: "user@example.com"
+                        example: 'user@example.com'
                       phoneNumber:
                         type: string
-                        example: "0123456789"
+                        example: '0123456789'
                       identifyNumber:
                         type: string
-                        example: "123456789"
+                        example: '123456789'
                       gender:
                         type: string
-                        example: "male"
+                        example: 'male'
                       address:
                         type: string
-                        example: "123 Main Street, City"
+                        example: '123 Main Street, City'
                       dateOfBirth:
                         type: string
-                        example: "1990-01-01"
+                        example: '1990-01-01'
                       role:
                         type: string
-                        example: "user"
+                        example: 'user'
         '409':
           description: Conflict - Email, phone, or identify number already exists
         '422':
@@ -476,10 +515,10 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: "user@example.com"
+                  example: 'ncb2601@gmail.com'
                 password:
                   type: string
-                  example: "password123"
+                  example: '12345678'
       responses:
         '200':
           description: Login successful
@@ -490,21 +529,98 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Đăng nhập thành công"
+                    example: 'Đăng nhập thành công'
                   data:
                     type: object
                     properties:
                       accessToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
                       refreshToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         '401':
           description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Thông tin đăng nhập không hợp lệ'
+        '403':
+          description: Account inactive or locked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Tài khoản đã bị vô hiệu hóa'
         '422':
           description: Validation error
-
+  /auth/login-google:
+    post:
+      tags:
+        - Authentication
+      summary: Login with Google OAuth
+      description: |
+        Authenticate user using Google OAuth token.  
+        Returns JWT accessToken and refreshToken if successful.
+      operationId: loginGoogle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tokenGoogle
+              properties:
+                tokenGoogle:
+                  type: string
+                  description: Google OAuth ID token
+                  example: 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Đăng nhập thành công'
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                      refreshToken:
+                        type: string
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+        '400':
+          description: Missing or invalid Google token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid Google token or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Account inactive or locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /auth/logout:
     post:
       tags:
@@ -522,7 +638,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Đăng xuất thành công"
+                    example: 'Đăng xuất thành công'
                   data:
                     type: object
                     properties:
@@ -535,7 +651,7 @@ paths:
       tags:
         - Authentication
       summary: Request password reset
-      description: Send password reset email
+      description: Send OTP via email for password reset
       operationId: forgotPassword
       requestBody:
         required: true
@@ -549,10 +665,10 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: "user@example.com"
+                  example: 'user@example.com'
       responses:
         '200':
-          description: Password reset email sent
+          description: OTP sent to email
           content:
             application/json:
               schema:
@@ -560,13 +676,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Email đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn"
+                    example: 'OTP đã được gửi tới email của bạn!'
                   data:
                     type: object
                     properties:
                       email:
                         type: string
-                        example: "user@example.com"
+                        example: 'user@example.com'
         '404':
           description: Email not found
         '422':
@@ -577,7 +693,7 @@ paths:
       tags:
         - Authentication
       summary: Reset password
-      description: Reset password using token
+      description: Reset password using OTP
       operationId: resetPassword
       requestBody:
         required: true
@@ -586,16 +702,20 @@ paths:
             schema:
               type: object
               required:
-                - token
+                - email
+                - otp
                 - newPassword
               properties:
-                token:
+                email:
                   type: string
-                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  example: 'user@example.com'
+                otp:
+                  type: string
+                  example: '123456'
                 newPassword:
                   type: string
                   minLength: 8
-                  example: "newpassword123"
+                  example: 'newpassword123'
       responses:
         '200':
           description: Password reset successful
@@ -606,18 +726,15 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Mật khẩu đã được đặt lại thành công"
+                    example: 'Mật khẩu đã được đặt lại thành công'
                   data:
                     type: object
                     properties:
-                      accessToken:
+                      email:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                      refreshToken:
-                        type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'user@example.com'
         '400':
-          description: Invalid or expired token
+          description: Invalid or expired OTP
         '422':
           description: Validation error
 
@@ -642,11 +759,11 @@ paths:
               properties:
                 oldPassword:
                   type: string
-                  example: "oldpassword123"
+                  example: 'oldpassword123'
                 newPassword:
                   type: string
                   minLength: 8
-                  example: "newpassword123"
+                  example: 'newpassword123'
       responses:
         '200':
           description: Password changed successfully
@@ -657,16 +774,16 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Password changed successfully"
+                    example: 'Password changed successfully'
                   data:
                     type: object
                     properties:
                       accessToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
                       refreshToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         '400':
           description: Invalid old password or same password
         '401':
@@ -737,7 +854,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Event logs retrieved"
+                    example: 'Event logs retrieved'
                   data:
                     type: object
                     properties:
@@ -772,7 +889,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[0-9a-fA-F]{24}$"
+            pattern: '^[0-9a-fA-F]{24}$'
       responses:
         '200':
           description: Event log retrieved successfully
@@ -783,7 +900,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Event log retrieved"
+                    example: 'Event log retrieved'
                   data:
                     $ref: '#/components/schemas/EventLog'
         '400':
@@ -813,7 +930,7 @@ paths:
               properties:
                 refreshToken:
                   type: string
-                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
       responses:
         '200':
           description: Token refreshed successfully
@@ -824,13 +941,13 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Token refreshed successfully"
+                    example: 'Token refreshed successfully'
                   data:
                     type: object
                     properties:
                       accessToken:
                         type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         '401':
           description: Invalid refresh token
         '422':
@@ -855,7 +972,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Lấy thông tin người dùng thành công"
+                    example: 'Lấy thông tin người dùng thành công'
                   data:
                     allOf:
                       - $ref: '#/components/schemas/User'
@@ -863,10 +980,10 @@ paths:
                         properties:
                           roleCode:
                             type: string
-                            example: "admin"
+                            example: 'admin'
                           roleName:
                             type: string
-                            example: "Administrator"
+                            example: 'Administrator'
         '401':
           description: Unauthorized
         '404':
@@ -878,8 +995,10 @@ paths:
       tags:
         - User Management
       summary: Create user (Admin only)
-      description: Create a new user account (admin operation)
+      description: Create a new user account (admin operation). After creation, the system sends an email to the user's address containing their login credentials (email and the password set by admin). Users should change their password on first login.
       operationId: createUser
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -897,34 +1016,34 @@ paths:
               properties:
                 fullName:
                   type: string
-                  example: "Nguyễn Văn B"
+                  example: 'Nguyễn Văn B'
                 email:
                   type: string
                   format: email
-                  example: "admin@example.com"
+                  example: 'admin@example.com'
                 phoneNumber:
                   type: string
-                  pattern: "^[0-9]{10,11}$"
-                  example: "0987654321"
+                  pattern: '^[0-9]{10,11}$'
+                  example: '0987654321'
                 identifyNumber:
                   type: string
-                  pattern: "^[0-9]{9,12}$"
-                  example: "987654321"
+                  pattern: '^[0-9]{9,12}$'
+                  example: '987654321'
                 gender:
                   type: string
                   enum: [male, female]
-                  example: "female"
+                  example: 'female'
                 address:
                   type: string
-                  example: "456 Oak Street, City"
+                  example: '456 Oak Street, City'
                 dateOfBirth:
                   type: string
                   format: date
-                  example: "1985-05-15"
+                  example: '1985-05-15'
                 password:
                   type: string
                   minLength: 8
-                  example: "password123"
+                  example: 'password123'
       responses:
         '200':
           description: User created successfully
@@ -935,34 +1054,34 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Đăng ký thành công"
+                    example: 'Đăng ký thành công'
                   data:
                     type: object
                     properties:
                       id:
                         type: string
-                        example: "507f1f77bcf86cd799439012"
+                        example: '507f1f77bcf86cd799439012'
                       fullName:
                         type: string
-                        example: "Nguyễn Văn B"
+                        example: 'Nguyễn Văn B'
                       email:
                         type: string
-                        example: "admin@example.com"
+                        example: 'admin@example.com'
                       phoneNumber:
                         type: string
-                        example: "0987654321"
+                        example: '0987654321'
                       identifyNumber:
                         type: string
-                        example: "987654321"
+                        example: '987654321'
                       gender:
                         type: string
-                        example: "female"
+                        example: 'female'
                       address:
                         type: string
-                        example: "456 Oak Street, City"
+                        example: '456 Oak Street, City'
                       dateOfBirth:
                         type: string
-                        example: "1985-05-15"
+                        example: '1985-05-15'
         '409':
           description: Conflict - Email, phone, or identify number already exists
         '422':
@@ -984,7 +1103,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       requestBody:
         required: true
         content:
@@ -994,22 +1113,22 @@ paths:
               properties:
                 fullName:
                   type: string
-                  example: "Nguyễn Văn A Updated"
+                  example: 'Nguyễn Văn A Updated'
                 dateOfBirth:
                   type: string
                   format: date
-                  example: "1990-01-01"
+                  example: '1990-01-01'
                 gender:
                   type: string
                   enum: [male, female]
-                  example: "male"
+                  example: 'male'
                 address:
                   type: string
-                  example: "123 Updated Street, City"
+                  example: '123 Updated Street, City'
                 email:
                   type: string
                   format: email
-                  example: "updated@example.com"
+                  example: 'updated@example.com'
                 phoneNumber:
                   type: string
                   pattern: '^[0-9]{10,11}$'
@@ -1033,7 +1152,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "User updated successfully"
+                    example: 'User updated successfully'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1063,7 +1182,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       requestBody:
         required: true
         content:
@@ -1091,7 +1210,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "User status updated"
+                    example: 'User status updated'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1100,7 +1219,7 @@ paths:
           description: Unauthorized
         '404':
           description: User not found
-        '422':  
+        '422':
           description: Validation error
   /admin/users/delete/{id}:
     delete:
@@ -1118,7 +1237,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       responses:
         '200':
           description: User deleted successfully
@@ -1129,7 +1248,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "User deleted (status=0)"
+                    example: 'User deleted (status=0)'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1157,7 +1276,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       responses:
         '200':
           description: User blocked successfully
@@ -1168,7 +1287,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "User blocked successfully"
+                    example: 'User blocked successfully'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1188,6 +1307,8 @@ paths:
       summary: List users with pagination and search
       description: Retrieve paginated list of users with search, filter, and sorting capabilities
       operationId: getAllUsers
+      security:
+        - bearerAuth: []
       parameters:
         - name: search
           in: query
@@ -1195,7 +1316,7 @@ paths:
           description: Search term for email, fullName, or phoneNumber
           schema:
             type: string
-            example: "john"
+            example: 'john'
         - name: status
           in: query
           required: false
@@ -1211,7 +1332,7 @@ paths:
           schema:
             type: string
             enum: [fullName, email, createdAt, updatedAt]
-            example: "createdAt"
+            example: 'createdAt'
         - name: sortOrder
           in: query
           required: false
@@ -1247,7 +1368,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Lấy danh sách người dùng thành công"
+                    example: 'Lấy danh sách người dùng thành công'
                   data:
                     type: array
                     items:
@@ -1257,10 +1378,10 @@ paths:
                           properties:
                             roleCode:
                               type: string
-                              example: "user"
+                              example: 'user'
                             roleName:
                               type: string
-                              example: "Normal user"
+                              example: 'Normal user'
                   pagination:
                     type: object
                     properties:
@@ -1279,7 +1400,6 @@ paths:
         '404':
           description: No users found
 
-
   /user/{id}:
     get:
       tags:
@@ -1287,6 +1407,8 @@ paths:
       summary: Get user by ID
       description: Retrieve user information by ID
       operationId: getUserById
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1294,7 +1416,7 @@ paths:
           description: User ID
           schema:
             type: string
-            example: "507f1f77bcf86cd799439011"
+            example: '507f1f77bcf86cd799439011'
       responses:
         '200':
           description: User retrieved successfully
@@ -1305,7 +1427,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Lấy thông tin người dùng thành công"
+                    example: 'Lấy thông tin người dùng thành công'
                   data:
                     $ref: '#/components/schemas/User'
         '404':
@@ -1329,26 +1451,26 @@ paths:
               properties:
                 fullName:
                   type: string
-                  example: "Nguyễn Văn A Updated"
+                  example: 'Nguyễn Văn A Updated'
                 dateOfBirth:
                   type: string
                   format: date
-                  example: "1990-01-01"
+                  example: '1990-01-01'
                 gender:
                   type: string
                   enum: [male, female]
-                  example: "male"
+                  example: 'male'
                 address:
                   type: string
-                  example: "123 Updated Street, City"
+                  example: '123 Updated Street, City'
                 email:
                   type: string
                   format: email
-                  example: "updated@example.com"   
+                  example: 'updated@example.com'
                 phoneNumber:
                   type: string
-                  pattern: "^[0-9]{10,11}$"
-                  example: "0123456789"
+                  pattern: '^[0-9]{10,11}$'
+                  example: '0123456789'
       responses:
         '200':
           description: Profile updated successfully
@@ -1359,7 +1481,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Profile updated successfully"
+                    example: 'Profile updated successfully'
                   data:
                     $ref: '#/components/schemas/User'
         '400':
@@ -1372,6 +1494,67 @@ paths:
           description: Email or phone number already exists
         '422':
           description: Validation error
+  /user/avatar:
+    put:
+      tags:
+        - User
+      summary: Upload user avatar
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+        responses:
+          '200':
+            description: Avatar updated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Avatar updated successfully
+                    avatar:
+                      type: string
+                      example: https://res.cloudinary.com/xxx/image/upload/v123/avatars/xxx.jpg
+          '400':
+            description: Bad request (missing file or other error)
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: No file uploaded!
+          '401':
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Unauthorized
+          '404':
+            description: User not found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: User not found
 
   # Test Order Management
   /test-orders:
@@ -1389,35 +1572,28 @@ paths:
             schema:
               type: object
               required:
-                - patientName
-                - dateOfBirth
-                - gender
-                - address
-                - phoneNumber
-                - email
+                - medicalRecordId
+                - requestedTests
               properties:
-                patientName:
+                medicalRecordId:
                   type: string
-                  example: 'Nguyễn Văn A'
-                dateOfBirth:
-                  type: string
-                  format: date
-                  example: '1990-01-15'
-                gender:
-                  type: string
-                  enum: [male, female]
-                  example: 'male'
-                address:
-                  type: string
-                  example: '123 Đường ABC, Quận 1, TP.HCM'
-                phoneNumber:
-                  type: string
-                  pattern: '^[0-9]{10,11}$'
-                  example: '0123456789'
-                email:
-                  type: string
-                  format: email
-                  example: 'patient@email.com'
+                  description: MongoDB ObjectId of the existing medical record
+                  example: '6512bd43d9caa6e02c990b0a'
+                requestedTests:
+                  type: array
+                  description: Select one or more tests to perform for this order (CBC panel)
+                  items:
+                    type: string
+                    enum:
+                      - 'White Blood Cell Count'
+                      - 'Red Blood Cell Count'
+                      - 'Hemoglobin'
+                      - 'Hematocrit'
+                      - 'Platelet Count'
+                      - 'Mean Corpuscular Volume'
+                      - 'Mean Corpuscular Haemoglobin'
+                      - 'Mean Corpuscular Haemoglobin Concentration'
+                  example: ['Hemoglobin', 'Hematocrit', 'Platelet Count']
       responses:
         '201':
           description: Test order created successfully
@@ -1440,7 +1616,11 @@ paths:
       tags:
         - Test Orders
       summary: Get list of test orders
-      description: Retrieve a paginated list of test orders with search and filter options
+      description: |
+        Retrieve a paginated list of test orders with search and filter options.
+
+        **Patient Access Restriction:** Users with role `patient` can only view their own test orders and test results. 
+        The system automatically filters results to show only test orders associated with the authenticated patient's medical records.
       security:
         - bearerAuth: []
       parameters:
@@ -1508,13 +1688,19 @@ paths:
                         $ref: '#/components/schemas/Pagination'
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - Patient users can only access their own test orders
 
   /test-orders/{id}:
     get:
       tags:
         - Test Orders
       summary: Get test order details
-      description: Retrieve detailed information of a specific test order
+      description: |
+        Retrieve detailed information of a specific test order, including test results.
+
+        **Patient Access Restriction:** Users with role `patient` can only view test order details (including test results) 
+        that belong to their own medical records. Attempting to access another patient's test order will result in a 403 Forbidden error.
       security:
         - bearerAuth: []
       parameters:
@@ -1540,6 +1726,8 @@ paths:
                     $ref: '#/components/schemas/TestOrderDetail'
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - Patient users can only access their own test orders
         '404':
           description: Test order not found
 
@@ -1647,7 +1835,8 @@ paths:
           description: Test order not found
 
   # Test Results Management
-  /test-orders/{id}/results:
+
+  /test-orders/{id}/run-with-instrument:
     post:
       tags:
         - Test Results
@@ -1670,74 +1859,15 @@ paths:
             schema:
               type: object
               required:
-                - testResults
+                - instrumentId
               properties:
-                testResults:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - testName
-                      - result
-                      - status
-                    properties:
-                      testName:
-                        type: string
-                        example: 'Hemoglobin'
-                      result:
-                        type: string
-                        example: '14.5'
-                      unit:
-                        type: string
-                        example: 'g/dL'
-                      normalRange:
-                        type: string
-                        example: '12.0-16.0'
-                      status:
-                        type: string
-                        enum: [normal, abnormal, critical]
-                        example: 'normal'
+                instrumentId:
+                  type: string
+                  description: Instrument ID to run the tests on
+                  example: '64f1f77b0c9aa6e02c990b0a'
       responses:
         '200':
-          description: Test results added successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Test results added successfully'
-                  data:
-                    $ref: '#/components/schemas/TestOrder'
-        '400':
-          description: Validation error
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden (insufficient role)
-        '404':
-          description: Test order not found
-
-  /test-orders/{id}/hl7-results:
-    post:
-      tags:
-        - Test Results
-      summary: Process HL7 test results
-      description: Process test results from HL7 message. The system will randomly pick ONE test and generate its value.
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Test order ID
-          schema:
-            type: string
-            example: '507f1f77bcf86cd799439011'
-      responses:
-        '200':
-          description: HL7 test results processed successfully
+          description: HL7 test results processed successfully using instrument
           content:
             application/json:
               schema:
@@ -1751,20 +1881,48 @@ paths:
                     properties:
                       testOrder:
                         $ref: '#/components/schemas/TestOrder'
+                      instrument:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          status:
+                            type: string
+                        required: [id, name]
+                      reagents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: string }
+                            reagentId: { type: string }
+                            reagentName: { type: string }
+                            lotNumber: { type: string }
+                            unitOfMeasure: { type: string }
+                            expirationDate: { type: string, format: date-time }
                       hl7Message:
-                        $ref: '#/components/schemas/HL7Message'
+                        type: object
+                        properties:
+                          messageId: { type: string }
+                          patientId: { type: string }
+                          timestamp: { type: string, format: date-time }
+                          rawMessage: { type: string }
                       processedResults:
                         type: array
-                        minItems: 1
-                        maxItems: 1
                         items:
                           $ref: '#/components/schemas/TestResult'
+        '400':
+          description: Validation error
         '401':
           description: Unauthorized
         '403':
           description: Forbidden (insufficient role)
         '404':
-          description: Test order not found
+          description: Test order or instrument not found
+        '409':
+          description: Instrument is not active
 
   # Test Order Review
   /test-orders/{id}/review:
@@ -1819,44 +1977,6 @@ paths:
                     $ref: '#/components/schemas/TestOrder'
         '400':
           description: Validation error or test order not completed
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden (insufficient role)
-        '404':
-          description: Test order not found
-
-  /test-orders/{id}/ai-review:
-    post:
-      tags:
-        - Test Order Review
-      summary: AI auto review test order
-      description: Perform AI-driven automatic review of a completed test order
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Test order ID
-          schema:
-            type: string
-            example: '507f1f77bcf86cd799439011'
-      responses:
-        '200':
-          description: AI review completed successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'AI review completed successfully'
-                  data:
-                    $ref: '#/components/schemas/TestOrder'
-        '400':
-          description: Test order not completed
         '401':
           description: Unauthorized
         '403':
@@ -2101,6 +2221,8 @@ paths:
         - Flagging Configuration
       summary: Get flagging configurations
       description: Retrieve all flagging configurations or only active ones
+      security:
+        - bearerAuth: []
       parameters:
         - name: active
           in: query
@@ -2131,6 +2253,8 @@ paths:
         - Flagging Configuration
       summary: Get flagging configuration by test name
       description: Retrieve a specific flagging configuration by test name
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -2293,43 +2417,12 @@ paths:
             schema:
               type: object
               required:
-                - patientId
-                - fullName
-                - dateOfBirth
-                - gender
-                - phoneNumber
-                - address
+                - userId
               properties:
-                patientId:
+                userId:
                   type: string
-                  example: 'P001234'
-                  description: Unique patient identifier
-                fullName:
-                  type: string
-                  example: 'Nguyễn Văn A'
-                dateOfBirth:
-                  type: string
-                  format: date
-                  example: '1990-01-15'
-                gender:
-                  type: string
-                  enum: [male, female]
-                  example: 'male'
-                phoneNumber:
-                  type: string
-                  pattern: '^[0-9]{10,11}$'
-                  example: '0123456789'
-                email:
-                  type: string
-                  format: email
-                  example: 'patient@email.com'
-                address:
-                  type: string
-                  example: '123 Đường ABC, Quận 1, TP.HCM'
-                identifyNumber:
-                  type: string
-                  pattern: '^[0-9]{9,12}$'
-                  example: '123456789'
+                  example: '507f1f77bcf86cd799439011'
+                  description: MongoDB user _id of an existing user with role patient
                 emergencyContact:
                   type: object
                   properties:
@@ -2402,7 +2495,11 @@ paths:
       tags:
         - Patient Medical Records
       summary: Get list of patient medical records
-      description: Retrieve a paginated list of patient medical records with search and filter options
+      description: |
+        Retrieve a paginated list of patient medical records with search and filter options.
+
+        **Patient Access Restriction:** Users with role `patient` can only view their own medical records. 
+        The system automatically filters results to show only the authenticated patient's medical record.
       security:
         - bearerAuth: []
       parameters:
@@ -2527,13 +2624,19 @@ paths:
                         $ref: '#/components/schemas/Pagination'
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - Patient users can only access their own medical records
 
   /patient-records/{id}:
     get:
       tags:
         - Patient Medical Records
       summary: Get patient medical record details
-      description: Retrieve detailed information of a specific patient medical record
+      description: |
+        Retrieve detailed information of a specific patient medical record, including test orders and clinical notes.
+
+        **Patient Access Restriction:** Users with role `patient` can only view their own medical record details. 
+        Attempting to access another patient's medical record will result in a 403 Forbidden error.
       security:
         - bearerAuth: []
       parameters:
@@ -2595,10 +2698,12 @@ paths:
                                 type: string
                               email:
                                 type: string
-        '404':
-          description: Patient record not found
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - Patient users can only access their own medical records
+        '404':
+          description: Patient record not found
 
     put:
       tags:
@@ -2808,6 +2913,1915 @@ paths:
         '404':
           description: Patient record not found
 
+  /test-orders/{id}/ai-review:
+    post:
+      tags:
+        - Test Order Review
+      summary: AI auto review a completed test order
+      description: |
+        Trigger AI-assisted review on a completed test order. The system evaluates results, applies minor adjustments if appropriate, clamps values within configured acceptable ranges, and updates status to `ai_reviewed`.
+
+        Required privilege: `review_test_order`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Test order ID
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      responses:
+        '200':
+          description: AI review completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'AI review completed successfully'
+                  data:
+                    type: object
+                    properties:
+                      testOrder:
+                        $ref: '#/components/schemas/TestOrder'
+                      aiSuggestions:
+                        type: array
+                        description: Raw AI suggestion items returned by Gemini
+                        items:
+                          type: object
+                          properties:
+                            testName:
+                              type: string
+                              example: 'Glucose'
+                            suggestedResult:
+                              type: number
+                              example: 101.5
+                      aiDiagnosis:
+                        type: string
+                        nullable: true
+                        description: JSON string of AI diagnoses (diagnoses[], notes)
+                        example: '{"diagnoses":[{"name":"Diabetes Mellitus","confidence":0.72,"rationale":"Elevated fasting glucose"}],"notes":"Suggest confirmatory testing"}'
+        '400':
+          description: Bad request (invalid id, insufficient data, or wrong status)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Test order must be completed before AI review'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - missing privilege `review_test_order`
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Bạn không có quyền thực hiện hành động này'
+                  required:
+                    type: array
+                    items:
+                      type: string
+                    example: ['review_test_order']
+        '404':
+          description: Test order not found
+
+  /ai/diagnostics:
+    get:
+      tags:
+        - Test Order Review
+      summary: Ping Gemini AI to verify API key and model reachability
+      description: Calls the configured Gemini model with a trivial prompt and returns a short text sample
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: AI diagnostics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'AI diagnostics'
+                  data:
+                    type: object
+                    properties:
+                      ok:
+                        type: boolean
+                        example: true
+                      model:
+                        type: string
+                        example: 'gemini-2.5-pro'
+                      sample:
+                        type: string
+                        nullable: true
+                        example: 'OK - gemini-2.5-pro'
+        '401':
+          description: Unauthorized
+
+  # Reagent Management endpoints
+  /reagents:
+    get:
+      tags:
+        - Reagents
+      summary: List reagents
+      description: |
+        Get a paginated list of reagents. Results are sorted by latest date (updatedAt) by default.
+
+        **Required Privilege:** `view_reagent`
+
+        **Access:** Admin, Lab Manager, Service
+      operationId: listReagents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search by name, description, catalogNumber, or manufacturer
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [name, createdAt, updatedAt]
+            default: updatedAt
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, -1]
+            default: -1
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: isActive
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Reagents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get reagents successfully'
+                  data:
+                    type: object
+                    properties:
+                      reagents:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Reagent'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '403':
+          description: Insufficient privileges
+
+    post:
+      tags:
+        - Reagents
+      summary: Create reagent
+      description: |
+        Create a new reagent with specified properties.
+
+        **CAS Number Auto-generation:**
+        - If `casNumber` is not provided, the system will automatically generate a unique random CAS Number
+        - CAS Number format: number-number-number (e.g., 7732-18-5)
+        - CAS Number must be unique across all reagents
+        - Generated CAS Numbers are guaranteed to be unique (no duplicates)
+
+        **Categories:**
+        - A reagent can belong to multiple categories
+        - Valid categories: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme
+
+        **Required Privilege:** `create_reagent`
+
+        **Access:** Admin, Lab Manager
+      operationId: createReagent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - usagePerRun
+              properties:
+                name:
+                  type: string
+                  example: 'Diluent'
+                catalogNumber:
+                  type: string
+                  example: 'CAT-001'
+                manufacturer:
+                  type: string
+                  example: 'ABC Chemicals'
+                casNumber:
+                  type: string
+                  description: |
+                    Optional. CAS Number in format: number-number-number (e.g., 7732-18-5).
+                    If not provided, system will automatically generate a unique random CAS Number.
+                  example: '7732-18-5'
+                description:
+                  type: string
+                  example: 'Typically used in a 1:10 to 1:20 ratio with blood samples'
+                usagePerRun:
+                  type: object
+                  required:
+                    - min
+                    - max
+                    - unit
+                  properties:
+                    min:
+                      type: number
+                      example: 1
+                    max:
+                      type: number
+                      example: 2
+                    unit:
+                      type: string
+                      enum: [ml, μL, L]
+                      example: 'ml'
+                ratio:
+                  type: string
+                  example: '1:10 to 1:20'
+                categories:
+                  type: array
+                  description: 'Array of category names. Must be from predefined list: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme'
+                  items:
+                    type: string
+                    enum:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - 'Molecular/PCR'
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
+                  example:
+                    - Hematology
+                    - Biochemistry
+                storageCondition:
+                  type: number
+                  description: Storage temperature in degrees Celsius
+                  example: 4
+      responses:
+        '200':
+          description: Reagent created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent created successfully'
+                  data:
+                    $ref: '#/components/schemas/Reagent'
+        '400':
+          description: |
+            Bad request. Possible reasons:
+            - Invalid categories (not from predefined list)
+            - Failed to generate unique CAS Number
+        '409':
+          description: |
+            Conflict. Possible reasons:
+            - Reagent with this name already exists
+            - Reagent with this CAS Number already exists
+        '422':
+          description: Validation error
+        '500':
+          description: Internal server error (e.g., failed to generate unique CAS Number)
+
+  /reagents/{id}:
+    get:
+      tags:
+        - Reagents
+      summary: Get reagent by ID
+      description: |
+        Get a specific reagent by its ID.
+
+        **Required Privilege:** `view_reagent`
+      operationId: getReagentById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      responses:
+        '200':
+          description: Reagent retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get reagent successfully'
+                  data:
+                    $ref: '#/components/schemas/Reagent'
+        '404':
+          description: Reagent not found
+
+    put:
+      tags:
+        - Reagents
+      summary: Update reagent
+      description: |
+        Update a reagent by ID.
+
+        **CAS Number:**
+        - If updating CAS Number, it must be unique and in format: number-number-number (e.g., 7732-18-5)
+
+        **Categories:**
+        - A reagent can belong to multiple categories
+        - Valid categories: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme
+
+        **Required Privilege:** `modify_reagent`
+      operationId: updateReagent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                catalogNumber:
+                  type: string
+                manufacturer:
+                  type: string
+                casNumber:
+                  type: string
+                  description: 'CAS Number in format: number-number-number (e.g., 7732-18-5). Must be unique.'
+                description:
+                  type: string
+                usagePerRun:
+                  type: object
+                  properties:
+                    min:
+                      type: number
+                    max:
+                      type: number
+                    unit:
+                      type: string
+                      enum: [ml, μL, L]
+                ratio:
+                  type: string
+                categories:
+                  type: array
+                  description: 'Array of category names. Must be from predefined list: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme'
+                  items:
+                    type: string
+                    enum:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - 'Molecular/PCR'
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
+                storageCondition:
+                  type: number
+                  description: Storage temperature in degrees Celsius
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: Reagent updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent updated successfully'
+                  data:
+                    $ref: '#/components/schemas/Reagent'
+        '400':
+          description: |
+            Bad request. Possible reasons:
+            - Invalid categories (not from predefined list)
+        '404':
+          description: Reagent not found
+        '409':
+          description: |
+            Conflict. Possible reasons:
+            - Reagent with this name already exists
+            - Reagent with this CAS Number already exists
+        '422':
+          description: Validation error
+
+    delete:
+      tags:
+        - Reagents
+      summary: Delete reagent
+      description: |
+        Delete a reagent from the system.
+
+        **Required Privilege:** `delete_reagent`
+      operationId: deleteReagent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      responses:
+        '200':
+          description: Reagent deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent deleted successfully'
+                  data:
+                    $ref: '#/components/schemas/Reagent'
+        '404':
+          description: Reagent not found
+
+  /reagents/categories:
+    get:
+      tags:
+        - Reagents
+      summary: Get reagent categories
+      description: |
+        Get the list of predefined reagent categories.
+
+        **Available Categories:**
+        - Hematology
+        - Biochemistry
+        - Immunology
+        - Molecular/PCR
+        - Microbiology
+        - Coagulation
+        - Enzyme
+
+        **Required Privilege:** `view_reagent`
+      operationId: getReagentCategories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Reagent categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get reagent categories successfully'
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - 'Molecular/PCR'
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
+
+  /reagents/vendor-supply:
+    post:
+      tags:
+        - Reagents
+      summary: Create vendor supply record
+      description: |
+        Record a new reagent shipment received from a vendor. This automatically creates an entry in the vendor supply history.
+
+        **Note:** If `reagentName`, `catalogNumber`, `manufacturer`, or `casNumber` are not provided, they will be automatically retrieved from the reagent record based on `reagentId`.
+
+        **Required Privilege:** `create_reagent_supply`
+      operationId: createVendorSupply
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reagentId
+                - vendorName
+                - purchaseOrderNumber
+                - orderDate
+                - receiptDate
+                - quantityReceived
+                - unitOfMeasure
+                - lotNumber
+                - expirationDate
+                - receivedBy
+                - status
+              properties:
+                reagentId:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  description: Reagent ID. Required. If other reagent fields are not provided, they will be auto-filled from this reagent.
+                  example: '507f1f77bcf86cd799439011'
+                reagentName:
+                  type: string
+                  description: Reagent name. Optional. If not provided, will be auto-filled from reagent record.
+                  example: 'Diluent'
+                catalogNumber:
+                  type: string
+                  description: Catalog number. Optional. If not provided, will be auto-filled from reagent record.
+                  example: 'CAT-001'
+                manufacturer:
+                  type: string
+                  description: Manufacturer name. Optional. If not provided, will be auto-filled from reagent record.
+                  example: 'ABC Chemicals'
+                casNumber:
+                  type: string
+                  description: CAS Number. Optional. If not provided, will be auto-filled from reagent record.
+                  example: '123-45-6'
+                vendorName:
+                  type: string
+                  example: 'XYZ Supplies Inc.'
+                vendorId:
+                  type: string
+                  example: 'VEND-001'
+                purchaseOrderNumber:
+                  type: string
+                  example: 'PO-2024-001'
+                orderDate:
+                  type: string
+                  format: date
+                  example: '2024-01-15'
+                receiptDate:
+                  type: string
+                  format: date
+                  example: '2024-01-20'
+                quantityReceived:
+                  type: number
+                  example: 100
+                unitOfMeasure:
+                  type: string
+                  example: 'ml'
+                lotNumber:
+                  type: string
+                  description: |
+                    Lot number for this reagent shipment. **Must be unique for each reagent.**
+                    The same lot number cannot be used twice for the same reagent, but can be used for different reagents.
+                  example: 'LOT-2024-001'
+                expirationDate:
+                  type: string
+                  format: date
+                  example: '2025-12-31'
+                receivedBy:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: '507f1f77bcf86cd799439011'
+                initialStorageLocation:
+                  type: string
+                  example: 'Warehouse A, Shelf 3'
+                status:
+                  type: string
+                  enum: [Received, Partial Shipment, Returned]
+                  example: 'Received'
+      responses:
+        '200':
+          description: Vendor supply record created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Vendor supply record created successfully'
+                  data:
+                    $ref: '#/components/schemas/ReagentVendorSupply'
+        '404':
+          description: Reagent or user not found
+        '409':
+          description: Conflict - Lot number already exists for this reagent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Lot number "LOT-2024-001" already exists for this reagent. Each reagent must have unique lot numbers.'
+        '422':
+          description: Validation error
+
+  /reagents/vendor-supply/history:
+    get:
+      tags:
+        - Reagents
+      summary: List vendor supply history
+      description: |
+        Get a paginated list of reagent vendor supply history. Can filter by reagent name, vendor name, or date range.
+        **Required Privilege:** `view_reagent_supply_history`
+
+        If no filters are provided, returns the full history of all reagent shipments.
+      operationId: listVendorSupplyHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Case-insensitive search across reagent name, vendor name, lot number, purchase order number, catalog number, and manufacturer.
+        - name: reagentName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by reagent name (case-insensitive partial match)
+        - name: vendorName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vendor name (case-insensitive partial match)
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by receipt date from (YYYY-MM-DD)
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by receipt date to (YYYY-MM-DD)
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [receiptDate, orderDate, createdAt]
+            default: receiptDate
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, -1]
+            default: -1
+      responses:
+        '200':
+          description: Vendor supply history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get vendor supply history successfully'
+                  data:
+                    type: object
+                    properties:
+                      vendorSupplies:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReagentVendorSupply'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+
+  /reagents/usage/history:
+    get:
+      tags:
+        - Reagents
+      summary: List reagent usage history
+      description: |
+        Get a paginated list of reagent usage history. Can filter by reagent, action, test order, instrument, or date range.
+
+        **Required Privilege:** `view_reagent_usage_history`
+
+        If no filters are provided, returns the full history of all reagent usage.
+      operationId: listUsageHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Case-insensitive search across reagent name, test order name, instrument name, lot number, notes, and performer name.
+        - name: reagentName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by reagent name (case-insensitive partial match)
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Used, Consumed, Wasted, Expired, Returned]
+          description: Filter by action type
+        - name: testOrderName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by test order display name (patient name or requested tests)
+        - name: instrumentName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by instrument name
+        - name: performedByName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by performer name or email (case-insensitive)
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by performed date from (YYYY-MM-DD)
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by performed date to (YYYY-MM-DD)
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [performedAt, createdAt]
+            default: performedAt
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, -1]
+            default: -1
+      responses:
+        '200':
+          description: Usage history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get usage history successfully'
+                  data:
+                    type: object
+                    properties:
+                      usageHistory:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReagentUsageHistory'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+
+  /reagents/inventory/fifo:
+    get:
+      tags:
+        - Reagents
+      summary: Get reagent inventory (FIFO)
+      description: |
+        Return reagent inventory aggregated by lot with FIFO sorting (earliest expiration first).
+
+        Available quantity is calculated as `quantityReceived - quantityUsed` (summing Used/Consumed/Wasted for the same lot and unit).
+
+        Recommended privilege: `view_reagent_supply_history`.
+      operationId: getReagentInventoryFIFO
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Case-insensitive search across reagent name, vendor name, lot number, purchase order number, catalog number, and manufacturer.
+        - name: reagentId
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by reagent ID
+        - name: reagentName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by reagent name (partial match)
+        - name: vendorName
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vendor name (case-insensitive partial match)
+        - name: includeExpired
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Include expired lots (default false)
+        - name: includeExpiringSoon
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Only include lots expiring within 30 days (default false)
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+          description: Page number (default 1)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+          description: Number of items per page (default 10)
+      responses:
+        '200':
+          description: Inventory retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get reagent inventory successfully'
+                  data:
+                    type: object
+                    properties:
+                      inventory:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReagentInventoryItem'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized
+
+  /reagents/inventory/next-lot:
+    get:
+      tags:
+        - Reagents
+      summary: Get next reagent lot (FIFO)
+      description: |
+        Return the next lot to use based on FIFO (earliest expiration) that still has available quantity.
+
+        If `requiredQuantity` is specified, returns the earliest lot that has at least that quantity available. Otherwise, returns the earliest expiring lot.
+
+        Recommended privilege: `view_reagent_supply_history`.
+      operationId: getNextReagentLotFIFO
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reagentId
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Reagent ID
+        - name: requiredQuantity
+          in: query
+          required: false
+          schema:
+            type: number
+          description: Minimum quantity required (in the same unit as the lot)
+      responses:
+        '200':
+          description: Next lot retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get next reagent lot successfully'
+                  data:
+                    nullable: true
+                    oneOf:
+                      - $ref: '#/components/schemas/ReagentInventoryItem'
+        '401':
+          description: Unauthorized
+
+  /chats/{UserId}:
+    get:
+      tags:
+        - Chat
+      summary: Fetch conversation history with another user
+      description: Fetch messages in a 1:1 conversation between the authenticated user and the specified user. The authenticated user is derived from the JWT token.
+      operationId: getConversation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: UserId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Other user's ID
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 50
+      responses:
+        '200':
+          description: Conversation messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Conversation messages'
+                  data:
+                    type: object
+                    properties:
+                      messages:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ChatMessage'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /webrtc/token:
+    get:
+      tags:
+        - WebRTC
+      summary: Get Stringee access token for current user
+      description: |
+        Get a Stringee access token for the currently authenticated user.
+
+        Token will be used on the frontend to connect to Stringee WebRTC SDK for audio/video calls.
+      operationId: getStringeeToken
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Stringee access token generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Stringee access token'
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        description: Stringee access token (JWT)
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+        '401':
+          description: Unauthorized
+
+    post:
+      tags:
+        - Chat
+      summary: Send a message to another user (REST fallback)
+      description: Persist a chat message and, if Socket.IO is connected, emit to the conversation room so recipients receive the message in real time.
+      operationId: sendMessage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: UserId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Recipient user ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: 'Hello, how are you?'
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Message sent'
+                  data:
+                    $ref: '#/components/schemas/ChatMessage'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+
+  /instruments:
+    get:
+      tags:
+        - Instruments
+      summary: List instruments
+      description: |
+        Get a paginated list of instruments. Results are sorted by latest date (updatedAt) by default.
+
+        **Required Privilege:** `view_instrument`
+
+        **Access:** Admin, Lab Manager, Service
+      operationId: listInstruments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search by name, model, manufacturer, serialNumber, location, or description
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Active, Inactive, Maintenance, Out of Service]
+          description: Filter by instrument status
+        - name: isActive
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter by active status
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [name, createdAt, updatedAt]
+            default: updatedAt
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [1, -1]
+            default: -1
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Instruments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get instruments successfully'
+                  data:
+                    type: object
+                    properties:
+                      instruments:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Instrument'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '403':
+          description: Insufficient privileges
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Bạn không có quyền thực hiện hành động này'
+        '401':
+          description: Unauthorized
+
+    post:
+      tags:
+        - Instruments
+      summary: Create instrument
+      description: |
+        Create a new instrument with specified properties.
+
+        **Required Privilege:** `create_instrument`
+
+        **Access:** Admin, Lab Manager
+      operationId: createInstrument
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - categories
+              properties:
+                name:
+                  type: string
+                  example: 'Blood Analyzer Model X-100'
+                model:
+                  type: string
+                  example: 'X-100'
+                manufacturer:
+                  type: string
+                  example: 'ABC Medical Devices'
+                serialNumber:
+                  type: string
+                  example: 'SN-2024-001'
+                location:
+                  type: string
+                  example: 'Lab Room A, Shelf 1'
+                description:
+                  type: string
+                  example: 'Automated blood analysis instrument'
+                categories:
+                  type: array
+                  description: At least one category is required
+                  items:
+                    type: string
+                    enum:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - Molecular/PCR
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
+                  example: ['Hematology']
+                status:
+                  type: string
+                  enum: [Active, Inactive, Maintenance, Out of Service]
+                  default: Active
+      responses:
+        '200':
+          description: Instrument created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument created successfully'
+                  data:
+                    $ref: '#/components/schemas/Instrument'
+        '409':
+          description: Conflict - Instrument with this name already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument with this name already exists'
+        '403':
+          description: Insufficient privileges
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation error
+
+  /instruments/{id}:
+    get:
+      tags:
+        - Instruments
+      summary: Get instrument by ID
+      description: |
+        Get detailed information about a specific instrument.
+
+        **Required Privilege:** `view_instrument`
+
+        **Access:** Admin, Lab Manager, Service
+      operationId: getInstrumentById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Instrument ID
+      responses:
+        '200':
+          description: Instrument retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get instrument successfully'
+                  data:
+                    $ref: '#/components/schemas/Instrument'
+        '404':
+          description: Instrument not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument not found'
+        '422':
+          description: Invalid instrument ID
+
+    put:
+      tags:
+        - Instruments
+      summary: Update instrument
+      description: |
+        Update an existing instrument. Only provided fields will be updated.
+
+        **Required Privilege:** `modify_instrument`
+
+        **Access:** Admin, Lab Manager
+      operationId: updateInstrument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Instrument ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'Blood Analyzer Model X-100'
+                model:
+                  type: string
+                  example: 'X-100'
+                manufacturer:
+                  type: string
+                  example: 'ABC Medical Devices'
+                serialNumber:
+                  type: string
+                  example: 'SN-2024-001'
+                location:
+                  type: string
+                  example: 'Lab Room A, Shelf 1'
+                description:
+                  type: string
+                  example: 'Automated blood analysis instrument'
+                categories:
+                  type: array
+                  description: Update instrument categories; at least one if provided
+                  items:
+                    type: string
+                    enum:
+                      - Hematology
+                      - Biochemistry
+                      - Immunology
+                      - Molecular/PCR
+                      - Microbiology
+                      - Coagulation
+                      - Enzyme
+                isActive:
+                  type: boolean
+                  example: true
+                status:
+                  type: string
+                  enum: [Active, Inactive, Maintenance, Out of Service]
+      responses:
+        '200':
+          description: Instrument updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument updated successfully'
+                  data:
+                    $ref: '#/components/schemas/Instrument'
+        '404':
+          description: Instrument not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument not found'
+        '409':
+          description: Conflict - Instrument with this name already exists
+        '403':
+          description: Insufficient privileges
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation error
+
+    delete:
+      tags:
+        - Instruments
+      summary: Delete instrument
+      description: |
+        Delete an instrument. Cannot delete instruments with active reagent assignments.
+
+        **Required Privilege:** `delete_instrument`
+
+        **Access:** Admin, Lab Manager
+      operationId: deleteInstrument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Instrument ID
+      responses:
+        '200':
+          description: Instrument deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument deleted successfully'
+                  data:
+                    $ref: '#/components/schemas/Instrument'
+        '404':
+          description: Instrument not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument not found'
+        '409':
+          description: Conflict - Cannot delete instrument with active reagent assignments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Cannot delete instrument with active reagent assignments'
+        '403':
+          description: Insufficient privileges
+        '401':
+          description: Unauthorized
+        '422':
+          description: Invalid instrument ID
+
+  /instruments/{id}/reagents:
+    get:
+      tags:
+        - Instruments
+      summary: Get instrument reagents
+      description: |
+        Get all active reagent assignments for a specific instrument.
+        **Required Privilege:** `view_instrument`
+
+        **Access:** Admin, Lab Manager, Service
+      operationId: getInstrumentReagents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Instrument ID
+      responses:
+        '200':
+          description: Instrument reagents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Get instrument reagents successfully'
+                  data:
+                    type: object
+                    properties:
+                      instrument:
+                        $ref: '#/components/schemas/Instrument'
+                      reagents:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/InstrumentReagentAssignment'
+        '404':
+          description: Instrument not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument not found'
+        '422':
+          description: Invalid instrument ID
+
+    post:
+      tags:
+        - Instruments
+      summary: Add reagent to instrument
+      description: |
+        Assign a reagent to an instrument. 
+
+        **Automatic Data Retrieval:**
+        - The system automatically retrieves `reagentName` from the reagent database using `reagentId`.
+        - The system automatically determines the `unit` from the inventory:
+          - If `lotNumber` is provided, the unit is taken from that specific lot.
+          - If `lotNumber` is not provided, the unit is taken from the first available lot (FIFO).
+
+        **Lot Selection:**
+        - If `lotNumber` is provided, the system will use the specified lot (must have sufficient quantity).
+        - If `lotNumber` is not provided, the system will automatically select the lot using FIFO (First In First Out) methodology based on earliest expiration date that has sufficient quantity.
+
+        **Human-Readable Fields:**
+        - Responses automatically populate `instrumentName`, `assignedByName`, and `vendorSupplyName` when available for better UI presentation.
+
+        **Required Privilege:** `modify_instrument`
+
+        **Access:** Admin, Lab Manager
+      operationId: addReagentToInstrument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Instrument ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reagentId
+                - quantity
+              properties:
+                reagentId:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  description: Reagent ID. The system will automatically retrieve the reagent name and unit from the database.
+                  example: '507f1f77bcf86cd799439011'
+                quantity:
+                  type: number
+                  description: Quantity to assign. The unit will be automatically determined from the inventory.
+                  example: 10
+                lotNumber:
+                  type: string
+                  description: |
+                    Optional. Specify lot number to use. If not provided, system will use FIFO to select the lot automatically.
+                    The unit will be determined from the selected lot (or specified lot if provided).
+                  example: 'LOT-2024-001'
+                notes:
+                  type: string
+                  description: Optional notes for the assignment.
+                  example: 'Assigned for routine testing'
+      responses:
+        '200':
+          description: Reagent added to instrument successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent added to instrument successfully using FIFO'
+                  data:
+                    $ref: '#/components/schemas/InstrumentReagentAssignment'
+        '404':
+          description: Instrument, reagent, or specified lot not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument not found'
+                    description: |
+                      Possible messages:
+                      - "Instrument not found"
+                      - "Reagent not found"
+                      - "Lot number {lotNumber} not found for this reagent"
+                      - "Lot number {lotNumber} not found or unit mismatch for this reagent"
+        '409':
+          description: Conflict - Instrument not active, categories mismatch, or insufficient inventory
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Instrument is not active or No inventory available for this reagent'
+                    description: |
+                      Possible messages:
+                      - "Instrument is not active"
+                      - "Instrument {instrumentName} has no categories configured. Please update the instrument categories before assigning reagents."
+                      - "Reagent {reagentName} has no categories configured. Please update the reagent categories before assigning it to instruments."
+                      - "Instrument {instrumentName} and reagent {reagentName} do not share a common category."
+                      - "No inventory available for this reagent"
+                      - "No inventory available for this reagent in the unit: {unit}"
+                      - "Insufficient quantity in lot {lotNumber}. Available: {available} {unit}, Requested: {requested} {unit}"
+                      - "Insufficient inventory. Available: {total} {unit}, Requested: {requested} {unit}"
+        '403':
+          description: Insufficient privileges
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation error
+
+  /instruments/reagents/{assignmentId}:
+    delete:
+      tags:
+        - Instruments
+      summary: Remove reagent from instrument
+      description: |
+        Remove a reagent assignment from an instrument.
+
+        Response payload includes `removedByName` (along with other human-readable fields) when available.
+
+        **Required Privilege:** `modify_instrument`
+
+        **Access:** Admin, Lab Manager
+      operationId: removeReagentFromInstrument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: assignmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Reagent assignment ID
+      responses:
+        '200':
+          description: Reagent removed from instrument successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent removed from instrument successfully'
+                  data:
+                    $ref: '#/components/schemas/InstrumentReagentAssignment'
+        '404':
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent assignment not found'
+        '409':
+          description: Assignment already removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Reagent assignment is already removed'
+        '403':
+          description: Insufficient privileges
+        '401':
+          description: Unauthorized
+        '422':
+          description: Invalid assignment ID
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List notifications
+      description: List notifications for the authenticated user.
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 20
+        - name: unreadOnly
+          in: query
+          required: false
+          description: Return only unread notifications (true|1)
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Notifications fetched'
+                  data:
+                    type: object
+                    properties:
+                      notifications:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized
+
+  /notifications/summary:
+    get:
+      tags:
+        - Notifications
+      summary: Notifications summary
+      description: Get unread count and latest notifications for badge/preview
+      operationId: getNotificationsSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Notifications summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Notifications summary'
+                  data:
+                    type: object
+                    properties:
+                      unreadCount:
+                        type: integer
+                        example: 3
+                      latest:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+        '401':
+          description: Unauthorized
+
+  /notifications/{id}/read:
+    put:
+      tags:
+        - Notifications
+      summary: Mark notification as read
+      description: Mark a single notification as read for the authenticated user
+      operationId: markNotificationRead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Notification ID
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Notification marked as read'
+                  data:
+                    $ref: '#/components/schemas/Notification'
+        '400':
+          description: Invalid notification id
+        '401':
+          description: Unauthorized
+
+  /notifications/read-all:
+    put:
+      tags:
+        - Notifications
+      summary: Mark all notifications as read
+      description: Mark all notifications as read for the authenticated user
+      operationId: markAllNotificationsRead
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'All notifications marked as read'
+                  data:
+                    type: object
+                    properties:
+                      modifiedCount:
+                        type: integer
+                        example: 5
+        '401':
+          description: Unauthorized
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2822,34 +4836,34 @@ components:
       properties:
         _id:
           type: string
-          example: "507f1f77bcf86cd799439011"
+          example: '507f1f77bcf86cd799439011'
         fullName:
           type: string
-          example: "Nguyễn Văn A"
+          example: 'Nguyễn Văn A'
         email:
           type: string
           format: email
-          example: "user@example.com"
+          example: 'user@example.com'
         phoneNumber:
           type: string
-          example: "0123456789"
+          example: '0123456789'
         identifyNumber:
           type: string
-          example: "123456789"
+          example: '123456789'
         gender:
           type: string
           enum: [male, female]
-          example: "male"
+          example: 'male'
         address:
           type: string
-          example: "123 Main Street, City"
+          example: '123 Main Street, City'
         dateOfBirth:
           type: string
           format: date
-          example: "1990-01-01"
+          example: '1990-01-01'
         roleId:
           type: string
-          example: "507f1f77bcf86cd799439099"
+          example: '507f1f77bcf86cd799439099'
         status:
           type: integer
           enum: [0, 1, 2]
@@ -2861,98 +4875,147 @@ components:
         createdAt:
           type: string
           format: date-time
-          example: "2023-01-01T00:00:00.000Z"
+          example: '2023-01-01T00:00:00.000Z'
         updatedAt:
           type: string
           format: date-time
-          example: "2023-01-01T00:00:00.000Z"
+          example: '2023-01-01T00:00:00.000Z'
 
     Role:
       type: object
       properties:
         _id:
           type: string
-          example: "507f1f77bcf86cd799439022"
+          example: '507f1f77bcf86cd799439022'
         name:
           type: string
-          example: "Lab Manager"
+          example: 'Lab Manager'
         code:
           type: string
-          enum: [admin, lab_manager, service, lab_user, custom]
-          example: "lab_manager"
+          enum: [admin, lab_manager, service, lab_user, patient]
+          example: 'lab_manager'
         description:
           type: string
-          example: "Manage lab and users"
+          example: 'Manage lab and users'
         privileges:
           type: array
           items:
             type: string
-            enum: ["*", read_only, view_role, create_role, update_role, delete_role, view_config, create_config, modify_config, delete_config, view_user, modify_user, delete_user, lock_unlock_user, add_comment, modify_comment, delete_comment, create_test_order, delete_test_order, review_test_order, modify_test_order, execute_blood_testing, view_instrument, activate_instrument, deactivate_instrument, view_event_logs]
-          example: ["view_role", "create_role", "update_role", "view_config", "create_config", "modify_config", "delete_config", "view_user", "modify_user", "delete_user", "lock_unlock_user", "add_comment", "modify_comment", "delete_comment", "review_test_order", "modify_test_order"]
+            enum:
+              [
+                '*',
+                read_only,
+                view_role,
+                create_role,
+                update_role,
+                delete_role,
+                view_config,
+                create_config,
+                modify_config,
+                delete_config,
+                view_user,
+                modify_user,
+                delete_user,
+                lock_unlock_user,
+                add_comment,
+                modify_comment,
+                delete_comment,
+                create_test_order,
+                delete_test_order,
+                review_test_order,
+                modify_test_order,
+                execute_blood_testing,
+                view_instrument,
+                create_instrument,
+                modify_instrument,
+                delete_instrument,
+                activate_instrument,
+                deactivate_instrument,
+                view_event_logs
+              ]
+          example:
+            [
+              'view_role',
+              'create_role',
+              'update_role',
+              'view_config',
+              'create_config',
+              'modify_config',
+              'delete_config',
+              'view_user',
+              'modify_user',
+              'delete_user',
+              'lock_unlock_user',
+              'add_comment',
+              'modify_comment',
+              'delete_comment',
+              'review_test_order',
+              'modify_test_order'
+            ]
         createdAt:
           type: string
           format: date-time
-          example: "2023-01-01T00:00:00.000Z"
+          example: '2023-01-01T00:00:00.000Z'
         updatedAt:
           type: string
           format: date-time
-          example: "2023-01-01T00:00:00.000Z"
+          example: '2023-01-01T00:00:00.000Z'
 
     Error:
       type: object
       properties:
         message:
           type: string
-          example: "Error message"
+          example: 'Error message'
         errors:
           type: object
           additionalProperties:
             type: string
           example:
-            email: "Email is required"
-            password: "Password must be at least 8 characters"
+            email: 'Email is required'
+            password: 'Password must be at least 8 characters'
 
     ValidationError:
       type: object
       properties:
         message:
           type: string
-          example: "Dữ liệu không hợp lệ"
+          example: 'Dữ liệu không hợp lệ'
         errors:
           type: object
           additionalProperties:
             type: string
           example:
-            email: "Email không đúng định dạng"
-            password: "Mật khẩu phải có ít nhất 8 ký tự"
+            email: 'Email không đúng định dạng'
+            password: 'Mật khẩu phải có ít nhất 8 ký tự'
     Operator:
       type: object
       properties:
         id:
           type: string
-          example: "507f1f77bcf86cd799439011"
+          example: '507f1f77bcf86cd799439011'
         name:
           type: string
-          example: "Nguyễn Văn A"
+          example: 'Nguyễn Văn A'
         role:
           type: string
-          example: "manager"
+          example: 'manager'
 
     EventLog:
       type: object
       properties:
         _id:
           type: string
-          example: "60d5f9b2b60a3c6f1c9e8b7a"
+          example: '60d5f9b2b60a3c6f1c9e8b7a'
         userId:
           type: string
-          example: "507f1f77bcf86cd799439011"
+          example: '507f1f77bcf86cd799439011'
         action:
           type: string
-          example: "USER_UPDATED"
+          example: 'USER_UPDATED'
         details:
           type: string
-          example: "Updated user profile information"
+          example: 'Updated user profile information'
         timestamp:
           type: string
           format: date-time
@@ -2963,7 +5026,7 @@ components:
       properties:
         _id:
           type: string
-          example: "507f1f77bcf86cd799439011"
+          example: '507f1f77bcf86cd799439011'
         patientName:
           type: string
           example: 'Nguyễn Văn A'
@@ -2985,6 +5048,20 @@ components:
           type: string
           format: email
           example: 'patient@email.com'
+        requestedTests:
+          type: array
+          items:
+            type: string
+            enum:
+              - 'White Blood Cell Count'
+              - 'Red Blood Cell Count'
+              - 'Hemoglobin'
+              - 'Hematocrit'
+              - 'Platelet Count'
+              - 'Mean Corpuscular Volume'
+              - 'Mean Corpuscular Haemoglobin'
+              - 'Mean Corpuscular Haemoglobin Concentration'
+          example: ['Hemoglobin', 'Hematocrit']
         status:
           type: string
           enum: [pending, cancelled, completed, reviewed, ai_reviewed]
@@ -3049,7 +5126,7 @@ components:
       properties:
         _id:
           type: string
-          example: "60d5f9b2b60a3c6f1c9e8b7a"
+          example: '60d5f9b2b60a3c6f1c9e8b7a'
         testName:
           type: string
           example: 'Hemoglobin'
@@ -3088,6 +5165,12 @@ components:
             configApplied:
               type: string
               example: '507f1f77bcf86cd799439015'
+            aiDiagnosisSummary:
+              type: array
+              items:
+                type: string
+              description: Short list of AI-suggested diagnosis names
+              example: ['Diabetes Mellitus']
         createdAt:
           type: string
           format: date-time
@@ -3375,6 +5458,9 @@ components:
         deletedBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        deletedByName:
+          type: string
+          example: 'Charlie Nguyen'
         createdAt:
           type: string
           format: date-time
@@ -3386,9 +5472,15 @@ components:
         createdBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        createdByName:
+          type: string
+          example: 'Alice Nguyen'
         lastModifiedBy:
           type: string
           example: '507f1f77bcf86cd799439011'
+        lastModifiedByName:
+          type: string
+          example: 'Bob Tran'
 
     Pagination:
       type: object
@@ -3405,3 +5497,471 @@ components:
         totalPages:
           type: integer
           example: 10
+    ChatMessage:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        conversationId:
+          type: string
+          example: '507f1f77bcf86cd799439011_507f1f77bcf86cd799439012'
+        senderId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        receiverId:
+          type: string
+          example: '507f1f77bcf86cd799439012'
+        content:
+          type: string
+          example: 'Hello, how are you?'
+        metadata:
+          type: object
+          additionalProperties: true
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439099'
+        userId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+          description: Recipient user id
+        actorId:
+          type: string
+          nullable: true
+          example: '507f1f77bcf86cd799439012'
+          description: User who triggered the notification (if applicable)
+        type:
+          type: string
+          example: 'chat_message'
+        title:
+          type: string
+          example: 'New message from Dr. B'
+        body:
+          type: string
+          example: 'Bạn có 1 tin nhắn mới'
+        data:
+          type: object
+          additionalProperties: true
+          description: "Optional additional payload (e.g., { testOrderId: '...', url: '...' })"
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+
+    ReagentInventoryItem:
+      type: object
+      properties:
+        vendorSupplyId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentName:
+          type: string
+          example: 'Diluent'
+        vendorName:
+          type: string
+          example: 'XYZ Supplies Inc.'
+        lotNumber:
+          type: string
+          example: 'LOT-2024-001'
+        expirationDate:
+          type: string
+          format: date
+          example: '2025-12-31'
+        quantityReceived:
+          type: number
+          example: 100
+        quantityUsed:
+          type: number
+          example: 20
+        quantityAvailable:
+          type: number
+          example: 80
+        unitOfMeasure:
+          type: string
+          example: 'ml'
+        status:
+          type: string
+          enum: [Received, Partial Shipment, Returned]
+          example: 'Received'
+        daysUntilExpiration:
+          type: integer
+          example: 25
+        isExpired:
+          type: boolean
+          example: false
+        isExpiringSoon:
+          type: boolean
+          example: true
+
+    Reagent:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        name:
+          type: string
+          example: 'Diluent'
+        catalogNumber:
+          type: string
+          example: 'CAT-001'
+        manufacturer:
+          type: string
+          example: 'ABC Chemicals'
+        casNumber:
+          type: string
+          description: 'CAS Number (unique identifier for each reagent). Format: number-number-number (e.g., 7732-18-5)'
+          example: '7732-18-5'
+        description:
+          type: string
+          example: 'Typically used in a 1:10 to 1:20 ratio with blood samples'
+        usagePerRun:
+          type: object
+          properties:
+            min:
+              type: number
+              example: 1
+            max:
+              type: number
+              example: 2
+            unit:
+              type: string
+              enum: [ml, μL, L]
+              example: 'ml'
+        ratio:
+          type: string
+          example: '1:10 to 1:20'
+        categories:
+          type: array
+          description: 'Array of category names. Must be from predefined list: Hematology, Biochemistry, Immunology, Molecular/PCR, Microbiology, Coagulation, Enzyme'
+          items:
+            type: string
+            enum:
+              - Hematology
+              - Biochemistry
+              - Immunology
+              - 'Molecular/PCR'
+              - Microbiology
+              - Coagulation
+              - Enzyme
+          example:
+            - Hematology
+            - Biochemistry
+        storageCondition:
+          type: number
+          description: Storage temperature in degrees Celsius
+          example: 4
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T14:30:00Z'
+        createdBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        createdByName:
+          type: string
+          example: 'Alice Nguyen'
+        lastModifiedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        lastModifiedByName:
+          type: string
+          example: 'Bob Tran'
+
+    ReagentVendorSupply:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentName:
+          type: string
+          example: 'Diluent'
+        catalogNumber:
+          type: string
+          example: 'CAT-001'
+        manufacturer:
+          type: string
+          example: 'ABC Chemicals'
+        casNumber:
+          type: string
+          example: '123-45-6'
+        vendorName:
+          type: string
+          example: 'XYZ Supplies Inc.'
+        vendorId:
+          type: string
+          example: 'VEND-001'
+        purchaseOrderNumber:
+          type: string
+          example: 'PO-2024-001'
+        orderDate:
+          type: string
+          format: date
+          example: '2024-01-15'
+        receiptDate:
+          type: string
+          format: date
+          example: '2024-01-20'
+        quantityReceived:
+          type: number
+          example: 100
+        unitOfMeasure:
+          type: string
+          example: 'ml'
+        lotNumber:
+          type: string
+          example: 'LOT-2024-001'
+        expirationDate:
+          type: string
+          format: date
+          example: '2025-12-31'
+        receivedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        receivedByName:
+          type: string
+          example: 'Alice Nguyen'
+        receivedAt:
+          type: string
+          format: date-time
+          example: '2024-01-20T10:30:00Z'
+        initialStorageLocation:
+          type: string
+          example: 'Warehouse A, Shelf 3'
+        status:
+          type: string
+          enum: [Received, Partial Shipment, Returned]
+          example: 'Received'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-20T10:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-20T10:30:00Z'
+
+    ReagentUsageHistory:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        reagentName:
+          type: string
+          example: 'Diluent'
+        quantity:
+          type: number
+          example: 1.5
+        unit:
+          type: string
+          example: 'ml'
+        action:
+          type: string
+          enum: [Used, Consumed, Wasted, Expired, Returned]
+          example: 'Used'
+        testOrderId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        testOrderName:
+          type: string
+          example: 'John Doe'
+        instrumentId:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        instrumentName:
+          type: string
+          example: 'Blood Analyzer Model X-100'
+        batchLotNumber:
+          type: string
+          example: 'LOT-2024-001'
+        performedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        performedByName:
+          type: string
+          example: 'Alice Nguyen'
+        performedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+        notes:
+          type: string
+          example: 'Used for blood test analysis'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+
+    Instrument:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        name:
+          type: string
+          example: 'Blood Analyzer Model X-100'
+        model:
+          type: string
+          example: 'X-100'
+        manufacturer:
+          type: string
+          example: 'ABC Medical Devices'
+        serialNumber:
+          type: string
+          example: 'SN-2024-001'
+        location:
+          type: string
+          example: 'Lab Room A, Shelf 1'
+        description:
+          type: string
+          example: 'Automated blood analysis instrument'
+        categories:
+          type: array
+          description: Instrument categories; must match reagent categories to assign reagents
+          items:
+            type: string
+            enum:
+              - Hematology
+              - Biochemistry
+              - Immunology
+              - Molecular/PCR
+              - Microbiology
+              - Coagulation
+              - Enzyme
+          example: ['Hematology', 'Biochemistry']
+        isActive:
+          type: boolean
+          example: true
+        status:
+          type: string
+          enum: [Active, Inactive, Maintenance, Out of Service]
+          example: 'Active'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T14:30:00Z'
+        createdBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        lastModifiedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+
+    InstrumentReagentAssignment:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        instrumentId:
+          type: string
+          example: '507f1f77bcf86cd799439012'
+        instrumentName:
+          type: string
+          nullable: true
+          description: Human-readable instrument name resolved from the instrument record.
+          example: 'Blood Analyzer Model X-100'
+        reagentId:
+          type: string
+          example: '507f1f77bcf86cd799439013'
+        reagentName:
+          type: string
+          example: 'Diluent'
+        lotNumber:
+          type: string
+          example: 'LOT-2024-001'
+        quantity:
+          type: number
+          example: 10
+        unitOfMeasure:
+          type: string
+          example: 'ml'
+        expirationDate:
+          type: string
+          format: date
+          example: '2025-12-31'
+        vendorSupplyId:
+          type: string
+          example: '507f1f77bcf86cd799439014'
+        vendorSupplyName:
+          type: string
+          nullable: true
+          description: Human-readable vendor supply label resolved from the vendor supply record.
+          example: 'Acme Labs PO-2024-001'
+        assignedBy:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        assignedByName:
+          type: string
+          nullable: true
+          description: Human-readable name for the user who assigned the reagent.
+          example: 'Dr. Alice Nguyen'
+        assignedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+        removedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        removedBy:
+          type: string
+          nullable: true
+          example: null
+        removedByName:
+          type: string
+          nullable: true
+          description: Human-readable name for the user who removed the assignment.
+          example: null
+        isActive:
+          type: boolean
+          example: true
+        notes:
+          type: string
+          example: 'Assigned for routine testing'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'

@@ -22,10 +22,11 @@ export const createPatientRecordController = async (req: Request, res: Response,
 export const updatePatientRecordController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authUserId = (req as any).authUserId
+    const authUserRole = (req as any).authUserRole
     if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
 
     const id = (req.params as { id: string }).id
-    const data = await patientService.updatePatientRecord(id, req.body, authUserId.toString())
+    const data = await patientService.updatePatientRecord(id, req.body, authUserId.toString(), authUserRole)
     return res.status(200).json({ 
       success: 'success',
       message: 'Patient medical record updated successfully', 
@@ -39,10 +40,11 @@ export const updatePatientRecordController = async (req: Request, res: Response,
 export const deletePatientRecordController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authUserId = (req as any).authUserId
+    const authUserRole = (req as any).authUserRole
     if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
 
     const id = (req.params as { id: string }).id
-    const data = await patientService.deletePatientRecord(id, authUserId.toString())
+    const data = await patientService.deletePatientRecord(id, authUserId.toString(), authUserRole)
     return res.status(200).json({ 
       success: 'success',
       message: 'Patient medical record deleted successfully', 
@@ -55,6 +57,9 @@ export const deletePatientRecordController = async (req: Request, res: Response,
 
 export const getAllPatientRecordsController = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const authUserId = (req as any).authUserId
+    const authUserRole = (req as any).authUserRole
+
     const params = {
       search: req.query.search as string,
       gender: req.query.gender as 'male' | 'female',
@@ -67,7 +72,9 @@ export const getAllPatientRecordsController = async (req: Request, res: Response
       sortBy: req.query.sortBy as 'fullName' | 'email' | 'createdAt' | 'lastTestDate',
       sortOrder: req.query.sortOrder ? parseInt(req.query.sortOrder as string) as 1 | -1 : undefined,
       page: req.query.page ? parseInt(req.query.page as string) : undefined,
-      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined
+      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+      authUserId: authUserId ? authUserId.toString() : undefined,
+      authUserRole: authUserRole
     }
 
     const data = await patientService.listPatientRecords(params)
@@ -98,8 +105,14 @@ export const getAllPatientRecordsController = async (req: Request, res: Response
 
 export const getPatientRecordDetailController = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const authUserId = (req as any).authUserId
+    const authUserRole = (req as any).authUserRole
     const id = (req.params as { id: string }).id
-    const data = await patientService.getPatientRecordDetail(id)
+    const data = await patientService.getPatientRecordDetail(
+      id,
+      authUserId ? authUserId.toString() : undefined,
+      authUserRole
+    )
     
     return res.status(200).json({ 
       success: 'success',
@@ -114,10 +127,11 @@ export const getPatientRecordDetailController = async (req: Request, res: Respon
 export const addClinicalNoteController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authUserId = (req as any).authUserId
+    const authUserRole = (req as any).authUserRole
     if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
 
     const id = (req.params as { id: string }).id
-    const data = await patientService.addClinicalNote(id, req.body, authUserId.toString())
+    const data = await patientService.addClinicalNote(id, req.body, authUserId.toString(), authUserRole)
     return res.status(200).json({ 
       success: 'success',
       message: 'Clinical note added successfully', 

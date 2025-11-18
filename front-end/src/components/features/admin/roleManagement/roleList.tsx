@@ -19,7 +19,7 @@ import {
 import { useGetAllRoleQuery } from "@/services/roleApi";
 import type { Roles } from "@/types/roles.type";
 import formatPrivilege from "@/utils/formatPrivilege";
-import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { Edit, Inbox, MoreHorizontal, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import DeleteRoleModal from "./DeleteRoleModal";
 import AddRoleModal from "./AddRoleModal";
@@ -28,24 +28,27 @@ export default function RoleList() {
   const [roleList, setRoleList] = useState<Roles[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "code" | "createAt">("");
-  const [sortOrder, setSortOrder] = useState<1 | -1 | undefined>(-1);
+  const [sortBy, setSortBy] = useState<"name" | "code" | "createdAt" | "">("");
+  const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Roles | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editRole, setEditRole] = useState<Roles | null>(null);
+
   const { data, isLoading, error } = useGetAllRoleQuery({
     search,
-    sortBy,
+    sortBy: sortBy,
     sortOrder,
     page: currentPage,
     limit: 8,
   });
+
   useEffect(() => {
     if (data?.data.role) {
       setRoleList(data.data.role);
     }
   }, [data]);
+
   const pagination = data?.data.pagination;
   const totalPages = pagination?.totalPages || 1;
 
@@ -57,9 +60,17 @@ export default function RoleList() {
     setSelectedRole(role);
     setDeleteModalOpen(true);
   };
+
   const handleEditRole = (role: Roles) => {
     setEditRole(role);
     setAddModalOpen(true);
+  };
+
+  const handleClearFilters = () => {
+    setSearch("");
+    setSortBy("");
+    setSortOrder(-1);
+    setCurrentPage(1);
   };
 
   if (isLoading) {
@@ -74,7 +85,10 @@ export default function RoleList() {
   }
 
   if (error) {
-    const errMsg = error || (error as any)?.message || "Unknown error";
+    const errMsg =
+      (error as any)?.data?.message ||
+      (error as any)?.message ||
+      "Unknown error";
     return (
       <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
         <div className="flex items-center">
@@ -91,19 +105,21 @@ export default function RoleList() {
           </svg>
           <div>
             <p className="font-semibold text-red-800">Error loading data</p>
-            <p className="text-sm text-red-600">{errMsg as any}</p>
+            <p className="text-sm text-red-600">{errMsg}</p>
           </div>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="w-full space-x-4">
+    <div className="w-full space-y-4">
       {/* Search and filter */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border mb-4 border-gray-200">
+      <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
         <SearchAndFilter
           searchTerm={search}
           onSearchChange={setSearch}
+          searchPlaceholder="Search roles..."
           sortOptions={[
             { value: "name", label: "Role Name" },
             { value: "code", label: "Role Code" },
@@ -111,19 +127,13 @@ export default function RoleList() {
           ]}
           sortByValue={sortBy}
           sortOrder={sortOrder}
-          onSortByChange={(v) => setSortBy(v as "name" | "code" | "createAt")}
-          onSortOrderChange={(v) =>
-            setSortOrder(v === "" ? -1 : (Number(v) as 1 | -1))
-          }
-          showClearFilters
-          onClearFilters={() => {
-            setSearch("");
-            setSortBy("");
-            setSortOrder(-1);
-            setCurrentPage(1);
-          }}
+          onSortByChange={(v) => setSortBy(v as "name" | "code" | "createdAt")}
+          onSortOrderChange={(v) => setSortOrder(v)}
+          showClearFilters={true}
+          onClearFilters={handleClearFilters}
         />
       </div>
+
       {/* table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
@@ -133,16 +143,16 @@ export default function RoleList() {
                 <TableHead className="font-semibold text-gray-700 w-16">
                   No
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[50px]">
+                <TableHead className="font-semibold text-gray-700 min-w-[150px]">
                   Role Name
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[100px]">
+                <TableHead className="font-semibold text-gray-700 min-w-[120px]">
                   Role Code
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[300px]">
+                <TableHead className="font-semibold text-gray-700 min-w-[250px]">
                   Privileges
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[300px]">
+                <TableHead className="font-semibold text-gray-700 min-w-[200px]">
                   Description
                 </TableHead>
                 <TableHead className="text-right font-semibold text-gray-700 w-20">
@@ -153,21 +163,9 @@ export default function RoleList() {
             <TableBody>
               {roleList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-12">
+                  <TableCell colSpan={6} className="text-center py-12">
                     <div className="flex flex-col items-center justify-center text-gray-500">
-                      <svg
-                        className="w-16 h-16 mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                        />
-                      </svg>
+                      <Inbox className="w-12 h-12 mb-2" />
                       <p className="text-lg font-medium">No roles found</p>
                       <p className="text-sm">
                         Try adjusting your search or filter criteria
@@ -197,14 +195,17 @@ export default function RoleList() {
                             {formatPrivilege(p)}
                           </Badge>
                         ))}
-                        {role.privileges.length > 3 && (
-                          <span className="ml-2 text-xs text-gray-500 cursor-pointer">
+                        {role.privileges.length > 2 && (
+                          <span
+                            className="ml-2 text-xs text-gray-500 cursor-pointer hover:text-gray-700"
+                            title={role.privileges.join(", ")}
+                          >
                             +{role.privileges.length - 2} more
                           </span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-black">
+                    <TableCell className="text-gray-700">
                       {role.description}
                     </TableCell>
                     <TableCell className="text-right">
@@ -216,7 +217,7 @@ export default function RoleList() {
                             className="h-8 w-8 hover:bg-blue-100 transition-colors cursor-pointer"
                             aria-label="Actions"
                           >
-                            <MoreHorizontal className="h-4 w-4 " />
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
@@ -244,8 +245,9 @@ export default function RoleList() {
           </Table>
         </div>
       </div>
+
       {/* Pagination */}
-      <div className="mt-4 mr-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
           {roleList.length > 0 ? (
             <>
@@ -272,6 +274,7 @@ export default function RoleList() {
           )}
         </div>
       </div>
+
       <DeleteRoleModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}

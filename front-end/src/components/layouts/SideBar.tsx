@@ -6,16 +6,35 @@ import {
   LayoutDashboard,
   ShieldUser,
   TestTubeDiagonal,
+  User,
   UserCog,
+  Users,
+  FlaskConical,
+  X,
+  MessageCircle,
+  Beaker,
+  Package2,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
-export default function SideBar() {
+// interface MenuItem {
+//   label: string;
+//   to: string;
+//   icon?: ReactNode;
+// }
+
+interface SideBarProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export default function SideBar({ open, onOpenChange }: SideBarProps) {
   const { user } = useAuth();
-
-  // safe role extraction
-
-  const role = String(user?.data.roleCode || "user").toLowerCase();
+  const role = String(user?.data.roleCode || "patient").toLowerCase();
 
   // define menus per role
   const menus: Record<
@@ -50,63 +69,179 @@ export default function SideBar() {
         icon: <History />,
       },
     ],
-    manager: [
+    lab_manager: [
       {
         label: "Dashboard",
-        to: "/manager/dashboard",
+        to: "/lab_manager/dashboard",
         icon: <LayoutDashboard />,
       },
-      { label: "Reports", to: "/manager/reports" },
+      {
+        label: "User Management",
+        to: "/lab_manager/user-management",
+        icon: <Users />,
+      },
+      {
+        label: "Roles Management",
+        to: "/lab_manager/roles-management",
+        icon: <ShieldUser />,
+      },
+      {
+        label: "Medical Record",
+        to: "/lab_manager/medical-record",
+        icon: <ClipboardPlus />,
+      },
+      {
+        label: "Test Order",
+        to: "/lab_manager/test-order",
+        icon: <TestTubeDiagonal />,
+      },
+      {
+        label: "Event Log",
+        to: "/lab_manager/event-log",
+        icon: <History />,
+      },
     ],
-    consultant: [
+    lab_user: [
       {
         label: "Dashboard",
-        to: "/consultant/dashboard",
+        to: "/lab_user/dashboard",
         icon: <LayoutDashboard />,
       },
-      { label: "Clients", to: "/consultant/clients" },
+      {
+        label: "Medical Records",
+        to: "/lab_user/medical-records",
+        icon: <ClipboardPlus />,
+      },
+      {
+        label: "Test Order",
+        to: "/lab_user/test-order",
+        icon: <TestTubeDiagonal />,
+      },
+      {
+        label: "Event Log",
+        to: "/lab_user/event-log",
+        icon: <History />,
+      },
+      {
+        label: "Reagent",
+        to: "/lab_user/reagent-management",
+        icon: <ClipboardPlus />,
+      },
+      {
+        label: "Chat",
+        to: "/lab_user/chat",
+        icon: <MessageCircle />,
+      },
     ],
+
     service: [
       {
         label: "Dashboard",
         to: "/service/dashboard",
         icon: <LayoutDashboard />,
       },
-      { label: "Services", to: "/service/list" },
+      {
+        label: "Instruments",
+        to: "/service/instruments",
+        icon: <FlaskConical />,
+      },
+      {
+        label: "Reagents",
+        to: "/service/reagent-management",
+        icon: <Beaker />,
+      },
+      {
+        label: "Inventory Reagent",
+        to: "/service/inventory-management",
+        icon: <Package2 />,
+      },
     ],
-    user: [
-      { label: "Dashboard", to: "/user/dashboard", icon: <LayoutDashboard /> },
-      { label: "Profile", to: "/user/profile" },
+    patient: [
+      {
+        label: "Dashboard",
+        to: "/patient/dashboard",
+        icon: <LayoutDashboard />,
+      },
+      {
+        label: "Medical Record",
+        to: "/patient/medical-record",
+        icon: <ClipboardPlus />,
+      },
+      {
+        label: "Chat",
+        to: "/patient/chat",
+        icon: <MessageCircle />,
+      },
+      { label: "Profile", to: "/patient/profile", icon: <User /> },
     ],
   };
 
-  const items = menus[role] ?? menus["user"];
+  const items = menus[role] ?? menus["patient"];
+  const roleLabel = user?.data?.roleName || "Menu";
 
-  return (
-    <aside className="w-60 flex-shrink-0 bg-white border-r border-gray-200 min-h-screen">
-      <div className="p-4">
-        <div className="space-y-2 mb-6">
-          {items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center space-x-3 p-2 rounded hover:bg-gray-100 ${
-                  isActive ? "bg-blue-50 text-blue-700" : "text-gray-700"
-                }`
-              }
-            >
-              <div
-                className="flex items-center justify-center"
-                style={{ width: 24, height: 24, cursor: "default" }}
-              >
+  // Get role-specific classes
+  const getSidebarItemClasses = (isActive: boolean) => {
+    const baseClass = "sidebar-item";
+    const roleClass = `sidebar-item-${role.replace("_", "-")}`;
+    const activeClass = `sidebar-item-${role.replace("_", "-")}-active`;
+
+    if (isActive) {
+      return cn(baseClass, activeClass);
+    }
+    return cn(baseClass, roleClass);
+  };
+
+  const SidebarContent = () => (
+    <ScrollArea className="h-full py-4 px-3">
+      <nav className="space-y-1">
+        {items.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            onClick={() => onOpenChange(false)}
+            className={({ isActive }) => getSidebarItemClasses(isActive)}
+          >
+            {item.icon && (
+              <div className="flex items-center justify-center w-6 h-6">
                 {item.icon}
               </div>
-              <span className="font-medium">{item.label}</span>
-            </NavLink>
-          ))}
+            )}
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
+    </ScrollArea>
+  );
+
+  return (
+    <>
+      {/* Mobile Sidebar */}
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="left" className="w-72 p-0 [&>button]:hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b">
+            <h2 className="text-lg font-bold text-gray-900">{roleLabel}</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="h-8 w-8 hover:bg-gray-100"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 flex-col border-r bg-white">
+        <div className="px-6 py-4 border-b">
+          <h2 className="text-sm uppercase tracking-wider text-gray-500 font-bold">
+            {roleLabel}
+          </h2>
         </div>
-      </div>
-    </aside>
+        <SidebarContent />
+      </aside>
+    </>
   );
 }
