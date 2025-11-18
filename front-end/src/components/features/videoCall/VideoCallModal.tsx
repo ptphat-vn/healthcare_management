@@ -62,10 +62,10 @@ export default function VideoCallModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
-      <div className="relative w-full h-full">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+      <div className="relative bg-gray-900 rounded-2xl shadow-2xl max-w-5xl w-full mx-4 overflow-hidden">
         {/* Remote video - video của người nhận */}
-        <div className="relative w-full h-full bg-gray-900">
+        <div className="relative w-full h-[70vh] bg-gray-900">
           <video
             ref={remoteVideoRef}
             autoPlay
@@ -85,7 +85,7 @@ export default function VideoCallModal({
         </div>
 
         {/* Local video - video của bạn (picture-in-picture) */}
-        <div className="absolute bottom-24 right-6 w-56 h-40 bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
+        <div className="absolute bottom-20 right-6 w-56 h-40 bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
           <video
             ref={localVideoRef}
             autoPlay
@@ -99,12 +99,12 @@ export default function VideoCallModal({
         </div>
 
         {/* Control buttons */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
           <button
             onClick={handleHangup}
-            className="px-8 py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full font-bold text-lg shadow-2xl hover:shadow-red-500/50 transform hover:scale-110 transition-all duration-200 flex items-center gap-3"
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full font-bold text-lg shadow-2xl hover:shadow-red-500/50 transform hover:scale-110 transition-all duration-200 flex items-center gap-3"
           >
-            <PhoneOff className="w-6 h-6" />
+            <PhoneOff className="w-4 h-4" />
             Kết thúc cuộc gọi
           </button>
         </div>

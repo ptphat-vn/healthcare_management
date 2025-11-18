@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Phone, PhoneOff, Video } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useGetBasicUserInfoQuery } from "@/services/userApi";
 
 interface IncomingCallModalProps {
   call: any;
@@ -17,6 +18,22 @@ export default function IncomingCallModal({
   const [isAnswered, setIsAnswered] = useState(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Lấy thông tin người gọi từ backend (endpoint không yêu cầu privilege)
+  const { data: userData } = useGetBasicUserInfoQuery(
+    { id: call?.fromNumber || "" },
+    { skip: !call?.fromNumber }
+  );
+
+  // Hiển thị tên người gọi, fallback về ID nếu không có
+  const callerName =
+    userData?.data?.fullName || call?.fromNumber || "Người dùng";
+
+  console.log("Caller data:", {
+    userData,
+    callerName,
+    fromNumber: call?.fromNumber,
+  });
 
   useEffect(() => {
     if (!call) return;
@@ -79,7 +96,7 @@ export default function IncomingCallModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-2xl max-w-4xl w-full mx-4 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-2xl max-w-5xl w-full mx-4 overflow-hidden">
         {!isAnswered ? (
           // Màn hình cuộc gọi đến
           <div className="p-8 text-center">
@@ -92,7 +109,7 @@ export default function IncomingCallModal({
               📞 Cuộc gọi video đến
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              Từ: <span className="font-semibold">{call.fromNumber}</span>
+              Từ: <span className="font-semibold">{callerName}</span>
             </p>
             <div className="flex gap-6 justify-center">
               <button
@@ -123,14 +140,17 @@ export default function IncomingCallModal({
                 className="w-full h-full object-cover"
               />
               {callStatus && (
-                <div className="absolute top-4 left-4 px-4 py-2 bg-black/60 text-white rounded-lg backdrop-blur-sm">
-                  {callStatus}
+                <div className="absolute top-6 left-1/2 transform -translate-x-1/2 px-6 py-3 bg-black/60 text-white rounded-full backdrop-blur-sm">
+                  <div className="text-center">
+                    <div className="font-semibold text-lg">{callerName}</div>
+                    <div className="text-sm text-gray-300">{callStatus}</div>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Local video - video của bạn (picture-in-picture) */}
-            <div className="absolute bottom-6 right-6 w-48 h-36 bg-gray-800 rounded-xl overflow-hidden shadow-2xl border-2 border-white/30">
+            <div className="absolute bottom-20 right-6 w-56 h-40 bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
               <video
                 ref={localVideoRef}
                 autoPlay
@@ -138,19 +158,19 @@ export default function IncomingCallModal({
                 playsInline
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded">
+              <div className="absolute bottom-3 left-3 text-sm text-white bg-black/60 px-3 py-1 rounded-full backdrop-blur-sm">
                 Bạn
               </div>
             </div>
 
             {/* Control buttons */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-4">
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
               <button
                 onClick={handleHangup}
-                className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full font-bold text-lg shadow-2xl hover:shadow-red-500/50 transform hover:scale-110 transition-all duration-200 flex items-center gap-3"
               >
-                <PhoneOff className="w-5 h-5" />
-                Kết thúc
+                <PhoneOff className="w-4 h-4" />
+                Kết thúc cuộc gọi
               </button>
             </div>
           </div>

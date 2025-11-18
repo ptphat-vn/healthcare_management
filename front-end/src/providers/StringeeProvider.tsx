@@ -85,8 +85,8 @@ export default function StringeeProvider({ children }: StringeeProviderProps) {
 
       {/* Badge hiển thị trạng thái kết nối - chỉ hiện khi đã đăng nhập */}
       {isLoggedIn && isConnected && (
-        <div className="fixed bottom-5 right-5 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full text-sm font-semibold shadow-lg z-[9999] flex items-center gap-2">
-          <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+        <div className="fixed bottom-5 left-5 px-4 py-2 bg-gradient-to-r from-green-500/30 to-emerald-600/30 hover:from-green-500 hover:to-emerald-600 text-white/70 hover:text-white rounded-full text-sm font-semibold shadow-lg hover:shadow-xl z-[9999] flex items-center gap-2 transition-all duration-300 cursor-pointer">
+          <span className="w-2 h-2 bg-white/70 hover:bg-white rounded-full animate-pulse"></span>
           Sẵn sàng nhận cuộc gọi
         </div>
       )}

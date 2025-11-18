@@ -51,7 +51,7 @@ export default function EditReagentModal({
       unit: "ml",
     },
     ratio: "",
-    category: "",
+    categories: "",
     storageConditions: "",
     isActive: true,
   });
@@ -66,8 +66,8 @@ export default function EditReagentModal({
         description: reagent.description || "",
         usagePerRun: reagent.usagePerRun || { min: 0, max: 0, unit: "ml" },
         ratio: reagent.ratio || "",
-        category: reagent.category || "",
-        storageConditions: reagent.storageConditions || "",
+        categories: reagent.categories || "",
+        storageCondition: reagent.storageCondition || "",
         isActive: reagent.isActive ?? true,
       });
     }
@@ -213,7 +213,7 @@ export default function EditReagentModal({
               <Label className="text-sm font-semibold">Category</Label>
               <Input
                 name="category"
-                value={formData.category}
+                value={formData.categories}
                 onChange={handleChange}
                 placeholder="e.g. Chemical"
                 className="h-9"
