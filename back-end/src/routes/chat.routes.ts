@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authMiddleware } from '~/middlewares/auth.middleware'
-import { getConversationController, sendMessageController, getRecentConversationsController } from '~/controllers/chat.controller'
+import { getConversationController, sendMessageController, getRecentConversationsController, openConversationController } from '~/controllers/chat.controller'
 
 const router = Router()
 
@@ -12,5 +12,8 @@ router.get('/chats/:UserId', authMiddleware, getConversationController)
 
 // send a message to another user (fallback for REST / Swagger testing)
 router.post('/chats/:UserId', authMiddleware, sendMessageController)
+
+// mark conversation as read (open conversation)
+router.put('/chats/:UserId/open', authMiddleware, openConversationController)
 
 export default router

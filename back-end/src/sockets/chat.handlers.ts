@@ -5,6 +5,9 @@ import * as userService from '~/services/user.service'
 
 const userRoomName = (userId: string) => `user_${userId}`
 
+// Track active conversations per socket
+const activeConversations = new Map<string, Set<string>>() // socketId -> Set of conversationIds
+
 type CallSignalPayload = {
   conversationId: string
   fromUserId: string
@@ -27,6 +30,50 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
 
   socket.on('leave', ({ roomId }: { roomId: string }) => {
     if (roomId) socket.leave(roomId)
+  })
+
+  socket.on('open-conversation', async (payload: { conversationId: string; userId: string }) => {
+    try {
+      if (!payload?.conversationId || !payload?.userId) {
+        socket.emit('error', { message: 'Invalid open-conversation payload: missing conversationId or userId' })
+        return
+      }
+
+      // Track that this socket is viewing this conversation
+      if (!activeConversations.has(socket.id)) {
+        activeConversations.set(socket.id, new Set())
+      }
+      activeConversations.get(socket.id)!.add(payload.conversationId)
+
+      // Mark all messages in this conversation where receiver is userId as read
+      await chatService.markConversationAsRead(payload.conversationId, payload.userId)
+
+      // Mark or delete notifications related to this conversation for this user
+      await notificationService.markConversationNotificationsAsRead(payload.conversationId, payload.userId)
+
+      // Broadcast updated unread count to all devices of this user
+      const summary = await notificationService.summary(payload.userId, 0)
+      io.to(userRoomName(payload.userId)).emit('notification:unread-count', { count: summary.count })
+
+      // Acknowledge back to client
+      socket.emit('conversation-opened', { conversationId: payload.conversationId, success: true })
+    } catch (err) {
+      console.error('open-conversation handler failed', err)
+      socket.emit('error', { message: 'Failed to open conversation' })
+    }
+  })
+
+  socket.on('close-conversation', (payload: { conversationId: string }) => {
+    if (!payload?.conversationId) return
+    
+    // Remove from active conversations tracking
+    const active = activeConversations.get(socket.id)
+    if (active) {
+      active.delete(payload.conversationId)
+      if (active.size === 0) {
+        activeConversations.delete(socket.id)
+      }
+    }
   })
 
   socket.on('message', async (payload: {
@@ -83,22 +130,33 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
 
       io.to(userRoomName(payload.receiverId)).emit('notification', notification)
 
-      try {
-        await notificationService.createNotification({
-          userId: payload.receiverId,
-          actorId: payload.senderId,
-          type: 'message',
-          title: senderName ? `${senderName} sent you a message` : 'New message',
-          body: snippet,
-          data: {
-            conversationId: payload.conversationId,
-            messageId: String(saved._id),
-            senderName,
-            senderAvatar
-          }
-        })
-      } catch (e) {
-        console.error('Failed to save notification', e)
+      // Check if receiver is currently viewing this conversation on any device
+      const isReceiverViewingConversation = Array.from(io.sockets.sockets.values()).some(s => {
+        const socketUserId = (s.data as any).userId
+        if (socketUserId !== payload.receiverId) return false
+        const active = activeConversations.get(s.id)
+        return active && active.has(payload.conversationId)
+      })
+
+      // Only create persistent notification if receiver is NOT actively viewing the conversation
+      if (!isReceiverViewingConversation) {
+        try {
+          await notificationService.createNotification({
+            userId: payload.receiverId,
+            actorId: payload.senderId,
+            type: 'message',
+            title: senderName ? `${senderName} sent you a message` : 'New message',
+            body: snippet,
+            data: {
+              conversationId: payload.conversationId,
+              messageId: String(saved._id),
+              senderName,
+              senderAvatar
+            }
+          })
+        } catch (e) {
+          console.error('Failed to save notification', e)
+        }
       }
     } catch (err) {
       console.error('chat message handling failed', err)
@@ -160,6 +218,9 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
         console.error('Failed to leave user room on disconnect', e)
       }
     }
+    
+    // Cleanup active conversation tracking for this socket
+    activeConversations.delete(socket.id)
   })
 }
 
