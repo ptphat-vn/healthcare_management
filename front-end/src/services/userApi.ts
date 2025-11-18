@@ -81,6 +81,15 @@ export const userApi = baseApi.injectEndpoints({
       keepUnusedDataFor: 0,
       providesTags: ["User"],
     }),
+    // Get basic user info without privilege requirement (for video calls)
+    getBasicUserInfo: builder.query<APIResponse<User>, { id: string }>({
+      query: ({ id }) => ({
+        url: `/user/basic/${id}`,
+        method: "GET",
+      }),
+      keepUnusedDataFor: 60, // Cache for 1 minute
+      providesTags: ["User"],
+    }),
     deleteUser: builder.mutation<APIResponse<User>, string>({
       query: (userId) => ({
         url: `/admin/users/delete/${userId}`,
@@ -107,6 +116,7 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useGetDetailUserQuery,
+  useGetBasicUserInfoQuery,
   useDeleteUserMutation,
   useUpdateAvatarMutation,
   useGetAllLabUserQuery,

@@ -53,5 +53,7 @@ userRouter.get('/user/patients', authMiddleware, getAllPatient)
 userRouter.get('/user/all', authMiddleware, privilegeMiddleware(['view_user']), getAllUsers)
 // Avatar upload - MUST be before /user/:id to avoid conflict
 userRouter.put('/user/avatar', authMiddleware, upload.single('avatar'), uploadAvatarController)
+// Get basic user info for video call (no privilege required)
+userRouter.get('/user/basic/:id', authMiddleware, getUserDetail)
 userRouter.get('/user/:id', authMiddleware, privilegeMiddleware(['view_user']), getUserDetail)
 export default userRouter

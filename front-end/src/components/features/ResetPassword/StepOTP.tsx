@@ -1,6 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 export default function StepOTP({
   otp,
@@ -75,12 +79,12 @@ export default function StepOTP({
         <button
           type="submit"
           disabled={loading || otp.replace(/\D/g, "").length < 6}
-          className="cursor-pointer w-full h-10 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="cursor-pointer btn-primary w-full h-10 rounded-md"
         >
           {loading ? "Verifying..." : "Verify OTP"}
         </button>
       </form>
-      
+
       <p className="text-center text-sm text-muted-foreground mt-2">
         Didn't receive code?{" "}
         <button

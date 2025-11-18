@@ -167,7 +167,10 @@ export default function MonitoringList() {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-44 bg-white border border-gray-200 shadow-lg rounded-md"
+                      >
                         <DropdownMenuItem
                           onClick={() => {
                             setSelectedLog(log);

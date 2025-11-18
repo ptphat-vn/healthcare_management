@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useGetAllRoleQuery } from "@/services/roleApi";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EditUserFormProps {
   onSubmit: (data: EditUserFormData & { password: string }) => void;
@@ -53,6 +55,7 @@ export function EditUserForm({
 
   const { data: rolesData } = useGetAllRoleQuery();
   const roles = rolesData?.data?.role || [];
+  const { user } = useAuth();
 
   useEffect(() => {
     if (defaultValues && roles.length > 0) {
@@ -267,7 +270,7 @@ export function EditUserForm({
           <button
             type="submit"
             disabled={isLoading}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? "Updating..." : "Update User"}
           </button>

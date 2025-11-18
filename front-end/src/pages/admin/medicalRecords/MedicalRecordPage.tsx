@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import MedicalRecordList from "@/components/features/admin/medicalRecords/MedicalRecordList";
 import AddMedicalRecordModal from "@/components/features/admin/medicalRecords/AddMedicalRecordModal";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 export default function MedicalRecordPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-
+  const { user } = useAuth();
   const handleSuccess = () => {
     // Trigger refresh by updating key
     setRefreshKey((prev) => prev + 1);
@@ -26,7 +28,7 @@ export default function MedicalRecordPage() {
         <div className="flex items-center gap-3">
           <Button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 btn-primary"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             <Plus size={18} />
             <span>Add New Medical Record</span>

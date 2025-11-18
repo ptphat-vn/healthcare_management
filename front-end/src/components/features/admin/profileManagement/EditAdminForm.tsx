@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface EditAdminFormProps {
   onSubmit: (data: CreateUserFormData) => void;
@@ -220,7 +221,9 @@ export function EditAdminForm({
           <button
             type="submit"
             disabled={isLoading}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+            className={`cursor-pointer ${getRoleButtonClass(
+              defaultValues.roleCode
+            )}`}
           >
             {isLoading ? "Updating..." : "Update User"}
           </button>

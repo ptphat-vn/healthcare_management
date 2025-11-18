@@ -206,7 +206,7 @@ export default function EditTestDialog({
           </Button>
           <Button
             onClick={handleSave}
-            className="h-10 px-6 font-semibold bg-blue-600 hover:bg-blue-700"
+            className="btn-admin h-10 px-6 font-semibold"
           >
             Update
           </Button>

@@ -9,6 +9,8 @@ import Input from "@/components/ui/input/Input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface EditInstrumentFormProps {
   defaultValues: UpdateInstrumentFormData;
@@ -23,6 +25,7 @@ export default function EditInstrumentForm({
   onCancel,
   isLoading = false,
 }: EditInstrumentFormProps) {
+  const { user } = useAuth();
   const {
     register,
     handleSubmit,
@@ -97,8 +100,9 @@ export default function EditInstrumentForm({
             </label>
             <select
               {...register("status")}
-              className={`flex h-10 w-full rounded-sm border ${errors.status?.message ? "border-red-500" : "border-input"
-                } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+              className={`flex h-10 w-full rounded-sm border ${
+                errors.status?.message ? "border-red-500" : "border-input"
+              } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
             >
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
@@ -114,14 +118,15 @@ export default function EditInstrumentForm({
         <div className="grid grid-cols-1 gap-2">
           <div className="flex flex-col space-y-1">
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Description 
+              Description
               <span className="text-red-500">*</span>
             </label>
             <Textarea
               {...register("description")}
               placeholder="Enter description"
-              className={`min-h-[80px] flex w-full rounded-sm border ${errors.description?.message ? "border-red-500" : "border-input"
-                } bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+              className={`min-h-[80px] flex w-full rounded-sm border ${
+                errors.description?.message ? "border-red-500" : "border-input"
+              } bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
             />
             {errors.description?.message && (
               <p className="text-xs text-red-500">
@@ -164,7 +169,9 @@ export default function EditInstrumentForm({
               )}
             />
             {errors.categories?.message && (
-              <p className="text-xs text-red-500">{errors.categories.message}</p>
+              <p className="text-xs text-red-500">
+                {errors.categories.message}
+              </p>
             )}
           </div>
         </div>
@@ -180,7 +187,7 @@ export default function EditInstrumentForm({
           <button
             type="submit"
             disabled={isLoading}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? "Updating..." : "Update Instrument"}
           </button>

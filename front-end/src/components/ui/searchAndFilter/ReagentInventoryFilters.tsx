@@ -76,7 +76,7 @@ export default function ReagentInventoryFilters({
         {/* Add Button */}
         <Button
           onClick={onAddBatch}
-          className="w-full lg:w-auto bg-orange-600 hover:bg-orange-700 text-white text-sm whitespace-nowrap"
+          className="btn-service w-full lg:w-auto text-sm whitespace-nowrap"
         >
           <Plus className="w-4 h-4 mr-2" />
           <span className="hidden sm:inline">Add Reagent Batch</span>

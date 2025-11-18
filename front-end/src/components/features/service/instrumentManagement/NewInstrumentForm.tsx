@@ -7,6 +7,8 @@ import {
 } from "@/schemas/instrumentSchema";
 import Input from "@/components/ui/input/Input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface NewInstrumentFormProps {
   onSubmit: (data: CreateInstrumentFormData) => void;
@@ -37,6 +39,7 @@ export function NewInstrumentForm({
       categories: [],
     },
   });
+  const { user } = useAuth();
 
   return (
     <div className="flex flex-col gap-1">
@@ -127,7 +130,9 @@ export function NewInstrumentForm({
               } bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
             />
             {errors.description?.message && (
-              <p className="text-xs text-red-500">{errors.description.message}</p>
+              <p className="text-xs text-red-500">
+                {errors.description.message}
+              </p>
             )}
           </div>
 
@@ -165,7 +170,9 @@ export function NewInstrumentForm({
               )}
             />
             {errors.categories?.message && (
-              <p className="text-xs text-red-500">{errors.categories.message}</p>
+              <p className="text-xs text-red-500">
+                {errors.categories.message}
+              </p>
             )}
           </div>
         </div>
@@ -181,7 +188,7 @@ export function NewInstrumentForm({
           <button
             type="submit"
             disabled={isLoading}
-            className="btn-primary cursor-pointer"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? "Creating..." : "Add Instrument"}
           </button>

@@ -49,7 +49,7 @@ export interface CreateReagentRequest {
   };
   ratio?: string;
   preciseAmount?: number | null;
-  category?: string;
+  categories?: string;
   storageConditions?: string;
   safetyInstructions?: string;
   isActive?: boolean;
