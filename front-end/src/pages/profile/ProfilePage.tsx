@@ -11,6 +11,7 @@ import { EditAdminForm } from "@/components/features/admin/profileManagement/Edi
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useUpdateAvatarMutation } from "@/services/userApi";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 export default function ProfilePage() {
   const { data: profileData, isLoading } = useGetProfileQuery();
@@ -23,15 +24,34 @@ export default function ProfilePage() {
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [updateAvatar] = useUpdateAvatarMutation();
+
   // Role display mapping
   const getRoleDisplay = (roleCode?: string) => {
     const roleMap: Record<string, { label: string; color: string }> = {
-      admin: { label: "Administrator", color: "bg-red-500" },
-      manager: { label: "Manager", color: "bg-purple-500" },
-      lab_user: { label: "Lab Technician", color: "bg-blue-500" },
-      service: { label: "Service Staff", color: "bg-green-500" },
-      consultant: { label: "Consultant", color: "bg-orange-500" },
-      patient: { label: "Patient", color: "bg-pink-500" },
+      admin: {
+        label: "Administrator",
+        color: "bg-red-500",
+      },
+      lab_manager: {
+        label: "Lab Manager",
+        color: "bg-teal-500",
+      },
+      lab_user: {
+        label: "Lab Technician",
+        color: "bg-emerald-500",
+      },
+      service: {
+        label: "Service Staff",
+        color: "bg-amber-500",
+      },
+      consultant: {
+        label: "Consultant",
+        color: "bg-orange-500",
+      },
+      patient: {
+        label: "Patient",
+        color: "bg-rose-500",
+      },
     };
     return (
       roleMap[roleCode || ""] || {
@@ -222,7 +242,9 @@ export default function ProfilePage() {
               <div className="flex items-start">
                 <Button
                   onClick={() => setIsEditOpen(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-20 mt-25 mr-5"
+                  className={`${getRoleButtonClass(
+                    user?.roleCode
+                  )} px-20 mt-25 mr-5`}
                 >
                   Edit
                 </Button>

@@ -279,10 +279,7 @@ export default function ServiceDashboard() {
                     <Calendar className="w-3 h-3" />
                     <span>Expires: {reagent.expiryDate}</span>
                   </div>
-                  <Button
-                    size="sm"
-                    className="w-full mt-3 bg-orange-600 hover:bg-orange-700 text-xs"
-                  >
+                  <Button size="sm" className="btn-service w-full mt-3 text-xs">
                     Order Now
                   </Button>
                 </div>

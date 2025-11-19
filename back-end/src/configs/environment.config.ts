@@ -18,7 +18,9 @@ const EnvSchema = z.object({
   SMTP_PASS: z.string().min(1, 'SMTP_PASS is required'),
   SMTP_FROM: z.string().min(1, 'SMTP_FROM is required'),
   GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
-  GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required')
+  GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
+  STRINGEE_API_KEY_SID: z.string().optional(),
+  STRINGEE_API_KEY_SECRET: z.string().optional(),
 })
 
 const parsed = EnvSchema.safeParse(process.env)

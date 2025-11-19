@@ -1,5 +1,4 @@
-
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -12,6 +11,8 @@ import Input from "@/components/ui/input/Input";
 import { useGetAllUserQuery } from "@/services/userApi";
 import { type User } from "@/types/user.type";
 import { Combobox } from "@/components/ui/combobox";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface NewMedicalRecordFormProps {
   onSubmit: (data: CreateMedicalRecordRequest) => void;
@@ -24,6 +25,7 @@ export function NewMedicalRecordForm({
   onClose,
   isLoading = false,
 }: NewMedicalRecordFormProps) {
+  const { user } = useAuth();
   // Fetch all users
   const { data: usersData, isLoading: isLoadingUsers } = useGetAllUserQuery({
     limit: 1000, // Get enough users
@@ -32,7 +34,7 @@ export function NewMedicalRecordForm({
   // Transform users to combobox options
   const patientOptions = useMemo(() => {
     if (!usersData?.data?.user) return [];
-    
+
     return usersData.data.user
       .filter((user: User) => user.roleCode === "patient" && user.patientId)
       .map((user: User) => ({
@@ -74,11 +76,9 @@ export function NewMedicalRecordForm({
     <div className="flex flex-col gap-1">
       <form className="space-y-2" onSubmit={handleSubmit(onFormSubmit)}>
         <div className="space-y-3">
-   
-          
           <div className="flex flex-col space-y-1">
             <label className="text-xs font-medium text-gray-700">
-            Select Patient <span className="text-red-500">*</span>
+              Select Patient <span className="text-red-500">*</span>
             </label>
             <Controller
               name="userId"
@@ -89,9 +89,13 @@ export function NewMedicalRecordForm({
                   options={patientOptions}
                   value={field.value}
                   onValueChange={field.onChange}
-                  placeholder={isLoadingUsers ? "Loading patients..." : "Select a patient"}
+                  placeholder={
+                    isLoadingUsers ? "Loading patients..." : "Select a patient"
+                  }
                   searchPlaceholder="Search by name, email, or patient ID..."
-                  emptyMessage={isLoadingUsers ? "Loading..." : "No patients found"}
+                  emptyMessage={
+                    isLoadingUsers ? "Loading..." : "No patients found"
+                  }
                   disabled={isLoadingUsers}
                 />
               )}
@@ -115,7 +119,9 @@ export function NewMedicalRecordForm({
                 {...register("bloodType")}
                 defaultValue=""
                 className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                  errors.bloodType?.message ? "border-red-500" : "border-gray-300"
+                  errors.bloodType?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
               >
                 <option value="">Select Blood Type</option>
@@ -129,7 +135,9 @@ export function NewMedicalRecordForm({
                 <option value="O-">O-</option>
               </select>
               {errors.bloodType?.message && (
-                <p className="text-xs text-red-500">{errors.bloodType.message}</p>
+                <p className="text-xs text-red-500">
+                  {errors.bloodType.message}
+                </p>
               )}
             </div>
           </div>
@@ -149,12 +157,16 @@ export function NewMedicalRecordForm({
                 {...register("allergies")}
                 placeholder="Enter allergies (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.allergies?.message ? "border-red-500" : "border-gray-300"
+                  errors.allergies?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.allergies?.message && (
-                <p className="text-sm text-red-500">{errors.allergies.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.allergies.message}
+                </p>
               )}
             </div>
             <div className="flex flex-col space-y-1">
@@ -165,12 +177,16 @@ export function NewMedicalRecordForm({
                 {...register("chronicConditions")}
                 placeholder="Enter chronic conditions (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.chronicConditions?.message ? "border-red-500" : "border-gray-300"
+                  errors.chronicConditions?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.chronicConditions?.message && (
-                <p className="text-sm text-red-500">{errors.chronicConditions.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.chronicConditions.message}
+                </p>
               )}
             </div>
           </div>
@@ -183,12 +199,16 @@ export function NewMedicalRecordForm({
                 {...register("medications")}
                 placeholder="Enter current medications (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.medications?.message ? "border-red-500" : "border-gray-300"
+                  errors.medications?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.medications?.message && (
-                <p className="text-sm text-red-500">{errors.medications.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.medications.message}
+                </p>
               )}
             </div>
             <div className="flex flex-col space-y-1">
@@ -199,12 +219,16 @@ export function NewMedicalRecordForm({
                 {...register("previousSurgeries")}
                 placeholder="Enter previous surgeries (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.previousSurgeries?.message ? "border-red-500" : "border-gray-300"
+                  errors.previousSurgeries?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.previousSurgeries?.message && (
-                <p className="text-sm text-red-500">{errors.previousSurgeries.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.previousSurgeries.message}
+                </p>
               )}
             </div>
           </div>
@@ -270,12 +294,12 @@ export function NewMedicalRecordForm({
             onClick={onClose}
             className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
           >
-            Close
+            Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? "Creating..." : "Create Medical Record"}
           </button>

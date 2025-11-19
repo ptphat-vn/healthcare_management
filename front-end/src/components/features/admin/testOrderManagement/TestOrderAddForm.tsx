@@ -109,7 +109,7 @@ export function TestOrderAddForm({
       <div className="mt-4 flex justify-end">
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded"
+          className="btn-admin px-4 py-2 rounded"
           disabled={isLoading}
         >
           {isLoading ? "Saving..." : "Save"}

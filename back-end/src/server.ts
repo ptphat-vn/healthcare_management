@@ -12,6 +12,7 @@ import patientMedicalRecordRouter from './routes/patient-medical-record.routes'
 import aiRouter from './routes/ai.routes'
 import reagentRouter from './routes/reagent.routes'
 import instrumentRouter from './routes/instrument.routes'
+import webrtcRouter from './routes/webrtc.routes'
 import { HttpError } from '~/models/error.model'
 import { corsMiddleware } from '~/configs/cors.config'
 import { connectMongo } from '~/configs/mongodb.config'
@@ -68,6 +69,7 @@ app.use('/api', reagentRouter)
 app.use('/api', chatRouter)
 app.use('/api', notificationRouter)
 app.use('/api', instrumentRouter)
+app.use('/api', webrtcRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err instanceof HttpError) {

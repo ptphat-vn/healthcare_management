@@ -28,14 +28,28 @@ export const userApi = baseApi.injectEndpoints({
       providesTags: ["User"],
     }),
 
-    getAllLabUser: builder.query<APIResponse<GetAllUserResponse>, { search?: string; status?: number; page?: number; limit?: number } | void>({
-      query: (params) => ({ url: "/user/lab-users", method: "GET", params: params || {} }),
+    getAllLabUser: builder.query<
+      APIResponse<GetAllUserResponse>,
+      { search?: string; status?: number; page?: number; limit?: number } | void
+    >({
+      query: (params) => ({
+        url: "/user/lab-users",
+        method: "GET",
+        params: params || {},
+      }),
       keepUnusedDataFor: 0,
       providesTags: ["User"],
     }),
 
-    getAllPatient: builder.query<APIResponse<GetAllUserResponse>, { search?: string; status?: number; page?: number; limit?: number } | void>({
-      query: (params) => ({ url: "/user/patients", method: "GET", params: params || {} }),
+    getAllPatient: builder.query<
+      APIResponse<GetAllUserResponse>,
+      { search?: string; status?: number; page?: number; limit?: number } | void
+    >({
+      query: (params) => ({
+        url: "/user/patients",
+        method: "GET",
+        params: params || {},
+      }),
       keepUnusedDataFor: 0,
       providesTags: ["User"],
     }),
@@ -67,6 +81,15 @@ export const userApi = baseApi.injectEndpoints({
       keepUnusedDataFor: 0,
       providesTags: ["User"],
     }),
+    // Get basic user info without privilege requirement (for video calls)
+    getBasicUserInfo: builder.query<APIResponse<User>, { id: string }>({
+      query: ({ id }) => ({
+        url: `/user/basic/${id}`,
+        method: "GET",
+      }),
+      keepUnusedDataFor: 60, // Cache for 1 minute
+      providesTags: ["User"],
+    }),
     deleteUser: builder.mutation<APIResponse<User>, string>({
       query: (userId) => ({
         url: `/admin/users/delete/${userId}`,
@@ -84,6 +107,7 @@ export const userApi = baseApi.injectEndpoints({
           body: formData,
         };
       },
+      invalidatesTags: ["Profile"],
     }),
   }),
 });
@@ -92,6 +116,7 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useGetDetailUserQuery,
+  useGetBasicUserInfoQuery,
   useDeleteUserMutation,
   useUpdateAvatarMutation,
   useGetAllLabUserQuery,

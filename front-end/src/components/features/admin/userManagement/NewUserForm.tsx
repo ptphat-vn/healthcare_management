@@ -5,6 +5,8 @@ import {
   type CreateUserFormData,
 } from "@/schemas/userSchema";
 import Input from "@/components/ui/input/Input";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface NewUserFormProps {
   onSubmit: (data: CreateUserFormData) => void;
@@ -17,6 +19,7 @@ export function NewUserForm({
   onClose,
   isLoading = false,
 }: NewUserFormProps) {
+  const { user } = useAuth();
   const {
     register,
     handleSubmit,
@@ -147,7 +150,7 @@ export function NewUserForm({
           <button
             type="submit"
             disabled={isLoading}
-            className=" btn-primary cursor-pointer "
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? "Creating..." : "Add User"}
           </button>

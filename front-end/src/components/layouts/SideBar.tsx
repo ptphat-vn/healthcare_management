@@ -11,8 +11,9 @@ import {
   Users,
   FlaskConical,
   X,
-  MessageSquare,
   MessageCircle,
+  Beaker,
+  Package2,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,11 +21,11 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-interface MenuItem {
-  label: string;
-  to: string;
-  icon?: ReactNode;
-}
+// interface MenuItem {
+//   label: string;
+//   to: string;
+//   icon?: ReactNode;
+// }
 
 interface SideBarProps {
   open: boolean;
@@ -132,13 +133,7 @@ export default function SideBar({ open, onOpenChange }: SideBarProps) {
         icon: <MessageCircle />,
       },
     ],
-    consultant: [
-      {
-        label: "Dashboard",
-        to: "/consultant/dashboard",
-        icon: <LayoutDashboard />,
-      },
-    ],
+
     service: [
       {
         label: "Dashboard",
@@ -149,6 +144,16 @@ export default function SideBar({ open, onOpenChange }: SideBarProps) {
         label: "Instruments",
         to: "/service/instruments",
         icon: <FlaskConical />,
+      },
+      {
+        label: "Reagents",
+        to: "/service/reagent-management",
+        icon: <Beaker />,
+      },
+      {
+        label: "Inventory Reagent",
+        to: "/service/inventory-management",
+        icon: <Package2 />,
       },
     ],
     patient: [

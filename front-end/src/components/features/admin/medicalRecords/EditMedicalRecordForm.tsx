@@ -5,9 +5,17 @@ import {
   updateMedicalRecordSchema,
   type UpdateMedicalRecordFormData,
 } from "@/schemas/medicalRecordSchema";
-import { transformFormToUpdateRequest, transformBackendToFormData } from "@/utils/medicalRecordTransform";
-import { type MedicalRecord, type UpdateMedicalRecordRequest } from "@/types/medicalRecord.type";
+import {
+  transformFormToUpdateRequest,
+  transformBackendToFormData,
+} from "@/utils/medicalRecordTransform";
+import {
+  type MedicalRecord,
+  type UpdateMedicalRecordRequest,
+} from "@/types/medicalRecord.type";
 import Input from "@/components/ui/input/Input";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface EditMedicalRecordFormProps {
   onSubmit: (data: UpdateMedicalRecordRequest) => void;
@@ -22,6 +30,7 @@ export function EditMedicalRecordForm({
   isLoading = false,
   defaultValues,
 }: EditMedicalRecordFormProps) {
+  const { user } = useAuth();
   const {
     register,
     handleSubmit,
@@ -74,7 +83,9 @@ export function EditMedicalRecordForm({
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
-              <label className="text-xs font-medium text-gray-700">Patient ID</label>
+              <label className="text-xs font-medium text-gray-700">
+                Patient ID
+              </label>
               <div className="w-full px-3 py-2 text-sm border rounded-md bg-gray-50 text-gray-700 border-gray-300">
                 {defaultValues.patientId}
               </div>
@@ -121,7 +132,9 @@ export function EditMedicalRecordForm({
               <select
                 {...register("bloodType")}
                 className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                  errors.bloodType?.message ? "border-red-500" : "border-gray-300"
+                  errors.bloodType?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
               >
                 <option value="">Select Blood Type</option>
@@ -135,7 +148,9 @@ export function EditMedicalRecordForm({
                 <option value="O-">O-</option>
               </select>
               {errors.bloodType?.message && (
-                <p className="text-xs text-red-500">{errors.bloodType.message}</p>
+                <p className="text-xs text-red-500">
+                  {errors.bloodType.message}
+                </p>
               )}
             </div>
             <Input
@@ -184,12 +199,16 @@ export function EditMedicalRecordForm({
                 {...register("allergies")}
                 placeholder="Enter allergies (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.allergies?.message ? "border-red-500" : "border-gray-300"
+                  errors.allergies?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.allergies?.message && (
-                <p className="text-sm text-red-500">{errors.allergies.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.allergies.message}
+                </p>
               )}
             </div>
             <div className="flex flex-col space-y-1">
@@ -200,12 +219,16 @@ export function EditMedicalRecordForm({
                 {...register("chronicConditions")}
                 placeholder="Enter chronic conditions (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.chronicConditions?.message ? "border-red-500" : "border-gray-300"
+                  errors.chronicConditions?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.chronicConditions?.message && (
-                <p className="text-sm text-red-500">{errors.chronicConditions.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.chronicConditions.message}
+                </p>
               )}
             </div>
           </div>
@@ -218,12 +241,16 @@ export function EditMedicalRecordForm({
                 {...register("medications")}
                 placeholder="Enter current medications (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.medications?.message ? "border-red-500" : "border-gray-300"
+                  errors.medications?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.medications?.message && (
-                <p className="text-sm text-red-500">{errors.medications.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.medications.message}
+                </p>
               )}
             </div>
             <div className="flex flex-col space-y-1">
@@ -234,12 +261,16 @@ export function EditMedicalRecordForm({
                 {...register("previousSurgeries")}
                 placeholder="Enter previous surgeries (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.previousSurgeries?.message ? "border-red-500" : "border-gray-300"
+                  errors.previousSurgeries?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.previousSurgeries?.message && (
-                <p className="text-sm text-red-500">{errors.previousSurgeries.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.previousSurgeries.message}
+                </p>
               )}
             </div>
           </div>
@@ -305,12 +336,12 @@ export function EditMedicalRecordForm({
             onClick={onClose}
             className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
           >
-            Close
+            Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? "Updating..." : "Update Medical Record"}
           </button>

@@ -4,7 +4,7 @@ import { MESSAGES } from '~/constants/message.constant'
 import { getUsersCollection } from '~/models/user.model'
 import { getRolesCollection } from '~/models/role.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
-
+import streamifier from 'streamifier'
 import cloudinary from '~/configs/cloundinary.config'
 import fs from 'fs'
 export async function updateUser(id: string, updatePayload: Record<string, unknown>, performedBy?: string) {
@@ -313,7 +313,11 @@ export const listUsersByRoleCodes = async (params: ListUsersByRoleParams) => {
     filter.roleId = { $in: roleIds as any }
   }
 
-  const cursor = users.find(filter as any).sort({ createdAt: -1 } as any).skip(skip).limit(limit)
+  const cursor = users
+    .find(filter as any)
+    .sort({ createdAt: -1 } as any)
+    .skip(skip)
+    .limit(limit)
   const [userItems, total] = await Promise.all([cursor.toArray(), users.countDocuments(filter as any)])
 
   const usedRoleIds = Array.from(new Set(userItems.map((u) => u.roleId).filter(Boolean))) as any[]
@@ -346,30 +350,20 @@ export async function getUserDetail(id: string) {
   return { ...safeUser, roleName: role?.name ?? null }
 }
 
-export const updateAvatarService = async (userId: string, file: Express.Multer.File) => {
-  const users = getUsersCollection()
-  const objectId = new ObjectId(userId)
-  const user = await users.findOne({ _id: objectId })
-  if (!user) throw new Error('User not found!')
-  if (!file) throw new Error('No file uploaded!!')
+export const uploadToCloudinary = (buffer: Buffer, folder = 'avatars') => {
+  return new Promise<{ url: string; public_id: string }>((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream({ folder }, (err, result) => {
+      if (err || !result) return reject(err)
+      resolve({
+        url: result.secure_url,
+        public_id: result.public_id
+      })
+    })
+    streamifier.createReadStream(buffer).pipe(uploadStream)
+  })
+}
 
-  let avatarUrl = ''
-  let avatarPublicId = ''
-  if (cloudinary && file.path) {
-    if (user.avatarPublicId) {
-      try {
-        await cloudinary.uploader.destroy(user.avatarPublicId)
-      } catch (error) {
-        console.warn(error)
-      }
-    }
-    const result = await cloudinary.uploader.upload(file.path, { folder: 'avatars' })
-    ;(((avatarUrl = result.secure_url), (avatarPublicId = result.public_id)), fs.unlinkSync(file.path))
-  } else {
-    avatarUrl = `/uploads/${file.filename}`
-  }
-
-  await users.updateOne({ _id: objectId }, { $set: { avatar: avatarUrl, avatarPublicId, updatedAt: new Date() } })
-
-  return avatarUrl
+export const deleteFromCloudinary = async (publicId: string) => {
+  if (!publicId) return
+  return cloudinary.uploader.destroy(publicId)
 }

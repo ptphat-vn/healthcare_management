@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ReagentList from "@/components/features/labUser/reagent/ReagentList";
 import AddReagentModal from "@/components/features/labUser/reagent/AddReagentModal";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 export default function ReagentManagementPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-
+  const { user } = useAuth();
   const handleReagentCreated = () => {
     setRefreshKey((prev) => prev + 1);
   };
@@ -23,14 +25,12 @@ export default function ReagentManagementPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Reagent Management
           </h1>
-          <p className="text-gray-600">
-            Manage all reagent in your system.
-          </p>
+          <p className="text-gray-600">Manage all reagent in your system.</p>
         </div>
 
         <Button
           onClick={() => setIsAddModalOpen(true)}
-          className="btn-primary bg-blue-600 hover:bg-blue-700"
+          className={getRoleButtonClass(user?.data.roleCode)}
         >
           <Plus className="h-5 w-5 mr-2" />
           Add New Reagent

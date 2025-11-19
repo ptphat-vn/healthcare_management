@@ -3,11 +3,13 @@ import TestOrderList from "@/components/features/admin/testOrderManagement/TestO
 import AddTestOrderModal from "@/components/features/admin/testOrderManagement/AddTestOrderModal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 export default function TestOrderManagementPage() {
   const [isAddOrderModalOpen, setIsAddOrderModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-
+  const { user } = useAuth();
   const handleOrderCreated = () => {
     setRefreshKey((prev) => prev + 1);
   };
@@ -31,7 +33,7 @@ export default function TestOrderManagementPage() {
         <div className="flex items-center gap-3 mr-4">
           <Button
             onClick={() => setIsAddOrderModalOpen(true)}
-            className="flex items-center gap-2 btn-primary"
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             <Plus size={18} />
             <span>Add New Test Order</span>

@@ -9,13 +9,13 @@ import {
   getAllUsers,
   getUserDetail,
   updateUserProfileController,
-  updateAvatarController,
   getAllLabUser,
-  getAllPatient
+  getAllPatient,
+  uploadAvatarController
 } from '~/controllers/user.controller'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 import { privilegeMiddleware } from '~/middlewares/privilege.middleware'
-import { uploadSingle } from '~/middlewares/upload.middleware'
+import { upload } from '~/middlewares/upload.middleware'
 
 const userRouter = Router()
 // user management (admin namespace to match existing style)
@@ -51,6 +51,9 @@ userRouter.post(
 userRouter.get('/user/lab-users', authMiddleware, getAllLabUser)
 userRouter.get('/user/patients', authMiddleware, getAllPatient)
 userRouter.get('/user/all', authMiddleware, privilegeMiddleware(['view_user']), getAllUsers)
+// Avatar upload - MUST be before /user/:id to avoid conflict
+userRouter.put('/user/avatar', authMiddleware, upload.single('avatar'), uploadAvatarController)
+// Get basic user info for video call (no privilege required)
+userRouter.get('/user/basic/:id', authMiddleware, getUserDetail)
 userRouter.get('/user/:id', authMiddleware, privilegeMiddleware(['view_user']), getUserDetail)
-userRouter.put('/user/avatar', authMiddleware, uploadSingle, updateAvatarController)
 export default userRouter
