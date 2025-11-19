@@ -1,7 +1,6 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3 } from 'lucide-react';
-import { useGetAllTestOrderQuery } from '@/services/testOrderApi';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart3 } from "lucide-react";
+import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
 
 export default function StatusCardManagement() {
   // Fetch data
@@ -53,12 +52,8 @@ export default function StatusCardManagement() {
       <CardContent className="pt-6">
         <div className="space-y-5">
           {alertStatus.map((status, idx) => {
-            const total = alertStatus.reduce(
-              (sum, s) => sum + s.value,
-              0
-            );
-            const percentage =
-              total > 0 ? (status.value / total) * 100 : 0;
+            const total = alertStatus.reduce((sum, s) => sum + s.value, 0);
+            const percentage = total > 0 ? (status.value / total) * 100 : 0;
 
             return (
               <div key={idx} className="space-y-2">
