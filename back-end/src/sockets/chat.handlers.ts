@@ -22,6 +22,7 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
     if (!userId) return
     ;(socket.data as any).userId = userId
     socket.join(userRoomName(userId))
+    console.log(`[Socket] User ${userId} identified and joined room ${userRoomName(userId)}`)
   })
 
   socket.on('join', ({ roomId }: { roomId: string }) => {
@@ -98,8 +99,10 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
       // Serialize message: Convert ObjectId và Date thành string
       const serializedMessage = chatService.serializeMessage(saved)
 
-      // Emit serialized message đến conversation room
-      io.to(payload.conversationId).emit('message', serializedMessage)
+      // Emit message tới cả sender và receiver qua user rooms để đảm bảo realtime
+      // ngay cả khi họ không join conversationId room
+      io.to(userRoomName(payload.senderId)).emit('message', serializedMessage)
+      io.to(userRoomName(payload.receiverId)).emit('message', serializedMessage)
 
       let senderName: string | undefined = undefined
       let senderAvatar: string | undefined = undefined
@@ -112,6 +115,15 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
       }
 
       const snippet = String(saved.content || '').slice(0, 120)
+      // Check if receiver is currently viewing this conversation on any device
+      const isReceiverViewingConversation = Array.from(io.sockets.sockets.values()).some(s => {
+        const socketUserId = (s.data as any).userId
+        if (socketUserId !== payload.receiverId) return false
+        const active = activeConversations.get(s.id)
+        return active && active.has(payload.conversationId)
+      })
+
+      // Always emit realtime notification event to receiver (for toast/UI update)
       const notification = {
         type: 'message',
         conversationId: payload.conversationId,
@@ -128,15 +140,8 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
             : saved.createdAt
       }
 
+      console.log(`[Socket] Emitting notification to ${userRoomName(payload.receiverId)}`, notification)
       io.to(userRoomName(payload.receiverId)).emit('notification', notification)
-
-      // Check if receiver is currently viewing this conversation on any device
-      const isReceiverViewingConversation = Array.from(io.sockets.sockets.values()).some(s => {
-        const socketUserId = (s.data as any).userId
-        if (socketUserId !== payload.receiverId) return false
-        const active = activeConversations.get(s.id)
-        return active && active.has(payload.conversationId)
-      })
 
       // Only create persistent notification if receiver is NOT actively viewing the conversation
       if (!isReceiverViewingConversation) {
@@ -154,6 +159,11 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
               senderAvatar
             }
           })
+
+          // Emit updated unread count after creating persistent notification
+          const summary = await notificationService.summary(payload.receiverId, 0)
+          console.log(`[Socket] Emitting unread-count to ${userRoomName(payload.receiverId)}`, { count: summary.count })
+          io.to(userRoomName(payload.receiverId)).emit('notification:unread-count', { count: summary.count })
         } catch (e) {
           console.error('Failed to save notification', e)
         }

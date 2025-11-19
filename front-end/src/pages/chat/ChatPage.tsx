@@ -1,11 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ChatWindow from "@/components/features/chat/ChatWindow";
 import ChatList from "@/components/features/chat/ChatList";
+import { socketService } from "@/services/socketService";
+import { useConversations } from "@/hooks/useConversations";
+import { useAuth } from "@/hooks/useAuth";
+import type { ChatMessage } from "@/types/chat-type";
 
 export default function ChatPage() {
+  const { user } = useAuth();
+  const currentUserId = user?.data?._id;
+  const { update } = useConversations(currentUserId);
   const [selectedUserId, setSelectedUserId] = useState<string | undefined>();
   const [selectedUserName, setSelectedUserName] = useState("");
   const [selectedUserAvatar, setSelectedUserAvatar] = useState<string | undefined>();
+
+  // Global listener để cập nhật conversation list khi nhận message từ bất kỳ conversation nào
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const handleGlobalMessage = (msg: ChatMessage) => {
+      // Xác định userId của người kia trong conversation
+      const otherUserId = msg.senderId === currentUserId ? msg.receiverId : msg.senderId;
+      
+      // Cập nhật conversation list với message mới nhất
+      update(String(otherUserId), {
+        lastMessage: String(msg.content || '').substring(0, 50),
+        lastMessageTime: new Date(msg.createdAt),
+      });
+    };
+
+    socketService.on("message", handleGlobalMessage);
+
+    return () => {
+      socketService.off("message", handleGlobalMessage);
+    };
+  }, [currentUserId, update]);
 
   const handleSelectChat = (
     userId: string,

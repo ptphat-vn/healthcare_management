@@ -4,6 +4,7 @@ import { store, type RootState } from "@/stores/store";
 import { useDispatch, useSelector } from "react-redux";
 import { persistStore } from "redux-persist";
 import { toast } from "sonner";
+import { socketService } from "@/services/socketService";
 
 export function useAuth() {
   const dispatch = useDispatch();
@@ -21,6 +22,9 @@ export function useAuth() {
       toast.error("Đăng xuất thất bại");
       console.log(error);
     } finally {
+      // Disconnect socket trước khi logout
+      socketService.disconnect();
+      
       // Backup chat conversations trước khi clear localStorage
       const chatKeys: string[] = [];
       const chatData: Record<string, string> = {};
