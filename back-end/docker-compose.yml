@@ -56,30 +56,30 @@ services:
       start_period: 40s
 
   # Frontend
-  frontend:
-    build:
-      context: ../front-end
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=${VITE_API_URL}
-        - VITE_SOCKET_URL=${VITE_SOCKET_URL}
-        - VITE_GG_CLIENT_ID=${VITE_GG_CLIENT_ID}
-        - VITE_GG_CLIENT_SECRET=${VITE_GG_CLIENT_SECRET}
-    container_name: healthcare_frontend
-    restart: always
-    ports:
-      - '80:80'
-      - '443:443'
-    depends_on:
-      - backend
-    networks:
-      - healthcare_network
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost/']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+  # frontend:
+  #   build:
+  #     context: ../front-end
+  #     dockerfile: Dockerfile
+  #     args:
+  #       - VITE_API_URL=${VITE_API_URL}
+  #       - VITE_SOCKET_URL=${VITE_SOCKET_URL}
+  #       - VITE_GG_CLIENT_ID=${VITE_GG_CLIENT_ID}
+  #       - VITE_GG_CLIENT_SECRET=${VITE_GG_CLIENT_SECRET}
+  #   container_name: healthcare_frontend
+  #   restart: always
+  #   ports:
+  #     - '80:80'
+  #     - '443:443'
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - healthcare_network
+  #   healthcheck:
+  #     test: ['CMD', 'curl', '-f', 'http://localhost/']
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
 
 volumes:
   uploads:
