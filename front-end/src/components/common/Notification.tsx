@@ -41,16 +41,25 @@ export default function Notification() {
   // Listen for real-time notifications
   useEffect(() => {
     const handleNewNotification = (notification: NotificationType) => {
+      console.log('[Notification] Received notification event:', notification);
       toast.info(notification.title, {
         description: notification.body,
       });
       refetch();
     };
 
+    const handleUnreadCountUpdate = (data: any) => {
+      console.log('[Notification] Received unread-count update:', data);
+      // Refetch để cập nhật unread count và danh sách notifications
+      refetch();
+    };
+
     socketService.on("notification", handleNewNotification);
+    socketService.on("notification:unread-count", handleUnreadCountUpdate);
 
     return () => {
       socketService.off("notification", handleNewNotification);
+      socketService.off("notification:unread-count", handleUnreadCountUpdate);
     };
   }, [refetch]);
 

@@ -9,6 +9,23 @@ export const getConversationId = (userA: string, userB: string) => {
   return `${a}_${b}`
 }
 
+export const getSenderInfo = async (userId: string) => {
+  try {
+    const usersCol = getUsersCollection()
+    const user = await usersCol.findOne({ _id: new ObjectId(userId) } as any)
+    if (!user) return null
+    
+    return {
+      fullName: user.fullName,
+      avatar: user.avatar,
+      email: user.email
+    }
+  } catch (error) {
+    console.error('Error getting sender info:', error)
+    return null
+  }
+}
+
 export const saveMessage = async (payload: {
   conversationId: string
   senderId: string
@@ -132,4 +149,17 @@ export const getRecentConversations = async (authUserId: string, limit = 20) => 
       lastMessageTime: conv.lastMessageTime
     }
   })
+}
+
+export const markConversationAsRead = async (conversationId: string, userId: string) => {
+  const col = getChatCollection()
+  const userIdObj = new ObjectId(userId)
+  
+  // Mark all messages in this conversation where receiverId = userId as read
+  const result = await col.updateMany(
+    { conversationId, receiverId: userIdObj, read: false } as any,
+    { $set: { read: true } }
+  )
+  
+  return { modifiedCount: result.modifiedCount }
 }

@@ -25,6 +25,8 @@ import {
   useGetReagentInventoryFIFOQuery,
 } from "@/services/reagentApi";
 import { useAddReagentToInstrumentMutation } from "@/services/instrumentApi";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface AddReagentDialogProps {
   instrumentId: string;
@@ -43,7 +45,7 @@ export default function AddReagentDialog({
   const [addReagentToInstrumentMutation, { isLoading }] =
     useAddReagentToInstrumentMutation();
   const [inventoryError, setInventoryError] = useState<string>("");
-
+const {user} = useAuth()
   const [formData, setFormData] = useState({
     reagentId: "",
     lotNumber: "",
@@ -52,18 +54,33 @@ export default function AddReagentDialog({
   });
 
   // Fetch inventory for selected reagent
-  const { data: inventoryData, isLoading: isLoadingInventory } =
-    useGetReagentInventoryFIFOQuery(
+  const { data: inventoryData, isLoading: isLoadingInventory, refetch: refetchInventory } =
+     useGetReagentInventoryFIFOQuery(
       { 
-        reagentId: formData.reagentId, 
-        includeExpired: false,
+        reagentId: formData.reagentId,
+        includeExpired: false, // Thêm param này
         page: 1,
-        limit: 100
+        limit: 1000 
       },
-      { skip: !formData.reagentId }
+      { 
+        skip: !formData.reagentId,
+        refetchOnMountOrArgChange: true 
+      }
     );
+  console.log(formData.reagentId, "reagentIddd");
 
   const inventory = inventoryData?.data?.inventory || [];
+  console.log(inventoryData, "dataa");
+  
+  console.log(inventory, "hehehe");
+  
+  // Debug: Log inventory data
+  console.log('=== INVENTORY DEBUG ===');
+  console.log('Selected reagentId:', formData.reagentId);
+  console.log('Inventory data:', inventoryData);
+  console.log('Inventory array:', inventory);
+  console.log('Number of lots:', inventory.length);
+  
   const totalAvailable = inventory.reduce(
     (sum, item) => sum + item.quantityAvailable,
     0
@@ -157,6 +174,10 @@ export default function AddReagentDialog({
         lotNumber: "",
         quantity: "",
       }));
+      // Refetch inventory for selected reagent to get all lots
+      if (value && refetchInventory) {
+        setTimeout(() => refetchInventory(), 100);
+      }
     }
   };
 
@@ -171,7 +192,7 @@ export default function AddReagentDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="flex items-center gap-2 btn-primary">
+          <Button className={getRoleButtonClass(user?.data.roleCode)}>
             <Plus className="h-5 w-5 mr-2" />
             <span>Add Reagent</span>
           </Button>
@@ -271,30 +292,26 @@ export default function AddReagentDialog({
               {inventory.length > 0 ? (
                 <Select
                   value={formData.lotNumber || "auto-fifo"}
-                  onValueChange={(value) => {
-                    if (value === "auto-fifo") {
-                      handleChange("lotNumber", "");
-                    } else {
-                      handleChange("lotNumber", value);
-                    }
-                  }}
+                  onValueChange={(value) => handleChange("lotNumber", value === "auto-fifo" ? "" : value)}
                 >
-                  <SelectTrigger id="lotNumber">
+                  <SelectTrigger id="lotNumber" className="h-auto min-h-[60px]">
                     <SelectValue placeholder="Auto-select using FIFO" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[300px]">
                     <SelectItem value="auto-fifo">
-                      🔄 Auto-select using FIFO (earliest expiration)
+                      Auto-select using FIFO {inventory[0] && `(${inventory[0].lotNumber})`}
                     </SelectItem>
-                    {inventory.map((item) => (
-                      <SelectItem key={item.lotNumber} value={item.lotNumber}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{item.lotNumber}</span>
-                          <span className="text-xs text-gray-500">
-                            Available: {item.quantityAvailable} {item.unitOfMeasure}
-                            {item.isExpiringSoon && " ⚠️ Expiring soon"}
-                            {" • Exp: " + new Date(item.expirationDate).toLocaleDateString()}
-                          </span>
+                    {inventory.map((item, index) => (
+                      <SelectItem key={item.lotNumber} value={item.lotNumber} className="py-3">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-medium">{item.lotNumber}</span>
+                            {index === 0 && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">FIFO</span>}
+                            {item.isExpiringSoon && <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">Expiring Soon</span>}
+                          </div>
+                          <div className="text-[11px] text-gray-500">
+                            Available: {item.quantityAvailable} {item.unitOfMeasure} • Exp: {new Date(item.expirationDate).toLocaleDateString()}
+                          </div>
                         </div>
                       </SelectItem>
                     ))}
@@ -302,7 +319,7 @@ export default function AddReagentDialog({
                 </Select>
               ) : (
                 <div className="p-3 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-600">
-                  🔄 FIFO auto-selection enabled - System will allocate from available lots when inventory is added
+                  🔄 FIFO auto-selection enabled
                 </div>
               )}
             </div>
@@ -360,7 +377,7 @@ export default function AddReagentDialog({
             </Button>
             <Button
               type="submit"
-              className="flex items-center gap-2 btn-primary"
+              className={getRoleButtonClass(user?.data.roleCode)}
               disabled={isLoading || !formData.reagentId}
             >
               {isLoading ? (

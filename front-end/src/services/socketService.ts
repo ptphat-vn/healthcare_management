@@ -105,6 +105,9 @@ class SocketService {
     this.socket.on("notification", (notification: any) =>
       this.emit("notification", notification)
     );
+    this.socket.on("notification:unread-count", (data: any) =>
+      this.emit("notification:unread-count", data)
+    );
     this.socket.on("error", (err: { message: string }) =>
       this.emit("error", err)
     );
