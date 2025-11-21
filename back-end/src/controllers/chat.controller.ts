@@ -78,8 +78,10 @@ export const sendMessageController = async (req: Request, res: Response, next: N
     const io = getIo()
     if (io) {
       try {
-        // Emit serialized message để frontend có thể so sánh đúng
-        io.to(conversationId).emit('message', serializedMessage)
+        // Emit message tới cả sender và receiver qua user rooms để đảm bảo realtime
+        // ngay cả khi họ không join conversationId room
+        io.to(`user_${authUserId}`).emit('message', serializedMessage)
+        io.to(`user_${userId}`).emit('message', serializedMessage)
       } catch (e) {
         // ignore emit errors
       }
