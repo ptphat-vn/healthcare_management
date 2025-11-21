@@ -101,13 +101,6 @@ class SocketService {
       });
     });
 
-<<<<<<< HEAD
-    this.socket.on("message", (msg: ChatMessage) => {
-      console.log('[SocketService] Raw message received from socket:', msg);
-      this.emit("message", msg);
-    });
-    this.socket.on("error", (err: { message: string }) => this.emit("error", err));
-=======
     this.socket.on("message", (msg: ChatMessage) => this.emit("message", msg));
     this.socket.on("notification", (notification: any) =>
       this.emit("notification", notification)
@@ -115,7 +108,6 @@ class SocketService {
     this.socket.on("error", (err: { message: string }) =>
       this.emit("error", err)
     );
->>>>>>> 5d1108a594ce54c6daa128ec740a1373e2902dc9
   }
 
   // Thêm method để set userId từ bên ngoài

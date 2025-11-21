@@ -51,17 +51,9 @@ export default function ChatWindow({
     updateRef.current = update;
   }, [update]);
 
-<<<<<<< HEAD
-  const conversationId = currentUserId ? `${[currentUserId, otherUserId].sort().join("_")}` : "";
-  
-  console.log('[ChatWindow] Conversation ID:', conversationId);
-  console.log('[ChatWindow] Current User ID:', currentUserId);
-  console.log('[ChatWindow] Other User ID:', otherUserId);
-=======
   const conversationId = currentUserId
     ? `${[currentUserId, otherUserId].sort().join("_")}`
     : "";
->>>>>>> 5d1108a594ce54c6daa128ec740a1373e2902dc9
 
   // Helper function để normalize message ID
   const normalizeMessageId = (msg: ChatMessage): string | undefined => {
@@ -79,12 +71,6 @@ export default function ChatWindow({
 
   // Memoize handleMessage để tránh re-render không cần thiết
   const handleMessage = useCallback((msg: ChatMessage) => {
-<<<<<<< HEAD
-    console.log('[ChatWindow] handleMessage called with:', msg);
-    
-    // Normalize message để đảm bảo format đúng
-=======
->>>>>>> 5d1108a594ce54c6daa128ec740a1373e2902dc9
     const normalizedMsg: ChatMessage = {
       ...msg,
       _id: normalizeMessageId(msg),
@@ -106,17 +92,6 @@ export default function ChatWindow({
 
     setMessages((prev) => {
       const msgId = normalizedMsg._id;
-<<<<<<< HEAD
-      if (msgId && prev.some((m) => {
-        const mId = normalizeMessageId(m);
-        return mId && mId === msgId;
-      })) {
-        console.log('[ChatWindow] Duplicate message ignored:', msgId);
-        return prev; // Duplicate
-      }
-      
-      console.log('[ChatWindow] Adding new message to state');
-=======
       if (
         msgId &&
         prev.some((m) => {
@@ -127,7 +102,6 @@ export default function ChatWindow({
         return prev;
       }
 
->>>>>>> 5d1108a594ce54c6daa128ec740a1373e2902dc9
       lastMessageRef.current = normalizedMsg;
       return [...prev, normalizedMsg];
     });
