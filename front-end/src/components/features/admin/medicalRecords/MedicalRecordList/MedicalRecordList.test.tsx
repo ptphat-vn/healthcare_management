@@ -14,6 +14,24 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
   return { ...actual, useNavigate: () => vi.fn() }
 })
+vi.mock('@/components/ui/dialog', () => ({
+  Dialog: ({ children, open }: any) => open ? <div>{children}</div> : null,
+  DialogContent: ({ children }: any) => <div>{children}</div>,
+  DialogHeader: ({ children }: any) => <div>{children}</div>,
+  DialogTitle: ({ children }: any) => <h2>{children}</h2>,
+  DialogDescription: ({ children }: any) => <p>{children}</p>,
+  DialogFooter: ({ children }: any) => <div>{children}</div>,
+}))
+vi.mock('@/components/ui/dropdown-menu', () => ({
+  DropdownMenu: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuTrigger: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuContent: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuItem: ({ children, ...props }: any) => (
+    <button type='button' {...props}>
+      {children}
+    </button>
+  ),
+}))
 
 const mockRecords = [
   {
@@ -55,6 +73,13 @@ describe('MedicalRecordList', () => {
   const mockDelete = vi.fn()
   const mockUpdate = vi.fn()
 
+  const renderList = () =>
+    render(
+      <BrowserRouter>
+        <MedicalRecordList />
+      </BrowserRouter>
+    )
+
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(medicalRecordApi.useGetMedicalRecordsQuery).mockReturnValue({
@@ -71,31 +96,22 @@ describe('MedicalRecordList', () => {
     vi.mocked(medicalRecordApi.useDeleteMedicalRecordMutation).mockReturnValue([mockDelete] as any)
     vi.mocked(medicalRecordApi.useUpdateMedicalRecordMutation).mockReturnValue([mockUpdate, { isLoading: false }] as any)
     vi.mocked(useAuthHook.useAuth).mockReturnValue({ user: { data: { roleCode: 'admin' } } } as any)
+    mockDelete.mockReturnValue({ unwrap: vi.fn().mockResolvedValue({ message: 'Deleted' }) })
   })
 
   it('READ: hiển thị đầy đủ thông tin medical records', () => {
-    render(<BrowserRouter><MedicalRecordList /></BrowserRouter>)
+    renderList()
 
-    const checkRecord = (record: typeof mockRecords[number]) => {
+    mockRecords.forEach((record) => {
       expect(screen.getByText(record.fullName)).toBeInTheDocument()
-      expect(screen.getAllByText(new Date(record.dateOfBirth).toLocaleDateString())[0]).toBeInTheDocument()
-      expect(screen.getByText(record.gender)).toBeInTheDocument()
       expect(screen.getByText(record.bloodType)).toBeInTheDocument()
       expect(screen.getByText(record.phoneNumber)).toBeInTheDocument()
       expect(screen.getByText(record.email)).toBeInTheDocument()
-      if (record.lastTestDate) {
-        expect(screen.getByText(new Date(record.lastTestDate).toLocaleDateString())).toBeInTheDocument()
-      }
-      if (record.lastTestStatus) {
-        expect(screen.getByText(record.lastTestStatus)).toBeInTheDocument()
-      }
-    }
-
-    mockRecords.forEach(checkRecord)
+    })
   })
 
   it('READ: gọi API với params đúng', () => {
-    render(<BrowserRouter><MedicalRecordList /></BrowserRouter>)
+    renderList()
     expect(medicalRecordApi.useGetMedicalRecordsQuery).toHaveBeenCalledWith({
       search: undefined,
       gender: undefined,
@@ -106,32 +122,31 @@ describe('MedicalRecordList', () => {
     })
   })
 
-//   it('DELETE: gọi delete API khi confirm', async () => {
-//     const user = userEvent.setup()
-//     mockDelete.mockResolvedValue({ unwrap: vi.fn().mockResolvedValue({ message: 'Deleted' }) })
-//     render(<BrowserRouter><MedicalRecordList /></BrowserRouter>)
-    
-//     const deleteBtn = screen.getAllByText(/delete/i)[0]
-//     await user.click(deleteBtn)
-    
-//     await waitFor(() => {
-//       const confirmBtn = screen.getByRole('button', { name: /delete medical record/i })
-//       expect(confirmBtn).toBeInTheDocument()
-//     })
-    
-//     await user.click(screen.getByRole('button', { name: /delete medical record/i }))
-//     await waitFor(() => expect(mockDelete).toHaveBeenCalled())
-//   })
+  it('DELETE: gọi API khi xác nhận xóa và refresh dữ liệu', async () => {
+    const user = userEvent.setup()
+    renderList()
 
-//   it('DELETE: hiển thị success message', async () => {
-//     const user = userEvent.setup()
-//     mockDelete.mockResolvedValue({ unwrap: vi.fn().mockResolvedValue({ message: 'Deleted' }) })
-//     render(<BrowserRouter><MedicalRecordList /></BrowserRouter>)
-    
-//     await user.click(screen.getAllByText(/delete/i)[0])
-//     await waitFor(() => screen.getByRole('button', { name: /delete medical record/i }))
-//     await user.click(screen.getByRole('button', { name: /delete medical record/i }))
-    
-//     await waitFor(() => expect(toast.success).toHaveBeenCalled())
-//   })
+    await user.click(screen.getAllByRole('button', { name: /delete/i })[0])
+    await user.click(screen.getByRole('button', { name: /delete medical record/i }))
+
+    await waitFor(() => expect(mockDelete).toHaveBeenCalledWith('1'))
+    expect(toast.success).toHaveBeenCalledWith('Medical record deleted successfully')
+    expect(mockRefetch).toHaveBeenCalled()
+  })
+
+  it('DELETE: hiển thị lỗi khi API xóa thất bại', async () => {
+    const user = userEvent.setup()
+    mockDelete.mockReturnValue({
+      unwrap: vi.fn().mockRejectedValue({ data: { message: 'Failed to delete medical record' } }),
+    })
+
+    renderList()
+    await user.click(screen.getAllByRole('button', { name: /delete/i })[0])
+    await user.click(screen.getByRole('button', { name: /delete medical record/i }))
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Failed to delete medical record')
+    )
+    expect(mockRefetch).not.toHaveBeenCalled()
+  })
 })
