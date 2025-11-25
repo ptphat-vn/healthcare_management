@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-import StepEmail from "@/components/features/ResetPassword/StepEmail";
-import StepOTP from "@/components/features/ResetPassword/StepOTP";
-import StepNewPassword from "@/components/features/ResetPassword/StepNewPassword";
+import StepEmail from "../StepEmail/StepEmail";
+import StepOTP from "../StepOTP/StepOTP";
+import StepNewPassword from "../StepNewPassword/StepNewPassword";
 
 import {
   useForgotPasswordMutation,

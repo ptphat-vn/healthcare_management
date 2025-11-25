@@ -39,6 +39,7 @@ export function useSocketConnection(conversationId: string, onMessage?: (msg: Ch
       if (!isMounted) return;
       
       if (socketService.isConnected() && conversationId && !hasJoinedRef.current) {
+        console.log(`[useSocketConnection] Joining room: ${conversationId}`);
         socketService.joinRoom(conversationId);
         hasJoinedRef.current = true; // Đánh dấu đã join
         if (joinTimeoutId) {
@@ -46,6 +47,7 @@ export function useSocketConnection(conversationId: string, onMessage?: (msg: Ch
           joinTimeoutId = null;
         }
       } else if (isMounted && !hasJoinedRef.current) {
+        console.log(`[useSocketConnection] Retrying join room: ${conversationId}, connected: ${socketService.isConnected()}`);
         // Retry nếu chưa join
         joinTimeoutId = setTimeout(() => {
           if (isMounted) joinRoom();
@@ -55,7 +57,10 @@ export function useSocketConnection(conversationId: string, onMessage?: (msg: Ch
     
     // Join room ngay nếu đã connected, nếu không thì đợi connect event
     if (socketService.isConnected()) {
+      console.log(`[useSocketConnection] Socket already connected, joining room: ${conversationId}`);
       joinRoom();
+    } else {
+      console.log(`[useSocketConnection] Socket not connected yet, will join when connected: ${conversationId}`);
     }
 
     // Wrapper function sử dụng ref để tránh dependency issues
@@ -84,10 +89,12 @@ export function useSocketConnection(conversationId: string, onMessage?: (msg: Ch
     };
     
     const handleConnect = () => {
+      console.log(`[useSocketConnection] Socket connected, conversationId: ${conversationId}`);
       setIsConnected(true);
       // Không cần setUserId ở đây vì socket đã tự identify khi connect
       // Chỉ cần join room nếu chưa join
       if (conversationId && !hasJoinedRef.current) {
+        console.log(`[useSocketConnection] Joining room on connect: ${conversationId}`);
         hasJoinedRef.current = true;
         socketService.joinRoom(conversationId);
       }
