@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import MedicalRecordList from "@/components/features/admin/medicalRecords/MedicalRecordList";
-import AddMedicalRecordModal from "@/components/features/admin/medicalRecords/AddMedicalRecordModal";
+import MedicalRecordList from "@/components/features/admin/medicalRecords/MedicalRecordList/MedicalRecordList";
+import AddMedicalRecordModal from "@/components/features/admin/medicalRecords/AddMedicalRecord/AddMedicalRecordModal";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 

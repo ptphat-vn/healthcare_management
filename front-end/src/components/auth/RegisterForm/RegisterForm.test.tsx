@@ -2,11 +2,11 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
-import RegisterForm from '../RegisterForm'
+import React from 'react'
+import RegisterForm from './RegisterForm.tsx'
 
 // Mock Input để không cần thay đổi component thật
 vi.mock('../ui/input/Input', () => {
-  const React = require('react')
   const MockInput = React.forwardRef<HTMLInputElement, any>(
     ({ label, required, error, name, id, ...rest }: any, ref: any) => {
       const controlId = id ?? name ?? `input-${(label ?? 'field').toLowerCase().replace(/\s+/g, '-')}`

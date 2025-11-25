@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { MessageCircle, Stethoscope, User as UserIcon, ChevronDown, ChevronUp, Send } from "lucide-react";
 import { toast } from "sonner";
-import { useConversations } from "../../../hooks/useConversations";
-import { useChatPeers } from "../../../hooks/useChatPeers";
+import { useConversations } from "../../../../hooks/useConversations";
+import { useChatPeers } from "../../../../hooks/useChatPeers";
 import EmptyState from "@/components/ui/empty/EmptyState";
 import type { User } from "@/types/user.type";
 
