@@ -18,5 +18,16 @@ export default defineConfig({
       "@services": path.resolve(__dirname, "./src/services"),
     },
   },
-});
+  test: {
+    environment: 'happy-dom',
+    setupFiles: ['./src/test/setupTests.ts'],
+    globals: true,
+    css: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      reportsDirectory: './coverage',
+    },
+  },
+})
 
