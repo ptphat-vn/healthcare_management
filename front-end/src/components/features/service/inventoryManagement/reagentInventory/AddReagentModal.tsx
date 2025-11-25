@@ -154,6 +154,7 @@ export default function AddReagentModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+console.log(formData.reagentId);
 
     // Validation
     if (!formData.reagentId) {
