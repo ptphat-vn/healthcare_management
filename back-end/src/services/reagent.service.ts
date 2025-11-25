@@ -58,7 +58,9 @@ export const createReagent = async (
   try {
     createdByObjectId = new ObjectId(createdBy)
   } catch (error) {
-    console.error('Invalid createdBy ObjectId:', createdBy, error)
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Invalid createdBy ObjectId:', createdBy, error)
+    }
     throw new HttpError(400, 'Invalid user ID')
   }
   
