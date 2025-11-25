@@ -111,4 +111,22 @@ export const summary = async (userId: string, limit: number = 1) => {
   return { count, latest }
 }
 
-export default { createNotification, listNotifications, markAsRead, markAllRead, summary }
+export const markConversationNotificationsAsRead = async (conversationId: string, userId: string) => {
+  const userObjectId = parseObjectId(userId, 'user id')
+  const col = getNotificationsCollection()
+  
+  // Mark all notifications of type 'message' with matching conversationId for this user as read
+  const result = await col.updateMany(
+    {
+      userId: userObjectId,
+      type: 'message',
+      'data.conversationId': conversationId,
+      read: false
+    } as any,
+    { $set: { read: true } }
+  )
+  
+  return { modifiedCount: result.modifiedCount }
+}
+
+export default { createNotification, listNotifications, markAsRead, markAllRead, summary, markConversationNotificationsAsRead }

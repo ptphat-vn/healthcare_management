@@ -105,6 +105,7 @@ export const reagentApi = createApi({
         method: "GET",
         params,
       }),
+      keepUnusedDataFor: 0, 
       providesTags: ["Reagents"],
     }),
     // category
