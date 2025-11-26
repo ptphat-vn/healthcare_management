@@ -1,5 +1,3 @@
-import React, { useState } from "react";
-
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
@@ -28,7 +26,11 @@ const LabManagerDashboard = () => {
               Dashboard Lab_Manager
             </h1>
             <p className="text-slate-600 text-sm mt-1">
-              Hi <span style={{ fontWeight: 700, color: "#64748b" }}>{fullName}</span>, welcome back.
+              Hi{" "}
+              <span style={{ fontWeight: 700, color: "#64748b" }}>
+                {fullName}
+              </span>
+              , welcome back.
             </p>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 import { Plus } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 
 export default function UserManagementPage() {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);

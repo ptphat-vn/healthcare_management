@@ -1,8 +1,7 @@
 import { useGetDetailUserQuery } from "@/services/userApi";
 import type { User } from "@/types/user.type";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
-  ArrowLeft,
   Calendar,
   Mail,
   Phone,
@@ -15,15 +14,14 @@ import {
 import ButtonBack from "@/components/ui/button/ButtonBack";
 
 export default function UserDetail() {
-  const { id } = useParams<{ _id?: string }>();
-  const navigate = useNavigate();
+  const { _id } = useParams<{ _id?: string }>();
 
   const {
     data: userDetailResponse,
     isLoading,
     isError,
     error,
-  } = useGetDetailUserQuery({ id: id });
+  } = useGetDetailUserQuery({ id: _id || "" });
 
   if (isLoading)
     return (

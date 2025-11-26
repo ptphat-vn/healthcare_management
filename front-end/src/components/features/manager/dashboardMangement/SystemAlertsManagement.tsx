@@ -1,5 +1,4 @@
-import React from 'react';
-import { AlertCircle, Clock, TrendingUp } from 'lucide-react';
+import { AlertCircle, Clock, TrendingUp } from "lucide-react";
 
 export default function SystemAlertsManagement() {
   return (

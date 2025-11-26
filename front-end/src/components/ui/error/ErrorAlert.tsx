@@ -1,19 +1,20 @@
-import React from "react";
-
 interface ErrorAlertProps {
   message: string;
   title?: string;
   className?: string;
 }
 
-export default function ErrorAlert({ 
-  message, 
+export default function ErrorAlert({
+  message,
   title = "Error",
-  className = ""
+  className = "",
 }: ErrorAlertProps) {
   return (
     <div className={`flex items-center justify-center py-16 ${className}`}>
-      <div className="flex items-center p-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+      <div
+        className="flex items-center p-4 text-sm text-red-800 rounded-lg bg-red-50"
+        role="alert"
+      >
         <svg
           className="flex-shrink-0 inline w-4 h-4 me-3"
           aria-hidden="true"
