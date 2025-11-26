@@ -1,6 +1,6 @@
 import { useState } from "react";
 import UserList from "@/components/features/admin/userManagement/UserList";
-import AddUserModal from "@/components/features/admin/userManagement/AddUserModal";
+import AddUserModal from "@/components/features/admin/userManagement/AddNewUser/AddUserModal/AddUserModal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
