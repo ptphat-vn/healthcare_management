@@ -5,7 +5,6 @@ import { vi } from 'vitest'
 import React from 'react'
 import RegisterForm from './RegisterForm.tsx'
 
-// Mock Input để không cần thay đổi component thật
 vi.mock('../ui/input/Input', () => {
   const MockInput = React.forwardRef<HTMLInputElement, any>(
     ({ label, required, error, name, id, ...rest }: any, ref: any) => {
@@ -35,7 +34,6 @@ const mockRegisterMutation = vi.fn()
 const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
 
-// Mock setAuth action creator
 vi.mock('@/stores/authSlice', () => ({
   setAuth: (payload: any) => ({
     type: 'auth/setAuth',
@@ -82,7 +80,6 @@ const fillValidForm = async () => {
   await userEvent.type(screen.getByLabelText(/^password\s*\*?$/i), 'Password1!')
   await userEvent.type(screen.getByLabelText(/confirm password/i), 'Password1!')
   
-  // Set value trực tiếp cho input type="date"
   const dateInput = screen.getByLabelText(/date of birth/i) as HTMLInputElement
   await userEvent.clear(dateInput)
   await userEvent.type(dateInput, '2000-01-01')
@@ -93,7 +90,6 @@ const fillValidForm = async () => {
 describe('RegisterForm', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Reset mock để mỗi test có mock riêng
     mockRegisterMutation.mockReturnValue({
       unwrap: () => Promise.resolve({})
     })
@@ -126,6 +122,7 @@ describe('RegisterForm', () => {
         email: 'test123456789@example.com',
         phoneNumber: '0123466789',
         identifyNumber: '012345678901',
+        address: '123 Test Street',
         dateOfBirth: '2000-01-01',
         password: 'Password1!',
         gender: 'male',
