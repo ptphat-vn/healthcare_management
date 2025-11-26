@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import StepNewPassword from './StepNewPassword'
 
-// Mock framer-motion để bỏ animation trong test
 vi.mock('framer-motion', () => ({
   motion: {
     form: ({ children, ...props }: any) => <form {...props}>{children}</form>,
@@ -27,94 +26,71 @@ describe('StepNewPassword - Đặt mật khẩu mới', () => {
     loading: false,
   }
 
+  const renderComponent = (override = {}) =>
+    render(<StepNewPassword {...defaultProps} {...override} />)
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('hiển thị đầy đủ các field và nút', () => {
-    render(<StepNewPassword {...defaultProps} />)   
-    // Email readonly
-    const emailInput = screen.getByDisplayValue('test@example.com')
-    expect(emailInput).toBeInTheDocument()
-    expect(emailInput).toHaveAttribute('readOnly')
-    // New password + confirm password
-    expect(
-      screen.getByPlaceholderText(/new password/i)
-    ).toBeInTheDocument()
-    expect(
-      screen.getByPlaceholderText(/confirm password/i)
-    ).toBeInTheDocument()
+  describe('Functional behaviour', () => {
+    it('gọi setPassword khi người dùng nhập mật khẩu mới', () => {
+      renderComponent()
+      fireEvent.change(screen.getByPlaceholderText(/new password/i), {
+        target: { value: 'Password1!' },
+      })
+      expect(mockSetPassword).toHaveBeenCalledWith('Password1!')
+    })
 
-    // Nút Submit + Back
-    expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument()
-    expect(screen.getByText(/back/i)).toBeInTheDocument()
+    it('gọi setConfirm khi nhập confirm password', () => {
+      renderComponent()
+      fireEvent.change(screen.getByPlaceholderText(/confirm password/i), {
+        target: { value: 'Password1!' },
+      })
+      expect(mockSetConfirm).toHaveBeenCalledWith('Password1!')
+    })
+
+    it('submit form qua nút Submit khi mật khẩu hợp lệ', async () => {
+      renderComponent({ password: 'Password1!', confirm: 'Password1!' })
+      await userEvent.click(screen.getByRole('button', { name: /submit/i }))
+      expect(mockOnSubmit).toHaveBeenCalledTimes(1)
+    })
+
+    it('submit form khi nhấn Enter trong ô nhập', async () => {
+      renderComponent({ password: 'Password1!', confirm: 'Password1!' })
+      await userEvent.type(screen.getByPlaceholderText(/new password/i), '{Enter}')
+      expect(mockOnSubmit).toHaveBeenCalledTimes(1)
+    })
+
+    it('gọi onBack khi nhấn nút Back', async () => {
+      renderComponent()
+      await userEvent.click(screen.getByText(/back/i))
+      expect(mockOnBack).toHaveBeenCalledTimes(1)
+    })
+
+    it('disable nút Submit và hiển thị trạng thái loading', () => {
+      renderComponent({ loading: true })
+      const submitButton = screen.getByRole('button', { name: /submitting/i })
+      expect(submitButton).toBeDisabled()
+      expect(submitButton).toHaveTextContent('Submitting...')
+    })
+
+    it('enable nút Submit bình thường khi không loading', () => {
+      renderComponent({ loading: false })
+      const submitButton = screen.getByRole('button', { name: /submit/i })
+      expect(submitButton).not.toBeDisabled()
+      expect(submitButton).toHaveTextContent('Submit')
+    })
   })
 
-  it('gọi setPassword khi nhập mật khẩu mới', async () => {
-    render(<StepNewPassword {...defaultProps} />)
-
-    const newPasswordInput = screen.getByPlaceholderText(/new password/i)
-    fireEvent.change(newPasswordInput, { target: { value: 'Password1!' } })
-
-    expect(mockSetPassword).toHaveBeenCalledTimes(1)
-    expect(mockSetPassword).toHaveBeenCalledWith('Password1!')
-  })
-
-  it('gọi setConfirm khi nhập confirm password', async () => {
-    render(<StepNewPassword {...defaultProps} />)
-
-    const confirmInput = screen.getByPlaceholderText(/confirm password/i)
-    fireEvent.change(confirmInput, { target: { value: 'Password1!' } })
-
-    expect(mockSetConfirm).toHaveBeenCalledTimes(1)
-    expect(mockSetConfirm).toHaveBeenCalledWith('Password1!')
-  })
-
-  it('gọi onSubmit khi submit form', async () => {
-    render(
-      <StepNewPassword
-        {...defaultProps}
-        password="Password1!"
-        confirm="Password1!"
-      />
-    )
-    const submitButton = screen.getByRole('button', { name: /submit/i })
-    await userEvent.click(submitButton)
-    expect(mockOnSubmit).toHaveBeenCalledTimes(1)
-  })
-
-  it('gọi onSubmit khi nhấn Enter trong input', async () => {
-    render(
-      <StepNewPassword
-        {...defaultProps}
-        password="Password1!"
-        confirm="Password1!"
-      /> 
-    )
-    const newPasswordInput = screen.getByPlaceholderText(/new password/i)
-    await userEvent.type(newPasswordInput, '{Enter}')
-    expect(mockOnSubmit).toHaveBeenCalledTimes(1)
-  })
-
-  it('gọi onBack khi click nút Back', async () => {
-    render(<StepNewPassword {...defaultProps} />)
-    const backButton = screen.getByText(/back/i)
-    await userEvent.click(backButton)
-    expect(mockOnBack).toHaveBeenCalledTimes(1)
+  describe('UI structure (sau cùng)', () => {
+    it('hiển thị email readonly và các field cần thiết', () => {
+      renderComponent()
+      expect(screen.getByDisplayValue('test@example.com')).toHaveAttribute('readOnly')
+      expect(screen.getByPlaceholderText(/new password/i)).toBeInTheDocument()
+      expect(screen.getByPlaceholderText(/confirm password/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument()
+      expect(screen.getByText(/back/i)).toBeInTheDocument()
+    })
   })
 })
-//   TODO: fix this
-//   it('hiển thị trạng thái loading khi đang submit', () => {
-//     render(<StepNewPassword {...defaultProps} loading={true} />)
-//     const submitButton = screen.getByRole('button', { name: /submitting/i })
-//     expect(submitButton).toBeDisabled()
-//     expect(submitButton).toHaveTextContent('Submitting...')
-//   })
-
-//   it('hiển thị nút Submit bình thường khi không loading', () => {
-//     render(<StepNewPassword {...defaultProps} loading={false} />)
-//     const submitButton = screen.getByRole('button', { name: /submit/i })
-//     expect(submitButton).not.toBeDisabled()
-//     expect(submitButton).toHaveTextContent('Submit')
-//   })
-// })
