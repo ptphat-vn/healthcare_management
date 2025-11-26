@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { ObjectId } from 'mongodb'
-import { getReagentInventoryFIFO, getNextReagentLotFIFO } from './reagent-inventory.service'
+import * as reagentInventoryService from './reagent-inventory.service'
 import { getReagentVendorSupplyCollection } from '~/models/reagent-vendor-supply.model'
 import { getReagentUsageHistoryCollection } from '~/models/reagent-usage-history.model'
 import { HttpError } from '~/models/error.model'
+
+const { getReagentInventoryFIFO, getNextReagentLotFIFO } = reagentInventoryService
 
 jest.mock('~/models/reagent-vendor-supply.model', () => ({
   getReagentVendorSupplyCollection: jest.fn()
@@ -124,7 +126,7 @@ describe('getReagentInventoryFIFO', () => {
 
 describe('getNextReagentLotFIFO', () => {
   it('returns null when no inventory', async () => {
-    jest.spyOn(require('../reagent-inventory.service'), 'getReagentInventoryFIFO').mockResolvedValueOnce({
+    jest.spyOn(reagentInventoryService, 'getReagentInventoryFIFO').mockResolvedValueOnce({
       inventory: [],
       pagination: { page: 1, limit: 10, total: 0, totalPages: 1 }
     })
@@ -146,12 +148,12 @@ describe('getNextReagentLotFIFO', () => {
       quantityUsed: 2,
       quantityAvailable: 8,
       unitOfMeasure: 'ml',
-      status: 'Received',
+      status: 'Received' as const,
       daysUntilExpiration: 5,
       isExpired: false,
       isExpiringSoon: false
     }
-    jest.spyOn(require('../reagent-inventory.service'), 'getReagentInventoryFIFO').mockResolvedValueOnce({
+    jest.spyOn(reagentInventoryService, 'getReagentInventoryFIFO').mockResolvedValueOnce({
       inventory: [lot],
       pagination: { page: 1, limit: 10, total: 1, totalPages: 1 }
     })
@@ -166,7 +168,7 @@ describe('getNextReagentLotFIFO', () => {
       { ...supplySeed(), vendorSupplyId: new ObjectId(), quantityAvailable: 3 },
       { ...supplySeed(), vendorSupplyId: new ObjectId(), quantityAvailable: 6 }
     ] as any
-    jest.spyOn(require('../reagent-inventory.service'), 'getReagentInventoryFIFO').mockResolvedValueOnce({
+    jest.spyOn(reagentInventoryService, 'getReagentInventoryFIFO').mockResolvedValueOnce({
       inventory: lots,
       pagination: { page: 1, limit: 10, total: 2, totalPages: 1 }
     })

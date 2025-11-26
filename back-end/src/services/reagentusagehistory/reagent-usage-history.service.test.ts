@@ -38,7 +38,7 @@ jest.mock('~/models/role.model', () => ({
   getRolesCollection: jest.fn()
 }))
 
-jest.mock('~/services/reagent-inventory.service', () => ({
+jest.mock('~/services/reagentinventory/reagent-inventory.service', () => ({
   getReagentInventoryFIFO: jest.fn()
 }))
 
