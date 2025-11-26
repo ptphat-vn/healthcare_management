@@ -45,12 +45,9 @@ export function generateRandomHL7TestResults(): HL7TestResult[] {
   ]
 
   const results: HL7TestResult[] = []
-  
-  // Generate 4-8 random test results from the CBC panel  
-  const numTests = Math.floor(Math.random() * 5) + 4
-  const selectedTests = commonTests.sort(() => 0.5 - Math.random()).slice(0, numTests)
-  
-  for (const test of selectedTests) {
+
+  // Generate results for the full CBC panel (all 8 metrics)
+  for (const test of commonTests) {
     let result: string
     let flag: string = ''
     
