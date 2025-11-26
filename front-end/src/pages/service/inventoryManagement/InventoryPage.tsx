@@ -5,8 +5,14 @@ import ReagentInventory from "@/components/features/service/inventoryManagement/
 import UsageReagentHistory from "../../../components/features/service/inventoryManagement/UsageReagentHistory";
 import VendorSupplyHistory from "@/components/features/service/inventoryManagement/VendorSupplyHistory";
 
-export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<string>("inventory");
+type InventoryPageProps = {
+  initialTab?: string;
+};
+
+export default function InventoryPage({
+  initialTab = "inventory",
+}: InventoryPageProps) {
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   return (
     <div className="p-4 sm:p-6 lg:p-4 bg-white min-h-screen rounded-[20px]">
