@@ -10,7 +10,7 @@ import type {
   RequestedTestName,
 } from "@/types/request.type";
 import { toast } from "sonner";
-import { TestOrderAddForm } from "./TestOrderAddForm";
+import { TestOrderAddForm } from "../addTestOrderForm/TestOrderAddForm";
 
 interface AddTestOrderModalProps {
   open: boolean;

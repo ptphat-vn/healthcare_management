@@ -26,7 +26,7 @@ vi.mock("sonner", () => ({
 
 let lastFormProps: any = null;
 
-vi.mock("./TestOrderAddForm", () => ({
+vi.mock("../addTestOrderForm/TestOrderAddForm", () => ({
   __esModule: true,
   TestOrderAddForm: (props: any) => {
     lastFormProps = props;
@@ -45,7 +45,7 @@ vi.mock("@/components/ui/dialog", () => ({
   DialogTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
 }));
 
-describe("AddTestOrderModal", () => {
+describe("Modal thêm đơn xét nghiệm", () => {
   let createMutationSpy: ReturnType<typeof vi.fn>;
   let onOpenChange: Mock<(open: boolean) => void>;
   let onSuccess: Mock<() => void>;
@@ -67,7 +67,7 @@ describe("AddTestOrderModal", () => {
       <AddTestOrderModal open onOpenChange={onOpenChange} onSuccess={onSuccess} />,
     );
 
-  it("renders the modal heading and passes props to the form", () => {
+  it("hiển thị heading và truyền props cho form", () => {
     renderModal();
 
     expect(
@@ -79,7 +79,7 @@ describe("AddTestOrderModal", () => {
     expect(typeof lastFormProps.onCancel).toBe("function");
   });
 
-  it("shows validation error when medical record is missing", async () => {
+  it("báo lỗi khi thiếu hồ sơ y tế", async () => {
     renderModal();
 
     await lastFormProps.onSubmit("", ["CBC"]);
@@ -90,7 +90,7 @@ describe("AddTestOrderModal", () => {
     expect(createMutationSpy).not.toHaveBeenCalled();
   });
 
-  it("shows validation error when no tests are selected", async () => {
+  it("báo lỗi khi không chọn xét nghiệm nào", async () => {
     renderModal();
 
     await lastFormProps.onSubmit("medical-1", []);
@@ -101,7 +101,7 @@ describe("AddTestOrderModal", () => {
     expect(createMutationSpy).not.toHaveBeenCalled();
   });
 
-  it("submits successfully and closes the modal", async () => {
+  it("submit thành công và đóng modal", async () => {
     const unwrapSpy = vi.fn().mockResolvedValue({ message: "Created" });
     createMutationSpy.mockReturnValue({ unwrap: unwrapSpy });
     renderModal();
@@ -118,7 +118,7 @@ describe("AddTestOrderModal", () => {
     expect(onSuccess).toHaveBeenCalled();
   });
 
-  it("shows API error when submission fails", async () => {
+  it("hiển thị lỗi API khi submit thất bại", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const unwrapSpy = vi
       .fn()
@@ -135,7 +135,7 @@ describe("AddTestOrderModal", () => {
     consoleSpy.mockRestore();
   });
 
-  it("prevents cancelling while loading but closes otherwise", async () => {
+  it("không cho hủy khi đang tải nhưng đóng bình thường", async () => {
     renderModal();
     await lastFormProps.onCancel();
     expect(onOpenChange).toHaveBeenCalledWith(false);

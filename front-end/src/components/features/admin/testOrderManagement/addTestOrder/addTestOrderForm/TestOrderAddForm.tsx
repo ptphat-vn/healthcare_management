@@ -1,8 +1,8 @@
 import { Checkbox } from "@/components/ui/checkbox";
+import { useGetMedicalRecordsQuery } from "@/services/medicalRecordApi";
 import type { MedicalRecord } from "@/types/medicalRecord.type";
 import type { RequestedTestName } from "@/types/request.type";
 import { requestedTests } from "@/types/request.type";
-import { useGetMedicalRecordsQuery } from "@/services/medicalRecordApi";
 import { useState } from "react";
 
 interface TestOrderFormProps {

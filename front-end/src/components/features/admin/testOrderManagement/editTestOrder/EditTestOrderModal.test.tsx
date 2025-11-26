@@ -136,7 +136,7 @@ const renderModal = (props?: Partial<ComponentProps<typeof EditTestOrderModal>>)
   return { onOpenChange, onSuccess, ...result };
 };
 
-describe("EditTestOrderModal", () => {
+describe("Modal chỉnh sửa đơn xét nghiệm", () => {
   let updateSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -149,14 +149,14 @@ describe("EditTestOrderModal", () => {
     mockGetRoleButtonClass.mockReturnValue("role-btn");
   });
 
-  it("returns null when no order is provided", () => {
+  it("trả về null khi không có order", () => {
     const { container } = render(
       <EditTestOrderModal open order={null} onOpenChange={vi.fn()} />,
     );
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders heading and prefilled values", async () => {
+  it("hiển thị heading và giá trị ban đầu", async () => {
     renderModal();
 
     expect(
@@ -169,7 +169,7 @@ describe("EditTestOrderModal", () => {
     expect(screen.getByRole("button", { name: /Update/i })).toHaveClass("role-btn");
   });
 
-  it("submits updated data successfully", async () => {
+  it("submit dữ liệu cập nhật thành công", async () => {
     const user = userEvent.setup();
     const unwrapSpy = vi.fn().mockResolvedValue({});
     updateSpy.mockReturnValue({ unwrap: unwrapSpy });
@@ -202,7 +202,7 @@ describe("EditTestOrderModal", () => {
     expect(onSuccess).toHaveBeenCalled();
   });
 
-  it("shows error toast when update fails", async () => {
+  it("hiển thị toast lỗi khi cập nhật thất bại", async () => {
     const user = userEvent.setup();
     const unwrapSpy = vi.fn().mockRejectedValue({ data: { message: "Failed" } });
     updateSpy.mockReturnValue({ unwrap: unwrapSpy });
@@ -215,7 +215,7 @@ describe("EditTestOrderModal", () => {
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
-  it("cancels editing when cancel button is clicked", async () => {
+  it("hủy khi bấm nút Cancel", async () => {
     const user = userEvent.setup();
     const { onOpenChange } = renderModal();
 
@@ -224,7 +224,7 @@ describe("EditTestOrderModal", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("disables buttons and shows updating label while loading", () => {
+  it("disable nút và hiện Updating khi đang tải", () => {
     mockUseUpdateTestOrderMutation.mockReturnValue([updateSpy, { isLoading: true }]);
     renderModal({ order: baseOrder });
 

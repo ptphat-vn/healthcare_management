@@ -28,7 +28,7 @@ vi.mock("@/utils/getRoleButtonClass", () => ({
 }));
 
 vi.mock(
-  "@/components/features/admin/testOrderManagement/TestOrderList",
+  "@/components/features/admin/testOrderManagement/testOrderList/TestOrderList",
   () => ({
     __esModule: true,
     default: (props: any) => {
@@ -40,7 +40,7 @@ vi.mock(
 );
 
 vi.mock(
-  "@/components/features/admin/testOrderManagement/AddTestOrderModal",
+  "@/components/features/admin/testOrderManagement/addTestOrder/addTestOrderModal/AddTestOrderModal",
   () => ({
     __esModule: true,
     default: (props: any) => {
@@ -52,7 +52,7 @@ vi.mock(
   }),
 );
 
-describe("TestOrderManagementPage", () => {
+describe("Trang Quản lý đơn xét nghiệm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseAuth.mockReturnValue({
@@ -60,32 +60,54 @@ describe("TestOrderManagementPage", () => {
     });
   });
 
-  it("renders heading and add button with role styling", () => {
+  it("hiển thị tiêu đề và nút thêm với style theo vai trò", () => {
     render(<TestOrderManagementPage />);
 
     expect(
-      screen.getByRole("heading", { name: /Test Order Management/i }),
+      screen.getByRole("heading", {
+        name: /Test Order Management|Quản lý đơn xét nghiệm/i,
+      }),
     ).toBeInTheDocument();
     const addButton = screen.getByRole("button", {
-      name: /Add New Test Order/i,
+      name: /Add New Test Order|Thêm đơn xét nghiệm mới/i,
     });
     expect(addButton).toHaveClass("role-based-class");
     expect(mockGetRoleButtonClass).toHaveBeenCalledWith("ROLE_ADMIN");
   });
 
-  it("opens the add order modal when add button is clicked", async () => {
+  it("mở modal thêm đơn khi bấm nút thêm", async () => {
     render(<TestOrderManagementPage />);
     expect(lastAddModalProps.open).toBe(false);
 
     await userEvent.click(
-      screen.getByRole("button", { name: /Add New Test Order/i }),
+      screen.getByRole("button", {
+        name: /Add New Test Order|Thêm đơn xét nghiệm mới/i,
+      }),
     );
 
     expect(lastAddModalProps.open).toBe(true);
     expect(mockAddTestOrderModal).toHaveBeenCalledTimes(2);
   });
 
-  it("re-fetches list when a new order is created", async () => {
+  it("đóng modal khi gọi onOpenChange(false)", async () => {
+    render(<TestOrderManagementPage />);
+
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: /Add New Test Order|Thêm đơn xét nghiệm mới/i,
+      }),
+    );
+    expect(lastAddModalProps.open).toBe(true);
+
+    await act(async () => {
+      lastAddModalProps.onOpenChange(false);
+    });
+
+    expect(lastAddModalProps.open).toBe(false);
+    expect(mockAddTestOrderModal).toHaveBeenCalledTimes(3);
+  });
+
+  it("tải lại danh sách khi tạo đơn mới", async () => {
     render(<TestOrderManagementPage />);
     const initialCalls = mockTestOrderList.mock.calls.length;
 
@@ -98,7 +120,7 @@ describe("TestOrderManagementPage", () => {
     );
   });
 
-  it("re-fetches list when an order is deleted", async () => {
+  it("tải lại danh sách khi xóa đơn", async () => {
     render(<TestOrderManagementPage />);
     const initialCalls = mockTestOrderList.mock.calls.length;
 

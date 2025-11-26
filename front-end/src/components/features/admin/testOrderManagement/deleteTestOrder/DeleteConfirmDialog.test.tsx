@@ -83,7 +83,7 @@ const renderDialog = (
   return { onOpenChange, onSuccess, ...result };
 };
 
-describe("DeleteConfirmDialog", () => {
+describe("Dialog xác nhận xóa đơn xét nghiệm", () => {
   let deleteSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -92,14 +92,14 @@ describe("DeleteConfirmDialog", () => {
     mockUseDeleteTestOrderMutation.mockReturnValue([deleteSpy, { isLoading: false }]);
   });
 
-  it("returns null when order is null", () => {
+  it("trả về null khi không có order", () => {
     const { container } = render(
       <DeleteConfirmDialog open order={null} onOpenChange={vi.fn()} />,
     );
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders patient details", () => {
+  it("hiển thị thông tin bệnh nhân", () => {
     renderDialog();
 
     expect(
@@ -111,7 +111,7 @@ describe("DeleteConfirmDialog", () => {
     expect(screen.getByText(/pending/i)).toBeInTheDocument();
   });
 
-  it("deletes order successfully and closes dialog", async () => {
+  it("xóa đơn thành công và đóng dialog", async () => {
     const user = userEvent.setup();
     const unwrapSpy = vi.fn().mockResolvedValue({});
     deleteSpy.mockReturnValue({ unwrap: unwrapSpy });
@@ -128,7 +128,7 @@ describe("DeleteConfirmDialog", () => {
     expect(onSuccess).toHaveBeenCalled();
   });
 
-  it("shows error toast when deletion fails", async () => {
+  it("hiển thị toast lỗi khi xóa thất bại", async () => {
     const user = userEvent.setup();
     const unwrapSpy = vi.fn().mockRejectedValue({ data: { message: "Failed" } });
     deleteSpy.mockReturnValue({ unwrap: unwrapSpy });
@@ -143,7 +143,7 @@ describe("DeleteConfirmDialog", () => {
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
-  it("cancels dialog when cancel button clicked", async () => {
+  it("đóng dialog khi bấm Cancel", async () => {
     const user = userEvent.setup();
     const { onOpenChange } = renderDialog();
 
@@ -152,7 +152,7 @@ describe("DeleteConfirmDialog", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("disables buttons and shows deleting label while loading", () => {
+  it("disable nút và hiện Deleting khi đang tải", () => {
     mockUseDeleteTestOrderMutation.mockReturnValue([deleteSpy, { isLoading: true }]);
     renderDialog();
 

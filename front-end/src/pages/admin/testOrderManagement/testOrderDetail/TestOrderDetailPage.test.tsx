@@ -78,7 +78,7 @@ const buildOrder = () => ({
   comments: [{ id: 1 }],
 });
 
-describe("TestOrderDetailPage", () => {
+describe("Trang chi tiết đơn xét nghiệm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseParams.mockReturnValue({ orderId: "order-123" });
@@ -89,7 +89,7 @@ describe("TestOrderDetailPage", () => {
     });
   });
 
-  it("shows loading indicator while fetching data", () => {
+  it("hiển thị trạng thái tải khi đang lấy dữ liệu", () => {
     mockGetDetailTestOrderQuery.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -103,7 +103,7 @@ describe("TestOrderDetailPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders error state and navigates back when button clicked", async () => {
+  it("hiển thị lỗi và quay lại khi bấm nút", async () => {
     mockGetDetailTestOrderQuery.mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -120,7 +120,7 @@ describe("TestOrderDetailPage", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/admin/test-order");
   });
 
-  it("renders overview tab with order information", () => {
+  it("hiển thị tab tổng quan cùng thông tin đơn", () => {
     render(<TestOrderDetailPage />);
 
     expect(
@@ -131,7 +131,7 @@ describe("TestOrderDetailPage", () => {
     expect(screen.getByTestId("order-info")).toHaveTextContent("pending");
   });
 
-  it("allows switching between tabs to view results and comments", async () => {
+  it("cho phép chuyển tab để xem kết quả và bình luận", async () => {
     render(<TestOrderDetailPage />);
 
     await userEvent.click(
@@ -143,7 +143,7 @@ describe("TestOrderDetailPage", () => {
     expect(screen.getByTestId("comments")).toHaveTextContent("1");
   });
 
-  it("navigates back when header button clicked", async () => {
+  it("quay lại khi bấm nút ở tiêu đề", async () => {
     render(<TestOrderDetailPage />);
 
     await userEvent.click(

@@ -100,7 +100,7 @@ vi.mock("@/components/ui/dropdown-menu", () => {
   };
 });
 
-describe("TestOrderList", () => {
+describe("Danh sách đơn xét nghiệm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseAuth.mockReturnValue({
@@ -108,7 +108,7 @@ describe("TestOrderList", () => {
     });
   });
 
-  it("renders skeleton rows while loading", () => {
+  it("hiển thị skeleton khi đang tải", () => {
     mockUseGetAllTestOrderQuery.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -125,7 +125,7 @@ describe("TestOrderList", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows an error message when the query fails", () => {
+  it("hiển thị lỗi khi gọi API thất bại", () => {
     mockUseGetAllTestOrderQuery.mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -140,7 +140,7 @@ describe("TestOrderList", () => {
     expect(screen.getByText(/Server error/i)).toBeInTheDocument();
   });
 
-  it("renders empty state when there are no test orders", () => {
+  it("hiển thị trạng thái rỗng khi không có dữ liệu", () => {
     mockUseGetAllTestOrderQuery.mockReturnValue({
       data: {
         data: {
@@ -160,7 +160,7 @@ describe("TestOrderList", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders rows and navigates to detail when view is clicked", async () => {
+  it("render dữ liệu và điều hướng khi bấm xem chi tiết", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { data: { roleCode: "lab" } },

@@ -42,7 +42,7 @@ vi.mock("@/types/request.type", async () => {
   };
 });
 
-describe("TestOrderAddForm", () => {
+describe("Form thêm đơn xét nghiệm", () => {
   const basePatients = [
     { _id: "rec-1", fullName: "Alice" },
     { _id: "rec-2", fullName: "Bob" },
@@ -67,7 +67,7 @@ describe("TestOrderAddForm", () => {
     vi.clearAllMocks();
   });
 
-  it("shows loading state while medical records are fetching", () => {
+  it("hiển thị trạng thái tải khi đang lấy hồ sơ", () => {
     mockUseGetMedicalRecordsQuery.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -79,7 +79,7 @@ describe("TestOrderAddForm", () => {
     expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
   });
 
-  it("shows error state when medical records query fails", () => {
+  it("hiển thị lỗi khi lấy hồ sơ thất bại", () => {
     mockUseGetMedicalRecordsQuery.mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -93,7 +93,7 @@ describe("TestOrderAddForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("submits selected medical record and tests", async () => {
+  it("gửi đúng hồ sơ và xét nghiệm đã chọn", async () => {
     const user = userEvent.setup();
     mockUseGetMedicalRecordsQuery.mockReturnValue({
       data: { data: { patient: basePatients } },
@@ -114,7 +114,7 @@ describe("TestOrderAddForm", () => {
     expect(onSubmit).toHaveBeenCalledWith("rec-2", ["CBC"]);
   });
 
-  it("calls cancel handler when Cancel button is pressed", async () => {
+  it("gọi handler hủy khi bấm Cancel", async () => {
     const user = userEvent.setup();
     mockUseGetMedicalRecordsQuery.mockReturnValue({
       data: { data: { patient: basePatients } },
@@ -129,7 +129,7 @@ describe("TestOrderAddForm", () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
-  it("disables actions and shows loading label while submitting", () => {
+  it("khóa nút và hiển thị Saving khi đang submit", () => {
     mockUseGetMedicalRecordsQuery.mockReturnValue({
       data: { data: { patient: basePatients } },
       isLoading: false,
