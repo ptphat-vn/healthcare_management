@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import * as chatService from '~/services/chat.service'
-import * as notificationService from '~/services/notification.service'
+import * as chatService from '~/services/chat/chat.service'
+import * as notificationService from '~/services/notification/notification.service'
 import { getIo } from '~/utils/socket'
 
 export const getConversationController = async (req: Request, res: Response, next: NextFunction) => {

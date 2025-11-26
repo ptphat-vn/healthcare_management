@@ -6,7 +6,7 @@ import { getInstrumentsCollection } from '~/models/instrument.model'
 import { getInstrumentReagentAssignmentCollection } from '~/models/instrument-reagent-assignment.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getUsersCollection } from '~/models/user.model'
-import { recordReagentUsageFromTestResults } from '~/services/test-order.service'
+import { recordReagentUsageFromTestResults } from '~/services/testorder/test-order.service'
 
 export interface HL7Message {
   messageId: string

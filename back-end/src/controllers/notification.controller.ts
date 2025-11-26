@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import * as notificationService from '~/services/notification.service'
+import * as notificationService from '~/services/notification/notification.service'
 
 export const getNotificationsController = async (req: Request, res: Response, next: NextFunction) => {
   try {

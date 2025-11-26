@@ -6,7 +6,7 @@ import { getPatientMedicalRecordsCollection } from '~/models/patient-medical-rec
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
-import { recordReagentUsage, type CreateUsageHistoryPayload } from '~/services/reagent-usage-history.service'
+import { recordReagentUsage, type CreateUsageHistoryPayload } from '~/services/reagentusagehistory/reagent-usage-history.service'
 
 export interface CreateTestOrderData {
   medicalRecordId: string
@@ -681,12 +681,12 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
   }
 
   // Prepare AI input
-  const { generateUnifiedLabAIJson } = await import('~/services/ai.service')
+  const { generateUnifiedLabAIJson } = await import('~/services/ai/ai.service')
   const aiInput = existingResults.map((r: any) => ({ testName: r.testName, result: String(r.result), unit: r.unit }))
   const aiSummary = await generateUnifiedLabAIJson(aiInput)
 
   // Helper to keep values within acceptable configured ranges
-  const { getFlaggingConfigByTestName } = await import('~/services/flagging-config.service')
+  const { getFlaggingConfigByTestName } = await import('~/services/configresult/flagging-config.service')
   const updatedTestResults = [] as any[]
   for (const r of existingResults as any[]) {
     const numeric = parseFloat(r.result)

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { ObjectId } from 'mongodb'
-import { recordReagentUsage, listUsageHistory } from '../reagent-usage-history.service'
+import { recordReagentUsage, listUsageHistory } from '../reagentusagehistory/reagent-usage-history.service'
 import { getReagentsCollection } from '~/models/reagent.model'
 import { getReagentUsageHistoryCollection } from '~/models/reagent-usage-history.model'
 import { getUsersCollection } from '~/models/user.model'
@@ -8,7 +8,7 @@ import { getInstrumentsCollection } from '~/models/instrument.model'
 import { getTestOrdersCollection } from '~/models/test-order.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
-import { getReagentInventoryFIFO } from '~/services/reagent-inventory.service'
+import { getReagentInventoryFIFO } from '~/services/reagentinventory/reagent-inventory.service'
 
 jest.mock('~/models/reagent.model', () => ({
   getReagentsCollection: jest.fn()

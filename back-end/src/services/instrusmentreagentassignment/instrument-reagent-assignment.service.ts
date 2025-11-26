@@ -7,8 +7,8 @@ import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
 import { getReagentVendorSupplyCollection } from '~/models/reagent-vendor-supply.model'
-import { getReagentInventoryFIFO } from '~/services/reagent-inventory.service'
-import { recordReagentUsage } from '~/services/reagent-usage-history.service'
+import { getReagentInventoryFIFO } from '~/services/reagentinventory/reagent-inventory.service'
+import { recordReagentUsage } from '~/services/reagentusagehistory/reagent-usage-history.service'
 
 export interface AddReagentToInstrumentPayload {
   reagentId: string

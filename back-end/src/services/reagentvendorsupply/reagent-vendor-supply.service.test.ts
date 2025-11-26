@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb'
 import {
   createVendorSupply,
   listVendorSupplyHistory
-} from '../reagent-vendor-supply.service'
+} from './reagent-vendor-supply.service'
 import { getReagentsCollection } from '~/models/reagent.model'
 import { getReagentVendorSupplyCollection } from '~/models/reagent-vendor-supply.model'
 import { getUsersCollection } from '~/models/user.model'

@@ -7,7 +7,7 @@ import {
   updateReagent,
   deleteReagent,
   ensureDefaultReagents
-} from '../reagent.service'
+} from './reagent.service'
 import { getReagentsCollection, REAGENT_CATEGORIES } from '~/models/reagent.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'

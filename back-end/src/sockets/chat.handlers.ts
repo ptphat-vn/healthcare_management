@@ -1,7 +1,7 @@
 import type { Socket, Server } from 'socket.io'
-import * as chatService from '~/services/chat.service'
-import * as notificationService from '~/services/notification.service'
-import * as userService from '~/services/user.service'
+import * as chatService from '~/services/chat/chat.service'
+import * as notificationService from '~/services/notification/notification.service'
+import * as userService from '~/services/user/user.service'
 
 const userRoomName = (userId: string) => `user_${userId}`
 

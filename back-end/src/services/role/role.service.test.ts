@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { ObjectId } from 'mongodb'
-import { createRole, updateRole, listRoles, ensureDefaultRoles, deleteRole } from '../role.service'
+import { createRole, updateRole, listRoles, ensureDefaultRoles, deleteRole } from './role.service'
 import { getRolesCollection } from '~/models/role.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'

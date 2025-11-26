@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { ObjectId } from 'mongodb'
-import { getReagentInventoryFIFO, getNextReagentLotFIFO } from '../reagent-inventory.service'
+import { getReagentInventoryFIFO, getNextReagentLotFIFO } from './reagent-inventory.service'
 import { getReagentVendorSupplyCollection } from '~/models/reagent-vendor-supply.model'
 import { getReagentUsageHistoryCollection } from '~/models/reagent-usage-history.model'
 import { HttpError } from '~/models/error.model'

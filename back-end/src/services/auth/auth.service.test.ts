@@ -10,7 +10,7 @@ import {
   resetPassword,
   refreshAccessToken,
   logout
-} from '../auth.service'
+} from './auth.service'
 import { MESSAGES } from '~/constants/message.constant'
 import { getRolesCollection } from '~/models/role.model'
 import { getNextSequence } from '~/models/counter.model'
