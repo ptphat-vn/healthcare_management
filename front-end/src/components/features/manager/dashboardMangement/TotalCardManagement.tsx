@@ -1,20 +1,19 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  AlertCircle, 
-  Clock, 
-  TestTube, 
-  TrendingDown, 
-  TrendingUp, 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertCircle,
+  Clock,
+  TestTube,
+  TrendingDown,
+  TrendingUp,
   Users,
   Activity,
-  CheckCircle2
-} from 'lucide-react';
-import { useGetAllUserQuery } from '@/services/userApi';
-import { useGetMedicalRecordsQuery } from '@/services/medicalRecordApi';
-import { useGetAllTestOrderQuery } from '@/services/testOrderApi';
-import { useGetEventLogsQuery } from '@/services/eventLogApi';
-import dayjs from 'dayjs';
+  CheckCircle2,
+} from "lucide-react";
+import { useGetAllUserQuery } from "@/services/userApi";
+import { useGetMedicalRecordsQuery } from "@/services/medicalRecordApi";
+import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
+import { useGetEventLogsQuery } from "@/services/eventLogApi";
+import dayjs from "dayjs";
 
 export default function TotalCardManagement() {
   // Fetch data
@@ -31,7 +30,7 @@ export default function TotalCardManagement() {
     sortOrder: -1,
   });
   const { data: eventRes } = useGetEventLogsQuery({
-    offset: 0,
+    page: 1,
     limit: 100,
   });
 

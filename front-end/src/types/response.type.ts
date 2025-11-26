@@ -100,7 +100,7 @@ export interface ReagentHistory {
   pagination: Pagination;
 }
 
-export interface CreateVendorSuppyResponse {
+export interface CreateVendorSupplyResponse {
   _id: string;
   reagentId: string;
   reagentName: string;
@@ -123,7 +123,7 @@ export interface CreateVendorSuppyResponse {
   createdAt: string;
   updatedAt: string;
 }
-export interface VendorSypplyHisResponse {
+export interface VendorSupplyHisResponse {
   vendorSupplies: VendorSupplyHistory[];
   pagination: Pagination;
 }

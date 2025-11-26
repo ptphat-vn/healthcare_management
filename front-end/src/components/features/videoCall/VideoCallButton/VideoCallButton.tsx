@@ -2,7 +2,7 @@
 import { Video } from "lucide-react";
 import { useRef, useState } from "react";
 import { useStringee } from "@/contexts/StringeeContext";
-import VideoCallModal from "./VideoCallModal";
+import VideoCallModal from "../VideoCallModal/VideoCallModal";
 
 // @ts-expect-error - Stringee SDK không có types
 import { StringeeCall2 } from "stringee";
