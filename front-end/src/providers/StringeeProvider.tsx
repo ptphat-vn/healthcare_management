@@ -2,7 +2,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useStringeeToken } from "@/hooks/useStringeeCall";
 import { StringeeContext } from "@/contexts/StringeeContext";
-import IncomingCallModal from "@/components/features/videoCall/IncomingCallModal";
+import IncomingCallModal from "@/components/features/videoCall/IncomingCallModal/IncomingCallModal";
 import { useEffect, useRef, useState } from "react";
 
 // @ts-expect-error - Stringee SDK không có types
@@ -21,7 +21,7 @@ export default function StringeeProvider({ children }: StringeeProviderProps) {
   const stringeeClientRef = useRef<any>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [incomingCall, setIncomingCall] = useState<any>(null);
-
+  console.log(isLoggedIn, isConnected, "check");
   useEffect(() => {
     // Không khởi tạo nếu chưa đăng nhập
     if (!isLoggedIn || !token) return;

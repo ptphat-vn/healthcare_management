@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
 import type { MedicalRecord } from "@/types/medicalRecord.type";
-import EditMedicalRecordModal from "./EditMedicalRecordModal";
-import DeleteMedicalRecordModal from "./DeleteMedicalRecordModal";
+import EditMedicalRecordModal from "../EditMedicalRecord/EditMedicalRecordModal";
+import DeleteMedicalRecordModal from "../DeleteMedicalRecord/DeleteMedicalRecordModal";
 import {
   useGetMedicalRecordsQuery,
   useDeleteMedicalRecordMutation,

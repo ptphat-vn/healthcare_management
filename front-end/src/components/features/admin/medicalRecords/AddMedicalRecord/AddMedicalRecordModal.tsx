@@ -4,10 +4,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { NewMedicalRecordForm } from "./NewMedicalRecordForm";
 import { useCreateMedicalRecordMutation } from "@/services/medicalRecordApi";
 import { toast } from "sonner";
 import { type CreateMedicalRecordRequest } from "@/types/medicalRecord.type";
+import { NewMedicalRecordForm } from "../NewMedicalRecordFrom/NewMedicalRecordForm";
 
 interface AddMedicalRecordModalProps {
   open: boolean;

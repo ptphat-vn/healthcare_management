@@ -1,6 +1,6 @@
 import { useState } from "react";
 import InstrumentList from "@/components/features/service/instrumentManagement/InstrumentList";
-import AddInstrumentModal from "@/components/features/service/instrumentManagement/AddInstrumentModal";
+import AddInstrumentModal from "@/components/features/service/instrumentManagement/AddInstrumentModal/AddInstrumentModal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 

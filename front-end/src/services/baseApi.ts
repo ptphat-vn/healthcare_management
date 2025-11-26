@@ -110,6 +110,7 @@ export const baseApi = createApi({
     "Chat",
     "Notification",
     "Profile",
+    "Reagents",
   ],
   endpoints: (builder) => ({
     login: builder.mutation<APIResponse<AuthResponse>, LoginRequest>({
