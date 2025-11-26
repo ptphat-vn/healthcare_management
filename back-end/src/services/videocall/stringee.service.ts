@@ -43,5 +43,3 @@ export const generateStringeeAccessToken = (userId: string): string => {
 }
 
 export default { generateStringeeAccessToken }
-
-

@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { useRegisterMutation } from "@/services/baseApi";
 import { setAuth } from "@/stores/authSlice";
 import { toast } from "sonner";
-import Input from "../ui/input/Input";
+import Input from "../../ui/input/Input";
 
 export default function RegisterForm() {
   const dispatch = useDispatch();

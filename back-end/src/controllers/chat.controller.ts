@@ -83,8 +83,10 @@ export const sendMessageController = async (req: Request, res: Response, next: N
         io.to(`user_${authUserId}`).emit('message', serializedMessage)
         io.to(`user_${userId}`).emit('message', serializedMessage)
       } catch (e) {
-        // ignore emit errors
+        console.error('[HTTP] Error emitting message:', e);
       }
+    } else {
+      console.warn('[HTTP] Socket.io not available');
     }
 
     // Trả về serialized message cho HTTP response

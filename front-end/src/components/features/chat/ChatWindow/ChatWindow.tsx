@@ -10,13 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Send, Loader2, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { useSocketConnection } from "../../../hooks/useSocketConnection";
-import { useConversations } from "../../../hooks/useConversations";
+import { useSocketConnection } from "../../../../hooks/useSocketConnection";
+import { useConversations } from "../../../../hooks/useConversations";
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import EmptyState from "@/components/ui/empty/EmptyState";
 import EmojiPickerButton from "@/components/ui/emoji/EmojiPickerButton";
-import VideoCallButton from "../videoCall/VideoCallButton";
-
+import VideoCallButton from "@/components/features/videoCall/VideoCallButton/VideoCallButton";
 interface ChatWindowProps {
   otherUserId: string;
   otherUserName: string;
@@ -87,6 +86,8 @@ export default function ChatWindow({
           ? msg.createdAt.toISOString()
           : new Date().toISOString(),
     };
+
+    console.log("[ChatWindow] Normalized message:", normalizedMsg);
 
     setMessages((prev) => {
       const msgId = normalizedMsg._id;
