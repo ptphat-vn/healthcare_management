@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import * as eventLogService from '~/services/event-log.service'
+import * as eventLogService from '~/services/EventLogService/event-log.service'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 
 export const listEventLogsController = async (req: Request, res: Response, next: NextFunction) => {
