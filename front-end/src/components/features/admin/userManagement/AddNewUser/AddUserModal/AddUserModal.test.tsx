@@ -13,6 +13,10 @@ vi.mock("@/services/userApi", () => ({
   useCreateUserMutation: () => [mockCreateUser],
 }));
 
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({ user: { data: { roleCode: "ROLE_ADMIN" } } }),
+}));
+
 const mockToastSuccess = vi.fn();
 const mockToastError = vi.fn();
 vi.mock("sonner", () => ({
@@ -52,7 +56,40 @@ const submitButtonId = "new-user-form-submit";
 const closeButtonId = "new-user-form-close";
 const loadingIndicatorId = "new-user-form-loading";
 
-vi.mock("./NewUserForm", () => ({
+vi.mock("@/components/ui/input/Input", () => {
+  const MockInput = React.forwardRef<HTMLInputElement, any>(
+    ({ label, error, required, ...props }, ref) => (
+      <label>
+        {label}
+        {required && "*"}
+        <input aria-label={label} ref={ref} {...props} />
+        {error && <span>{error}</span>}
+      </label>
+    ),
+  );
+  MockInput.displayName = "MockInput";
+  return { __esModule: true, default: MockInput };
+});
+
+vi.mock("@/components/ui/popover", () => ({
+  Popover: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("@/components/ui/calendar", () => ({
+  Calendar: ({ onSelect }: { onSelect?: (date?: Date) => void }) => (
+    <button data-testid="calendar-button" onClick={() => onSelect?.(new Date("2000-01-01"))}>
+      calendar
+    </button>
+  ),
+}));
+
+vi.mock("@/utils/getRoleButtonClass", () => ({
+  getRoleButtonClass: () => "btn-primary",
+}));
+
+vi.mock("../AddUserForm/NewUserForm", () => ({
   NewUserForm: ({
     onSubmit,
     onClose,
@@ -80,19 +117,19 @@ describe("AddUserModal", () => {
     mockCreateUser.mockReturnValue({ unwrap: mockUnwrap });
   });
 
-  it("renders NewUserForm when modal is open", () => {
+  it("hiển thị NewUserForm khi modal mở", () => {
     render(<AddUserModal open onOpenChange={vi.fn()} />);
     expect(screen.getByTestId("new-user-form")).toBeInTheDocument();
   });
 
-  it("does not render NewUserForm when modal is closed", () => {
+  it("không hiển thị NewUserForm khi modal đóng", () => {
     render(<AddUserModal open={false} onOpenChange={vi.fn()} />);
     expect(screen.queryByTestId("new-user-form")).not.toBeInTheDocument();
   });
 
-  it("submits data, shows success toast, and closes modal", async () => {
+  it("gửi dữ liệu, hiển thị toast thành công và đóng modal", async () => {
     const onOpenChange = vi.fn();
-    mockUnwrap.mockResolvedValueOnce({ message: "Created" });
+    mockUnwrap.mockResolvedValueOnce({ message: "Create User Successfully!!" });
 
     render(<AddUserModal open onOpenChange={onOpenChange} />);
 
@@ -111,22 +148,22 @@ describe("AddUserModal", () => {
       }),
     );
 
-    await waitFor(() => expect(mockToastSuccess).toHaveBeenCalledWith("Created"));
+    await waitFor(() => expect(mockToastSuccess).toHaveBeenCalledWith("Create User Successfully!!"));
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(screen.getByTestId(loadingIndicatorId)).toHaveTextContent("idle");
   });
 
-  it("shows error toast when submission fails", async () => {
-    mockUnwrap.mockRejectedValueOnce({ data: { message: "failed" } });
+  it("hiển thị toast lỗi khi gửi thất bại", async () => {
+    mockUnwrap.mockRejectedValueOnce({ data: { message: "Tạo người dùng thất bại" } });
 
     render(<AddUserModal open onOpenChange={vi.fn()} />);
 
     await userEvent.click(screen.getByTestId(submitButtonId));
 
-    await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("failed"));
+    await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("Tạo người dùng thất bại"));
   });
 
-  it("closes via onClose when not loading", async () => {
+  it("đóng modal qua onClose khi không đang loading", async () => {
     const onOpenChange = vi.fn();
     render(<AddUserModal open onOpenChange={onOpenChange} />);
 

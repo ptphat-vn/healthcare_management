@@ -1,5 +1,4 @@
-import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQuery } from "./baseApi";
+import { baseApi } from "./baseApi";
 import {
   type Reagent,
   type ListReagentsParams,
@@ -10,12 +9,12 @@ import {
 } from "@/types/reagent.type";
 import type {
   APIResponse,
-  CreateVendorSuppyResponse,
+  CreateVendorSupplyResponse,
   GetReagentInventoryFifoResponse,
   ReagentHistory,
-  VendorSypplyHisResponse,
+  VendorSupplyHisResponse,
 } from "@/types/response.type";
-import type { CreateVendorSuppyRequest } from "@/types/request.type";
+import type { CreateVendorSupplyRequest } from "@/types/request.type";
 
 interface PaginationResponse {
   page: number;
@@ -24,10 +23,7 @@ interface PaginationResponse {
   totalPages: number;
 }
 
-export const reagentApi = createApi({
-  reducerPath: "reagentApi",
-  baseQuery: customBaseQuery,
-  tagTypes: ["Reagents"],
+export const reagentApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllReagents: builder.query<
       {
@@ -105,7 +101,7 @@ export const reagentApi = createApi({
         method: "GET",
         params,
       }),
-      keepUnusedDataFor: 0, 
+      keepUnusedDataFor: 0,
       providesTags: ["Reagents"],
     }),
     // category
@@ -129,10 +125,10 @@ export const reagentApi = createApi({
       providesTags: ["Reagents"],
     }),
     createVendorSupply: builder.mutation<
-      APIResponse<CreateVendorSuppyResponse>,
-      CreateVendorSuppyRequest
+      APIResponse<CreateVendorSupplyResponse>,
+      CreateVendorSupplyRequest
     >({
-      query: (params: CreateVendorSuppyRequest) => ({
+      query: (params: CreateVendorSupplyRequest) => ({
         url: "/reagents/vendor-supply",
         method: "POST",
         body: params,
@@ -140,7 +136,7 @@ export const reagentApi = createApi({
       invalidatesTags: ["Reagents"],
     }),
     getVendorSupplyHistory: builder.query<
-      APIResponse<VendorSypplyHisResponse>,
+      APIResponse<VendorSupplyHisResponse>,
       VendorSupplyHisSearch
     >({
       query: (params: VendorSupplyHisSearch) => ({
