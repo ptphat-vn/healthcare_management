@@ -48,7 +48,7 @@ describe("NewUserForm", () => {
     vi.clearAllMocks();
   });
 
-  it("renders all required fields", () => {
+  it("hiển thị tất cả các trường bắt buộc", () => {
     render(<NewUserForm onSubmit={vi.fn()} onClose={vi.fn()} />);
 
     expect(screen.getByLabelText(/Full name/i)).toBeInTheDocument();
@@ -61,7 +61,7 @@ describe("NewUserForm", () => {
     expect(screen.getByLabelText(/Address/i)).toBeInTheDocument();
   });
 
-  it("shows validation error when gender is not selected", async () => {
+  it("hiển thị lỗi validation khi chưa chọn giới tính", async () => {
     render(<NewUserForm onSubmit={vi.fn()} onClose={vi.fn()} />);
 
     await fillRequiredFields();
@@ -73,7 +73,7 @@ describe("NewUserForm", () => {
     });
   });
 
-  it("submits form data when all fields are valid", async () => {
+  it("gửi dữ liệu form khi tất cả các trường hợp lệ", async () => {
     const handleSubmit = vi.fn();
     render(<NewUserForm onSubmit={handleSubmit} onClose={vi.fn()} />);
 
@@ -100,7 +100,7 @@ describe("NewUserForm", () => {
     );
   });
 
-  it("invokes onClose when Close button is clicked", async () => {
+  it("gọi onClose khi nhấn nút Close", async () => {
     const handleClose = vi.fn();
     render(<NewUserForm onSubmit={vi.fn()} onClose={handleClose} />);
 
@@ -109,7 +109,7 @@ describe("NewUserForm", () => {
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
-  it("disables submit button and shows loading state", () => {
+  it("vô hiệu hóa nút submit và hiển thị trạng thái loading", () => {
     render(<NewUserForm onSubmit={vi.fn()} onClose={vi.fn()} isLoading />);
 
     const submitButton = screen.getByRole("button", { name: /Creating/i });

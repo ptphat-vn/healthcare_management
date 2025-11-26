@@ -120,7 +120,7 @@ vi.mock("@/components/features/admin/userManagement/EditUser/EditUserForm/EditUs
     onSubmit,
     onClose,
     isLoading,
-    defaultValues,
+    defaultValues: _defaultValues,
   }: {
     onSubmit: (data: typeof mockFormData) => void;
     onClose: () => void;
@@ -145,12 +145,12 @@ describe("EditUserModal", () => {
     mockUpdateUser.mockReturnValue({ unwrap: mockUnwrap });
   });
 
-  it("renders EditUserForm when modal is open and user exists", () => {
+  it("hiển thị EditUserForm khi modal mở và có user", () => {
     render(<EditUserModal open onOpenChange={vi.fn()} user={user} />);
     expect(screen.getByTestId("edit-user-form")).toBeInTheDocument();
   });
 
-  it("does not render EditUserForm when modal closed or user missing", () => {
+  it("không hiển thị EditUserForm khi modal đóng hoặc thiếu user", () => {
     const { rerender } = render(
       <EditUserModal open={false} onOpenChange={vi.fn()} user={user} />,
     );
@@ -160,9 +160,9 @@ describe("EditUserModal", () => {
     expect(screen.queryByTestId("edit-user-form")).not.toBeInTheDocument();
   });
 
-  it("submits mapped payload, shows success toast, and closes modal", async () => {
+  it("gửi payload đã map, hiển thị toast thành công và đóng modal", async () => {
     const onOpenChange = vi.fn();
-    mockUnwrap.mockResolvedValueOnce({ message: "Updated" });
+    mockUnwrap.mockResolvedValueOnce({ message: "Cập nhật người dùng thành công" });
 
     render(<EditUserModal open onOpenChange={onOpenChange} user={user} />);
 
@@ -184,25 +184,25 @@ describe("EditUserModal", () => {
     );
 
     await waitFor(() =>
-      expect(mockToastSuccess).toHaveBeenCalledWith("Updated"),
+      expect(mockToastSuccess).toHaveBeenCalledWith("Cập nhật người dùng thành công"),
     );
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(screen.getByTestId(loadingIndicatorId)).toHaveTextContent("idle");
   });
 
-  it("shows error toast message on failure", async () => {
-    mockUnwrap.mockRejectedValueOnce({ data: { message: "Update failed" } });
+  it("hiển thị thông báo lỗi toast khi thất bại", async () => {
+    mockUnwrap.mockRejectedValueOnce({ data: { message: "Cập nhật người dùng thất bại" } });
 
     render(<EditUserModal open onOpenChange={vi.fn()} user={user} />);
 
     await userEvent.click(screen.getByTestId(submitButtonId));
 
     await waitFor(() =>
-      expect(mockToastError).toHaveBeenCalledWith("Update failed"),
+      expect(mockToastError).toHaveBeenCalledWith("Cập nhật người dùng thất bại"),
     );
   });
 
-  it("invokes onOpenChange(false) when Close clicked and not loading", async () => {
+  it("gọi onOpenChange(false) khi nhấn Close và không đang loading", async () => {
     const onOpenChange = vi.fn();
 
     render(<EditUserModal open onOpenChange={onOpenChange} user={user} />);

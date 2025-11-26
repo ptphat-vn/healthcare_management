@@ -83,7 +83,7 @@ describe("EditUserForm", () => {
       />,
     );
 
-  it("pre-fills fields with default values once roles load", async () => {
+  it("điền sẵn các trường với giá trị mặc định sau khi roles được tải", async () => {
     renderForm();
 
     await waitFor(() =>
@@ -95,7 +95,7 @@ describe("EditUserForm", () => {
     expect(screen.getByText("01/01/1990")).toBeInTheDocument();
   });
 
-  it("submits updated data with empty password", async () => {
+  it("gửi dữ liệu đã cập nhật với mật khẩu rỗng", async () => {
     const handleSubmit = vi.fn();
     renderForm({ onSubmit: handleSubmit });
 
@@ -126,7 +126,7 @@ describe("EditUserForm", () => {
     );
   });
 
-  it("calls onClose when Close button is clicked", async () => {
+  it("gọi onClose khi nhấn nút Close", async () => {
     const handleClose = vi.fn();
     renderForm({ onClose: handleClose });
 
@@ -139,7 +139,7 @@ describe("EditUserForm", () => {
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
-  it("disables submit button and shows loading state", () => {
+  it("vô hiệu hóa nút submit và hiển thị trạng thái loading", () => {
     renderForm({ isLoading: true });
 
     const submitButton = screen.getByRole("button", { name: /Updating.../i });
