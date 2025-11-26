@@ -97,7 +97,7 @@ export interface AddReagentToInstrumentRequest {
   lotNumber?: string;
   notes?: string;
 }
-export interface CreateVendorSuppyRequest {
+export interface CreateVendorSupplyRequest {
   reagentId: string;
   reagentName: string;
   catalogNumber: string;

@@ -24,7 +24,7 @@ listenerMiddleware.startListening({
   actionCreator: logout,
   effect: async (_, listenerApi) => {
     listenerApi.dispatch(baseApi.util.resetApiState());
-    listenerApi.dispatch(reagentApi.util.resetApiState()); // Thêm dòng này
+    // listenerApi.dispatch(reagentApi.util.resetApiState()); // Thêm dòng này
     persistor.purge();
   },
 });
@@ -37,7 +37,7 @@ const persistCofig = {
 
 const rootReducer = combineReducers({
   [baseApi.reducerPath]: baseApi.reducer,
-  [reagentApi.reducerPath]: reagentApi.reducer, // Thêm dòng này
+  // [reagentApi.reducerPath]: reagentApi.reducer, // Thêm dòng này
   auth: authSlice,
 });
 
@@ -51,9 +51,8 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [PERSIST, PURGE, REHYDRATE, PAUSE, FLUSH],
       },
-    })
-      .concat(baseApi.middleware)
-      .concat(reagentApi.middleware), // Thêm dòng này
+    }).concat(baseApi.middleware),
+  // .concat(reagentApi.middleware), // Thêm dòng này
 });
 
 export const persistor = persistStore(store);

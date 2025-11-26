@@ -17,8 +17,8 @@ import { MoreHorizontal, Edit, Trash2, Eye, Inbox } from "lucide-react";
 import type { Instrument } from "@/types/instrument.type";
 import { useState } from "react";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
-import EditInstrumentModal from "./EditInstrumentModal";
-import DeleteInstrumentModal from "./DeleteInstrumentModal";
+import EditInstrumentModal from "./EditInstrumentModal/EditInstrumentModal";
+import DeleteInstrumentModal from "./DeleteInstrumentModal/DeleteInstrumentModal";
 import { useNavigate } from "react-router-dom";
 
 interface InstrumentTableProps {

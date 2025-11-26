@@ -21,6 +21,8 @@ export default function PaginationUI({
   if (totalPages < 1) return null;
 
   const safeCurrentPage = Math.max(1, Math.min(currentPage, totalPages));
+  const isPrevDisabled = safeCurrentPage === 1;
+  const isNextDisabled = safeCurrentPage === totalPages;
 
   const getPages = () => {
     const pages: (number | string)[] = [];
@@ -61,11 +63,15 @@ export default function PaginationUI({
         <PaginationItem>
           <PaginationPrevious
             className={
-              safeCurrentPage === 1
+              isPrevDisabled
                 ? "pointer-events-none opacity-50"
                 : "cursor-pointer"
             }
-            onClick={() => onPageChange(Math.max(safeCurrentPage - 1, 1))}
+            disabled={isPrevDisabled}
+            onClick={() => {
+              if (isPrevDisabled) return;
+              onPageChange(Math.max(safeCurrentPage - 1, 1));
+            }}
           />
         </PaginationItem>
         {pages.map((page, idx) =>
@@ -87,13 +93,15 @@ export default function PaginationUI({
         <PaginationItem>
           <PaginationNext
             className={
-              safeCurrentPage === totalPages
+              isNextDisabled
                 ? "pointer-events-none opacity-50"
                 : "cursor-pointer"
             }
-            onClick={() =>
-              onPageChange(Math.min(safeCurrentPage + 1, totalPages))
-            }
+            disabled={isNextDisabled}
+            onClick={() => {
+              if (isNextDisabled) return;
+              onPageChange(Math.min(safeCurrentPage + 1, totalPages));
+            }}
           />
         </PaginationItem>
       </PaginationContent>

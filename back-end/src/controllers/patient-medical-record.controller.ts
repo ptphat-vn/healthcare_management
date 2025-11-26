@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
-import * as patientService from '~/services/patient-medical-record.service'
+import * as patientService from '~/services/medicalrecord/patient-medical-record.service'
 
 export const createPatientRecordController = async (req: Request, res: Response, next: NextFunction) => {
   try {

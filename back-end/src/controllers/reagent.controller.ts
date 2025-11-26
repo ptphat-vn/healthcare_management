@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
-import * as reagentService from '~/services/reagent.service'
-import * as vendorSupplyService from '~/services/reagent-vendor-supply.service'
-import * as usageHistoryService from '~/services/reagent-usage-history.service'
-import * as reagentInventoryService from '~/services/reagent-inventory.service'
+import * as reagentService from '~/services/reagent/reagent.service'
+import * as vendorSupplyService from '~/services/reagentvendorsupply/reagent-vendor-supply.service'
+import * as usageHistoryService from '~/services/reagentusagehistory/reagent-usage-history.service'
+import * as reagentInventoryService from '~/services/reagentinventory/reagent-inventory.service'
 import { REAGENT_CATEGORIES } from '~/models/reagent.model'
 
 // REAGENT MASTER DATA

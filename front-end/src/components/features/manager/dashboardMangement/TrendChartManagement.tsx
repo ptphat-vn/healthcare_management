@@ -1,5 +1,4 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AreaChart,
   Area,
@@ -9,14 +8,14 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
-import { BarChart3 } from 'lucide-react';
-import { useGetAllUserQuery } from '@/services/userApi';
-import { useGetAllTestOrderQuery } from '@/services/testOrderApi';
-import dayjs from 'dayjs';
+} from "recharts";
+import { BarChart3 } from "lucide-react";
+import { useGetAllUserQuery } from "@/services/userApi";
+import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
+import dayjs from "dayjs";
 
 export default function TrendChartManagement() {
-   const { data: usersRes } = useGetAllUserQuery({
+  const { data: usersRes } = useGetAllUserQuery({
     limit: 10000,
   });
   const { data: testRes } = useGetAllTestOrderQuery({
@@ -135,5 +134,5 @@ export default function TrendChartManagement() {
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

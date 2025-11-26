@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import * as chatService from '~/services/chat.service'
-import * as notificationService from '~/services/notification.service'
+import * as chatService from '~/services/chat/chat.service'
+import * as notificationService from '~/services/notification/notification.service'
 import { getIo } from '~/utils/socket'
 
 export const getConversationController = async (req: Request, res: Response, next: NextFunction) => {
@@ -83,8 +83,10 @@ export const sendMessageController = async (req: Request, res: Response, next: N
         io.to(`user_${authUserId}`).emit('message', serializedMessage)
         io.to(`user_${userId}`).emit('message', serializedMessage)
       } catch (e) {
-        // ignore emit errors
+        console.error('[HTTP] Error emitting message:', e);
       }
+    } else {
+      console.warn('[HTTP] Socket.io not available');
     }
 
     // Trả về serialized message cho HTTP response

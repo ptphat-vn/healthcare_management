@@ -150,3 +150,39 @@ dist
 package.json
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.product
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
-import * as flaggingConfigService from '~/services/flagging-config.service'
+import * as flaggingConfigService from '~/services/configresult/flagging-config.service'
 
 export const createFlaggingConfigController = async (req: Request, res: Response, next: NextFunction) => {
   try {

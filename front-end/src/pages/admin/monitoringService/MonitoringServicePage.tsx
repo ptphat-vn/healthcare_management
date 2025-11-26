@@ -1,5 +1,4 @@
 import MonitoringList from "@/components/features/admin/monitoringSevice/MonitoringList";
-import React from "react";
 
 export default function MonitoringServicePage() {
   return (
