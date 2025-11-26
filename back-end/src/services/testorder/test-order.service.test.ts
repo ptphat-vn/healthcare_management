@@ -12,7 +12,7 @@ import {
   aiReviewTestOrderResults,
   updateComment,
   deleteComment
-} from '../test-order.service'
+} from '~/services/testorder/test-order.service'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import * as testOrderModel from '~/models/test-order.model'
@@ -20,9 +20,9 @@ import * as patientMedicalRecordModel from '~/models/patient-medical-record.mode
 import * as userModel from '~/models/user.model'
 import * as eventLogModel from '~/models/event-log.model'
 import * as roleModel from '~/models/role.model'
-import * as reagentUsageHistoryService from '~/services/reagent-usage-history.service'
-import * as aiService from '~/services/ai.service'
-import * as flaggingConfigService from '~/services/flagging-config.service'
+import * as reagentUsageHistoryService from '~/services/reagentusagehistory/reagent-usage-history.service'
+import * as aiService from '~/services/ai/ai.service'
+import * as flaggingConfigService from '~/services/configresult/flagging-config.service'
 
 // Mock các dependencies
 jest.mock('~/models/test-order.model')
@@ -30,9 +30,9 @@ jest.mock('~/models/patient-medical-record.model')
 jest.mock('~/models/user.model')
 jest.mock('~/models/event-log.model')
 jest.mock('~/models/role.model')
-jest.mock('~/services/reagent-usage-history.service')
-jest.mock('~/services/ai.service')
-jest.mock('~/services/flagging-config.service')
+jest.mock('~/services/reagentusagehistory/reagent-usage-history.service')
+jest.mock('~/services/ai/ai.service')
+jest.mock('~/services/configresult/flagging-config.service')
 
 describe('Test Order Service', () => {
   let mockTestOrdersCollection: any

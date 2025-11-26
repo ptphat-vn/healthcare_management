@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb'
-import * as flaggingService from '../flagging-config.service'
+import * as flaggingService from '~/services/configresult/flagging-config.service'
 import { HttpError } from '~/models/error.model'
 import * as testOrderModel from '~/models/test-order.model'
 import * as userModel from '~/models/user.model'

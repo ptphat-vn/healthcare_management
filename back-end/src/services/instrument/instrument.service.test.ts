@@ -6,7 +6,7 @@ import {
   updateInstrument,
   deleteInstrument,
   type CreateInstrumentPayload
-} from '../instrument.service'
+} from '~/services/instrument/instrument.service'
 import { HttpError } from '~/models/error.model'
 import type { InstrumentDocument } from '~/models/instrument.model'
 import * as instrumentModel from '~/models/instrument.model'

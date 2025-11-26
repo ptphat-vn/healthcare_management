@@ -9,7 +9,7 @@ import {
   getUserDetail,
   uploadToCloudinary,
   deleteFromCloudinary
-} from '../user.service'
+} from '~/services/user/user.service'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import * as userModel from '~/models/user.model'
