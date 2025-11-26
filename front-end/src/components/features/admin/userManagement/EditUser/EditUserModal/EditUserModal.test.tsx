@@ -14,6 +14,18 @@ vi.mock("@/services/userApi", () => ({
   useUpdateUserMutation: () => [mockUpdateUser],
 }));
 
+const mockRoles = [{ _id: "role-1", name: "Admin" }, { _id: "role-2", name: "User" }];
+
+vi.mock("@/services/roleApi", () => ({
+  useGetAllRoleQuery: () => ({
+    data: { data: { role: mockRoles } },
+  }),
+}));
+
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({ user: { data: { roleCode: "ROLE_ADMIN" } } }),
+}));
+
 const mockToastSuccess = vi.fn();
 const mockToastError = vi.fn();
 vi.mock("sonner", () => ({
@@ -38,44 +50,42 @@ vi.mock("@/components/ui/dialog", () => ({
   ),
 }));
 
+vi.mock("@/components/ui/input/Input", () => {
+  const MockInput = React.forwardRef<HTMLInputElement, any>(
+    ({ label, error, required, ...props }, ref) => (
+      <label>
+        {label}
+        {required && "*"}
+        <input aria-label={label} ref={ref} {...props} />
+        {error && <span>{error}</span>}
+      </label>
+    ),
+  );
+  MockInput.displayName = "MockInput";
+  return { __esModule: true, default: MockInput };
+});
+
+vi.mock("@/components/ui/popover", () => ({
+  Popover: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("@/components/ui/calendar", () => ({
+  Calendar: ({ onSelect }: { onSelect?: (date?: Date) => void }) => (
+    <button data-testid="calendar-button" onClick={() => onSelect?.(new Date("2000-01-01"))}>
+      calendar
+    </button>
+  ),
+}));
+
+vi.mock("@/utils/getRoleButtonClass", () => ({
+  getRoleButtonClass: () => "btn-primary",
+}));
+
 const submitButtonId = "edit-user-form-submit";
 const closeButtonId = "edit-user-form-close";
 const loadingIndicatorId = "edit-user-form-loading";
-
-const mockFormData: CreateUserFormData & { roleId?: string; status?: number } = {
-  fullName: "Jane Doe",
-  email: "jane@example.com",
-  dateOfBirth: "1995-05-15",
-  phone: "0987654321",
-  gender: "female",
-  identifyNumber: "987654321000",
-  password: "",
-  address: "456 Elm St",
-  roleId: "role-2",
-  status: 2,
-};
-
-vi.mock("./EditUserForm", () => ({
-  EditUserForm: ({
-    onSubmit,
-    onClose,
-    isLoading,
-  }: {
-    onSubmit: (data: typeof mockFormData) => void;
-    onClose: () => void;
-    isLoading: boolean;
-  }) => (
-    <div data-testid="edit-user-form">
-      <button data-testid={submitButtonId} onClick={() => onSubmit(mockFormData)}>
-        submit
-      </button>
-      <button data-testid={closeButtonId} onClick={onClose}>
-        close
-      </button>
-      <span data-testid={loadingIndicatorId}>{isLoading ? "loading" : "idle"}</span>
-    </div>
-  ),
-}));
 
 const user: User = {
   _id: "user-123",
@@ -91,6 +101,43 @@ const user: User = {
   createdAt: "",
   updatedAt: "",
 };
+
+const mockFormData: CreateUserFormData & { roleId?: string; status?: number } = {
+  fullName: "Jane Doe",
+  email: "jane@example.com",
+  dateOfBirth: "1995-05-15",
+  phone: "0987654321",
+  gender: "female",
+  identifyNumber: "987654321000",
+  password: "",
+  address: "456 Elm St",
+  roleId: "role-2",
+  status: 2,
+};
+
+vi.mock("@/components/features/admin/userManagement/EditUser/EditUserForm/EditUserForm", () => ({
+  EditUserForm: ({
+    onSubmit,
+    onClose,
+    isLoading,
+    defaultValues,
+  }: {
+    onSubmit: (data: typeof mockFormData) => void;
+    onClose: () => void;
+    isLoading: boolean;
+    defaultValues: typeof user;
+  }) => (
+    <div data-testid="edit-user-form">
+      <button data-testid={submitButtonId} onClick={() => onSubmit(mockFormData)}>
+        submit
+      </button>
+      <button data-testid={closeButtonId} onClick={onClose}>
+        close
+      </button>
+      <span data-testid={loadingIndicatorId}>{isLoading ? "loading" : "idle"}</span>
+    </div>
+  ),
+}));
 
 describe("EditUserModal", () => {
   beforeEach(() => {
