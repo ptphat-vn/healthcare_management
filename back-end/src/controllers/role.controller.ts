@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import * as roleService from '~/services/role.service'
+import * as roleService from '~/services/role/role.service'
 
 export const createRoleController = async (req: Request, res: Response, next: NextFunction) => {
   try {
