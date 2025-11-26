@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import LoginForm from "@/components/auth/LoginForm";
+import LoginForm from "@/components/auth/LoginForm/LoginForm";
 import bg_authen from "../../assets/images/bg_authen.png";
 import bg_login from "../../assets/images/bg_login.png";
 
