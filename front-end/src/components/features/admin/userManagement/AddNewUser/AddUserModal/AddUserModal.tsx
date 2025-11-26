@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { type CreateUserFormData } from "@/schemas/userSchema";
 import { type CreateUserRequest } from "@/types/request.type";
-import { NewUserForm } from "./NewUserForm";
+import { NewUserForm } from "../AddUserForm/NewUserForm";
 import { useState } from "react";
 import { useCreateUserMutation } from "@/services/userApi";
 import { toast } from "sonner";
