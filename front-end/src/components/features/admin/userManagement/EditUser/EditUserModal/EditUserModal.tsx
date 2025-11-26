@@ -11,7 +11,7 @@ import { useUpdateUserMutation } from "@/services/userApi";
 import { toast } from "sonner";
 import { type User } from "@/types/user.type";
 
-import { EditUserForm } from "@/components/features/admin/userManagement/EditUserForm";
+import { EditUserForm } from "@/components/features/admin/userManagement/EditUser/EditUserForm/EditUserForm";
 
 interface EditUserModalProps {
   open: boolean;
@@ -93,3 +93,4 @@ export default function EditUserModal({
     </Dialog>
   );
 }
+

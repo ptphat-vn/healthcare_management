@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { NewUserForm } from "../../admin/userManagement/NewUserForm";
+import { NewUserForm } from "../../admin/userManagement/AddNewUser/AddUserForm/NewUserForm";
 import { useState } from "react";
 import { useCreateUserMutation } from "@/services/userApi";
 import type { CreateUserFormData } from "@/schemas/userSchema";

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, Eye, AlertCircle } from "lucide-react";
 import type { GenderUser, User } from "@/types/user.type";
-import EditUserModal from "@/components/features/admin/userManagement/EditUserModal";
+import EditUserModal from "@/components/features/admin/userManagement/EditUser/EditUserModal/EditUserModal";
 import DeleteUserModal from "@/components/features/admin/userManagement/DeleteUserModal";
 import { useGetAllUserQuery } from "@/services/userApi";
 import { formatDate } from "@/utils/formatDate";
