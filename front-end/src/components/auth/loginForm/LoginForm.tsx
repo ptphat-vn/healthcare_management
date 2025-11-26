@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { useLoginGoogleMutation, useLoginMutation } from "@/services/baseApi";
 import { setAuth } from "@/stores/authSlice";
 import { toast } from "sonner";
-import Input from "../../ui/input/Input";
+import Input from "@/components/ui/input/Input";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { Loader2 } from "lucide-react";
 

@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import type { Instrument } from "@/types/instrument.type";
-import EditInstrumentForm from "./EditInstrumentForm";
+import EditInstrumentForm from "../EditInstrumentForm/EditInstrumentForm";
 import type { UpdateInstrumentFormData } from "@/schemas/instrumentSchema";
 import { useUpdateInstrumentMutation } from "@/services/instrumentApi";
 

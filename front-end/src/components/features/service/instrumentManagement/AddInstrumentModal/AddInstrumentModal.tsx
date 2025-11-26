@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { type CreateInstrumentFormData } from "@/schemas/instrumentSchema";
 import { type CreateInstrumentRequest } from "@/types/instrument.type";
-import { NewInstrumentForm } from "./NewInstrumentForm";
+import { NewInstrumentForm } from "../NewInstrumentForm";
 import { useState } from "react";
 import { useCreateInstrumentMutation } from "@/services/instrumentApi";
 import { toast } from "sonner";
@@ -65,7 +65,9 @@ export default function AddInstrumentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Add New Instrument</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            Add New Instrument
+          </DialogTitle>
         </DialogHeader>
 
         {open && (

@@ -15,8 +15,7 @@ import { useConversations } from "../../../../hooks/useConversations";
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import EmptyState from "@/components/ui/empty/EmptyState";
 import EmojiPickerButton from "@/components/ui/emoji/EmojiPickerButton";
-import VideoCallButton from "../../videoCall/VideoCallButton";
-
+import VideoCallButton from "@/components/features/videoCall/VideoCallButton/VideoCallButton";
 interface ChatWindowProps {
   otherUserId: string;
   otherUserName: string;
@@ -88,7 +87,7 @@ export default function ChatWindow({
           : new Date().toISOString(),
     };
 
-    console.log('[ChatWindow] Normalized message:', normalizedMsg);
+    console.log("[ChatWindow] Normalized message:", normalizedMsg);
 
     setMessages((prev) => {
       const msgId = normalizedMsg._id;
