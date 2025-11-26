@@ -25,5 +25,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/setupTests.ts"],
     exclude: [...configDefaults.exclude, "e2e/**"],
+    css: false,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      reportsDirectory: "./coverage",
+    },
   },
 });

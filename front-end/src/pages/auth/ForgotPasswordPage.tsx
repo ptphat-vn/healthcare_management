@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import bg_authen from "@/assets/images/bg_authen.png";
 import bg_login from "@/assets/images/bg_login.png";
-import ResetPasswordFlow from "@/components/features/ResetPassword/ResetPasswordFlow";
+import ResetPasswordFlow from "@/components/features/ResetPassword/ResetPasswordFlow/ResetPasswordFlow";
 
 export default function ForgotPasswordPage() {
   return (

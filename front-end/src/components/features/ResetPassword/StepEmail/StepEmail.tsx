@@ -26,8 +26,9 @@ export default function StepEmail({
       className="space-y-4"
     >
       <div className="space-y-2">
-        <label className="text-sm font-medium">Email</label>
+        <label htmlFor="email-input" className="text-sm font-medium">Email</label>
         <input
+          id="email-input"
           placeholder="example123@gmail.com"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
