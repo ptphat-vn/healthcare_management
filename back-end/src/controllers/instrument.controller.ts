@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import * as instrumentService from '~/services/instrument.service'
-import * as instrumentReagentAssignmentService from '~/services/instrument-reagent-assignment.service'
+import * as instrumentService from '~/services/instrument/instrument.service'
+import * as instrumentReagentAssignmentService from '~/services/instrusmentreagentassignment/instrument-reagent-assignment.service'
 
 export const createInstrumentController = async (req: Request, res: Response, next: NextFunction) => {
   try {
