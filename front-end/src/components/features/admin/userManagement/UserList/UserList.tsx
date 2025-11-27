@@ -17,7 +17,7 @@ import {
 import { MoreHorizontal, Edit, Trash2, Eye, AlertCircle } from "lucide-react";
 import type { GenderUser, User } from "@/types/user.type";
 import EditUserModal from "@/components/features/admin/userManagement/EditUser/EditUserModal/EditUserModal";
-import DeleteUserModal from "@/components/features/admin/userManagement/DeleteUserModal";
+import DeleteUserModal from "@/components/features/admin/userManagement/DeleteUserModal/DeleteUserModal";
 import { useGetAllUserQuery } from "@/services/userApi";
 import { formatDate } from "@/utils/formatDate";
 import { useNavigate } from "react-router-dom";

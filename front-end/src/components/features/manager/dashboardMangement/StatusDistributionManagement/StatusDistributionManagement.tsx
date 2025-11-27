@@ -9,20 +9,19 @@ const CustomPieTooltip = ({
 }: {
   active?: boolean;
   payload?: Array<{
-    value?: number;
-    payload?: { color?: string; total?: number };
-    name?: string;
+    name: string;
+    value: number;
+    payload: { color: string; total?: number };
   }>;
 }) => {
   if (active && payload && payload.length) {
     const data = payload[0];
-    const bgColor = data.payload?.color;
+    const bgColor = data.payload.color;
 
     const total =
-      payload[0].payload?.total ||
-      payload.reduce((sum: number, entry) => sum + (entry.value || 0), 0);
-    const percentage =
-      total > 0 ? (((data.value || 0) / total) * 100).toFixed(1) : 0;
+      payload[0].payload.total ||
+      payload.reduce((sum, entry) => sum + (entry.value || 0), 0);
+    const percentage = total > 0 ? ((data.value / total) * 100).toFixed(1) : 0;
 
     return (
       <div
@@ -38,10 +37,10 @@ const CustomPieTooltip = ({
           {data.name}
         </p>
         <p className="text-1xl font-bold" style={{ color: "#ffffff" }}>
-          {data.value} đơn
+          {data.value} orders
         </p>
         <p className="text-xs opacity-80" style={{ color: "#ffffff" }}>
-          {percentage}% tổng số
+          {percentage}% of total
         </p>
       </div>
     );
@@ -61,22 +60,22 @@ export default function StatusDistributionManagement() {
   const getAlertStatus = () => {
     const statusData = [
       {
-        name: "Chờ xử lý",
+        name: "Pending",
         value: tests.filter((t) => t.status === "pending").length,
         color: "#F59E0B",
       },
       {
-        name: "Đang xử lý",
+        name: "In Progress",
         value: tests.filter((t) => t.status === "reviewed").length,
         color: "#3B82F6",
       },
       {
-        name: "Hoàn thành",
+        name: "Completed",
         value: tests.filter((t) => t.status === "completed").length,
         color: "#10B981",
       },
       {
-        name: "Hủy",
+        name: "Cancelled",
         value: tests.filter((t) => t.status === "cancelled").length,
         color: "#EF4444",
       },
@@ -91,8 +90,8 @@ export default function StatusDistributionManagement() {
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg h-123">
       <CardHeader className="border-b border-slate-100">
-        <CardTitle className="text-slate-900">Phân bố Trạng thái</CardTitle>
-        <p className="text-sm text-slate-500 mt-1">Tỷ lệ đơn xét nghiệm</p>
+        <CardTitle className="text-slate-900">Status Distribution</CardTitle>
+        <p className="text-sm text-slate-500 mt-1">Test order distribution</p>
       </CardHeader>
       <CardContent className="pt-6 ">
         <ResponsiveContainer width="115%" height={320}>
@@ -102,7 +101,7 @@ export default function StatusDistributionManagement() {
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }: { name?: string; percent?: number }) =>
+              label={({ name, percent }) =>
                 `${name} ${((percent || 0) * 100).toFixed(0)}%`
               }
               outerRadius={100}

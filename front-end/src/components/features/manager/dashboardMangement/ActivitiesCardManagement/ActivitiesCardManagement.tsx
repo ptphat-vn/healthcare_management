@@ -27,19 +27,13 @@ export default function ActivitiesCardManagement() {
 
   // Helper function - Get recent activities
   const getRecentActivities = () => {
-    return events.slice(0, 6).map((e) => {
-      const operatorName =
-        typeof e.operator === "string"
-          ? e.operator
-          : e.operator?.name || "Không xác định";
-      return {
-        id: e.id,
-        action: e.action || "Hành động",
-        operator: operatorName,
-        time: e.timestamp ? dayjs(e.timestamp).fromNow() : "Không xác định",
-        status: e.status || "info",
-      };
-    });
+    return events.slice(0, 6).map((e) => ({
+      id: e.id,
+      action: e.action || "Action",
+      operator: e.operator?.name || e.operator || "Unknown",
+      time: e.timestamp ? dayjs(e.timestamp).fromNow() : "Unknown",
+      status: e.status || "info",
+    }));
   };
 
   const recentActivities = getRecentActivities();
@@ -50,13 +44,13 @@ export default function ActivitiesCardManagement() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-slate-900 flex items-center gap-2">
             <Clock className="h-5 w-5 text-indigo-600" />
-            Hoạt động Gần đây
+            Recent Activities
           </CardTitle>
           <button
             onClick={() => (window.location.href = "/lab_manager/event-log")}
             className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 transition-colors"
           >
-            Xem chi tiết
+            View Details
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
@@ -91,7 +85,7 @@ export default function ActivitiesCardManagement() {
                     {activity.action}
                   </p>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    bởi {activity.operator}
+                    by {String(activity.operator)}
                   </p>
                 </div>
                 <span className="text-xs text-slate-400 whitespace-nowrap">
@@ -102,9 +96,7 @@ export default function ActivitiesCardManagement() {
           ) : (
             <div className="text-center py-8">
               <Activity className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 text-sm">
-                Không có hoạt động gần đây
-              </p>
+              <p className="text-slate-500 text-sm">No recent activities</p>
             </div>
           )}
         </div>

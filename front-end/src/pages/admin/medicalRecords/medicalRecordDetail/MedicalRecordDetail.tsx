@@ -27,8 +27,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import EditTestDialog from "@/components/features/admin/medicalRecords/EditTestDialog";
-import DeleteTestDialog from "@/components/features/admin/medicalRecords/DeleteTestDialog";
+import EditTestDialog from "@/components/features/admin/medicalRecords/EditTestDialog/EditTestDialog";
+import DeleteTestDialog from "@/components/features/admin/medicalRecords/DeleteTestDialog/DeleteTestDialog";
 
 // Fake data for Test History
 interface TestHistory {

@@ -17,22 +17,22 @@ export default function StatusCardManagement() {
   const getAlertStatus = () => {
     return [
       {
-        name: "Chờ xử lý",
+        name: "Pending",
         value: tests.filter((t) => t.status === "pending").length,
         color: "#F59E0B",
       },
       {
-        name: "Đang xử lý",
+        name: "In Progress",
         value: tests.filter((t) => t.status === "reviewed").length,
         color: "#3B82F6",
       },
       {
-        name: "Hoàn thành",
+        name: "Completed",
         value: tests.filter((t) => t.status === "completed").length,
         color: "#10B981",
       },
       {
-        name: "Hủy",
+        name: "Cancelled",
         value: tests.filter((t) => t.status === "cancelled").length,
         color: "#EF4444",
       },
@@ -46,7 +46,7 @@ export default function StatusCardManagement() {
       <CardHeader className="border-b border-slate-100">
         <CardTitle className="text-slate-900 flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-indigo-600" />
-          Thống kê Chi tiết
+          Detailed Statistics
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
