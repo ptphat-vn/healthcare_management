@@ -10,8 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Eye, MoreHorizontal } from "lucide-react";
 import dayjs from "dayjs";
-import type { EventLog } from "../../../../types/monitor.type";
-import MonitoringDetail from "./MonitoringDetail";
+import type { EventLog } from "../../../../../types/monitor.type";
+import MonitoringDetail from "../MonitoringDetail/MonitoringDetail";
 import { useGetEventLogsQuery } from "@/services/eventLogApi";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import {

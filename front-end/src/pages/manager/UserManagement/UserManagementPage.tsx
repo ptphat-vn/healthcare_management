@@ -1,4 +1,4 @@
-import UserList from "@/components/features/admin/userManagement/UserList";
+import UserList from "@/components/features/admin/userManagement/UserList/UserList";
 import AddUserDialog from "@/components/features/manager/UserManagement/AddUserDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";

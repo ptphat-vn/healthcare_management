@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import ReagentList from "@/components/features/labUser/reagent/ReagentList";
-import AddReagentModal from "@/components/features/labUser/reagent/AddReagentModal";
+import ReagentList from "@/components/features/labUser/reagent/ReagentList/ReagentList";
+import AddReagentModal from "@/components/features/labUser/reagent/AddReagentModal/AddReagentModal";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
