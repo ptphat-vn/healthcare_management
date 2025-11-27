@@ -90,14 +90,8 @@ describe("ChatWindow", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-<<<<<<< HEAD
-    
-    Element.prototype.scrollIntoView = vi.fn();
-    
-=======
     Element.prototype.scrollIntoView = vi.fn();
 
->>>>>>> b8482b13cc11d05de342b290e48eb45cb1f88ea2
     mockUseAuth.mockReturnValue({ user: { data: { _id: "current-user" } } });
     mockUseConversations.mockReturnValue({
       conversations: [],
