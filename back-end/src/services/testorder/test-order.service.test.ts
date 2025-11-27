@@ -567,6 +567,30 @@ describe('Test Order Service', () => {
       expect(result.testOrders).toHaveLength(0)
       expect(result.pagination.total).toBe(0)
     })
+
+    it('should throw error for invalid patient auth user id (bad case)', async () => {
+      await expect(
+        listTestOrders({ authUserRole: 'patient', authUserId: 'invalid-id' })
+      ).rejects.toThrow(HttpError)
+    })
+
+    it('should throw error when patient auth user not found (bad case)', async () => {
+      const userId = new ObjectId().toString()
+      mockUsersCollection.findOne.mockResolvedValueOnce(null)
+
+      await expect(
+        listTestOrders({ authUserRole: 'patient', authUserId: userId })
+      ).rejects.toThrow('Authenticated user not found')
+    })
+
+    it('should throw error when patient auth user has no patientId (bad case)', async () => {
+      const userId = new ObjectId().toString()
+      mockUsersCollection.findOne.mockResolvedValueOnce({ _id: new ObjectId(userId), patientId: null })
+
+      await expect(
+        listTestOrders({ authUserRole: 'patient', authUserId: userId })
+      ).rejects.toThrow('User does not have a patientId')
+    })
   })
 
   describe('addTestResults', () => {
