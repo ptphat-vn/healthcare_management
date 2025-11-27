@@ -5,12 +5,6 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: ["./vitest.setup.ts"],
-    css: true,
-  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -22,7 +16,12 @@ export default defineConfig({
       "@store": path.resolve(__dirname, "./src/store"),
       "@routes": path.resolve(__dirname, "./src/routes"),
       "@services": path.resolve(__dirname, "./src/services"),
+      "@schemas": path.resolve(__dirname, "./src/schemas"),
     },
   },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: ["./src/setupTests.ts"],
+  },
 });
-

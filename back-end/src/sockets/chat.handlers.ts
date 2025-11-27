@@ -1,7 +1,7 @@
 import type { Socket, Server } from 'socket.io'
-import * as chatService from '~/services/chat.service'
-import * as notificationService from '~/services/notification.service'
-import * as userService from '~/services/user.service'
+import * as chatService from '~/services/chat/chat.service'
+import * as notificationService from '~/services/notification/notification.service'
+import * as userService from '~/services/user/user.service'
 
 const userRoomName = (userId: string) => `user_${userId}`
 
@@ -22,7 +22,14 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
   })
 
   socket.on('join', ({ roomId }: { roomId: string }) => {
-    if (roomId) socket.join(roomId)
+    if (roomId) {
+      socket.join(roomId);
+      console.log(`[Socket] User ${(socket.data as any).userId || 'unknown'} joined room: ${roomId}`);
+      
+      // Debug: Log số clients trong room
+      const room = io.sockets.adapter.rooms.get(roomId);
+      console.log(`[Socket] Room ${roomId} now has ${room?.size || 0} clients`);
+    }
   })
 
   socket.on('leave', ({ roomId }: { roomId: string }) => {
@@ -50,7 +57,6 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
 
       // Serialize message: Convert ObjectId và Date thành string
       const serializedMessage = chatService.serializeMessage(saved)
-
       // Emit serialized message đến conversation room
       io.to(payload.conversationId).emit('message', serializedMessage)
 

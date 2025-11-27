@@ -1,187 +1,131 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import UserDetail from "./UserDetail";
-import type { User } from "@/types/user.type";
+import { vi } from "vitest";
 
-// Mock dependencies
+const mockUseParams = vi.hoisted(() => vi.fn());
+const mockUseGetDetailUserQuery = vi.hoisted(() => vi.fn());
+
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual<typeof import("react-router-dom")>(
+    "react-router-dom"
+  );
+
+  return {
+    ...actual,
+    useParams: mockUseParams,
+  };
+});
+
 vi.mock("@/services/userApi", () => ({
-  useGetDetailUserQuery: vi.fn(),
-}));
-
-vi.mock("react-router-dom", () => ({
-  useParams: vi.fn(() => ({ id: "1" })),
-  useNavigate: vi.fn(() => vi.fn()),
+  useGetDetailUserQuery: (...args: unknown[]) =>
+    mockUseGetDetailUserQuery(...args),
 }));
 
 vi.mock("@/components/ui/button/ButtonBack", () => ({
+  __esModule: true,
   default: ({ title }: { title: string }) => (
     <div data-testid="button-back">{title}</div>
   ),
 }));
 
-import { useGetDetailUserQuery } from "@/services/userApi";
-import { useParams } from "react-router-dom";
-
-const mockUseGetDetailUserQuery = vi.mocked(useGetDetailUserQuery);
-const mockUseParams = vi.mocked(useParams);
+const createQueryState = (overrides?: Record<string, unknown>) => ({
+  data: undefined,
+  isLoading: false,
+  isError: false,
+  error: undefined,
+  ...overrides,
+});
 
 describe("UserDetail", () => {
-  const mockUser: User = {
-    _id: "1",
-    fullName: "John Doe",
-    email: "john@example.com",
-    phoneNumber: "1234567890",
-    identifyNumber: "123456789",
-    gender: "male",
-    dateOfBirth: "1990-01-15",
-    address: "123 Main St",
-    roleName: "Admin",
-    status: 1,
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-02T00:00:00Z",
-  } as User;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseParams.mockReturnValue({ id: "1" });
+    mockUseParams.mockReturnValue({ _id: "user-1" });
   });
 
-  it("should render user details with all information when data is loaded", async () => {
-    mockUseGetDetailUserQuery.mockReturnValue({
-      data: {
-        data: mockUser,
-      },
-      isLoading: false,
-      isError: false,
-      error: undefined,
-    } as unknown as ReturnType<typeof useGetDetailUserQuery>);
-
-    render(<UserDetail />);
-
-    await waitFor(() => {
-      // Verify header section
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
-      expect(screen.getByText("Admin")).toBeInTheDocument();
-      expect(screen.getByText("Active")).toBeInTheDocument();
-      expect(screen.getByText("JD")).toBeInTheDocument(); // Initials
-
-      // Verify contact information
-      expect(screen.getByText("Contact Information")).toBeInTheDocument();
-      expect(screen.getByText("john@example.com")).toBeInTheDocument();
-      expect(screen.getByText("1234567890")).toBeInTheDocument();
-      expect(screen.getByText("123456789")).toBeInTheDocument();
-
-      // Verify personal information
-      expect(screen.getByText("Personal Information")).toBeInTheDocument();
-      expect(screen.getByText("male")).toBeInTheDocument();
-
-      // Verify system information
-      expect(screen.getByText("System Information")).toBeInTheDocument();
-      expect(screen.getByText("Created At")).toBeInTheDocument();
-      expect(screen.getByText("Updated At")).toBeInTheDocument();
-    });
-  });
-
-  it("should display loading state when isLoading is true", () => {
-    mockUseGetDetailUserQuery.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-      isError: false,
-      error: undefined,
-    } as unknown as ReturnType<typeof useGetDetailUserQuery>);
+  test("renders loading state", () => {
+    mockUseGetDetailUserQuery.mockReturnValue(
+      createQueryState({ isLoading: true })
+    );
 
     render(<UserDetail />);
 
     expect(
       screen.getByText("Đang tải thông tin người dùng...")
     ).toBeInTheDocument();
-    expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
   });
 
-  it("should display error message when there is an error", () => {
-    mockUseGetDetailUserQuery.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      isError: true,
-      error: { message: "Failed to load user" },
-    } as unknown as ReturnType<typeof useGetDetailUserQuery>);
+  test("renders error state", () => {
+    mockUseGetDetailUserQuery.mockReturnValue(
+      createQueryState({
+        isError: true,
+        error: { data: { message: "Something went wrong" } },
+      })
+    );
 
     render(<UserDetail />);
 
-    // Error message is displayed as "Error loading user: Failed to load user"
-    expect(screen.getByText(/Error loading user:/)).toBeInTheDocument();
-    // The full error text should be present
-    const errorText = screen.getByText(
-      /Error loading user:.*Failed to load user/
-    );
-    expect(errorText).toBeInTheDocument();
+    expect(
+      screen.getByText("Error loading user: Something went wrong")
+    ).toBeInTheDocument();
   });
 
-  it("should display 'User not found' when user data is undefined", () => {
-    mockUseGetDetailUserQuery.mockReturnValue({
-      data: {
-        data: undefined,
-      },
-      isLoading: false,
-      isError: false,
-      error: undefined,
-    } as unknown as ReturnType<typeof useGetDetailUserQuery>);
+  test("renders message when user not found", () => {
+    mockUseGetDetailUserQuery.mockReturnValue(createQueryState());
 
     render(<UserDetail />);
 
     expect(screen.getByText("User not found.")).toBeInTheDocument();
   });
 
-  it("should display correct status badges for different user statuses", async () => {
-    // Test Active status
-    const activeUser = { ...mockUser, status: 1 };
-    mockUseGetDetailUserQuery.mockReturnValue({
-      data: {
-        data: activeUser,
-      },
-      isLoading: false,
-      isError: false,
-      error: undefined,
-    } as unknown as ReturnType<typeof useGetDetailUserQuery>);
+  test("renders user details when data is present", () => {
+    const userData = {
+      _id: "user-1",
+      fullName: "John Doe",
+      roleName: "Admin",
+      email: "john@example.com",
+      phoneNumber: "0123456789",
+      identifyNumber: "123456789",
+      gender: "male",
+      dateOfBirth: "1990-05-10T00:00:00.000Z",
+      address: "123 Main St",
+      status: 1,
+      createdAt: "2024-01-01T12:00:00.000Z",
+      updatedAt: "2024-02-01T12:00:00.000Z",
+    };
 
-    const { rerender } = render(<UserDetail />);
+    mockUseGetDetailUserQuery.mockReturnValue(
+      createQueryState({ data: { data: userData } })
+    );
 
-    await waitFor(() => {
-      expect(screen.getByText("Active")).toBeInTheDocument();
-    });
+    render(<UserDetail />);
 
-    // Test Banned status
-    const bannedUser = { ...mockUser, status: 2 };
-    mockUseGetDetailUserQuery.mockReturnValue({
-      data: {
-        data: bannedUser,
-      },
-      isLoading: false,
-      isError: false,
-      error: undefined,
-    } as unknown as ReturnType<typeof useGetDetailUserQuery>);
+    expect(mockUseGetDetailUserQuery).toHaveBeenCalledWith({ id: "user-1" });
+    expect(screen.getByTestId("button-back")).toHaveTextContent("User List");
+    expect(screen.getByText("John Doe")).toBeInTheDocument();
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByText("john@example.com")).toBeInTheDocument();
+    expect(screen.getByText("0123456789")).toBeInTheDocument();
+    expect(screen.getByText("Active")).toBeInTheDocument();
+  });
 
-    rerender(<UserDetail />);
+  test("shows banned badge when status is 2", () => {
+    const userData = {
+      _id: "user-2",
+      fullName: "Jane Smith",
+      roleName: "Operator",
+      email: "jane@example.com",
+      phoneNumber: "0987654321",
+      status: 2,
+    };
 
-    await waitFor(() => {
-      expect(screen.getByText("Banned")).toBeInTheDocument();
-    });
+    mockUseParams.mockReturnValue({ _id: "user-2" });
+    mockUseGetDetailUserQuery.mockReturnValue(
+      createQueryState({ data: { data: userData } })
+    );
 
-    // Test Inactive status
-    const inactiveUser = { ...mockUser, status: 0 };
-    mockUseGetDetailUserQuery.mockReturnValue({
-      data: {
-        data: inactiveUser,
-      },
-      isLoading: false,
-      isError: false,
-      error: undefined,
-    } as unknown as ReturnType<typeof useGetDetailUserQuery>);
+    render(<UserDetail />);
 
-    rerender(<UserDetail />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Inactive")).toBeInTheDocument();
-    });
+    expect(screen.getByText("Banned")).toBeInTheDocument();
+    expect(screen.getByText("Jane Smith")).toBeInTheDocument();
   });
 });

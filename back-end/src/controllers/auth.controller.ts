@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
-import * as authService from '~/services/auth.service'
+import * as authService from '~/services/auth/auth.service'
 import { jwtDecode } from 'jwt-decode'
 import { OAuth2Client } from 'google-auth-library'
 

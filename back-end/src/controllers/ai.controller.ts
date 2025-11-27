@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { pingAI } from '~/services/ai.service'
+import { pingAI } from '~/services/ai/ai.service'
 
 export const aiDiagnosticsController = async (_req: Request, res: Response, next: NextFunction) => {
   try {

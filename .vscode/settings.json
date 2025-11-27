@@ -1,0 +1,6 @@
+{
+  "liveServer.settings.CustomBrowser": "microsoft-edge",
+  "workbench.editor.autoLockGroups": {
+    "workbench.input.externalTerminal": true
+  }
+}

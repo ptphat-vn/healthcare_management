@@ -24,6 +24,7 @@ export default function ProfilePage() {
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [updateAvatar] = useUpdateAvatarMutation();
+  console.log(isAvatarEdit);
 
   // Role display mapping
   const getRoleDisplay = (roleCode?: string) => {
@@ -116,7 +117,7 @@ export default function ProfilePage() {
         await updateAvatar(file).unwrap();
         toast.success("Avatar updated successfully!");
         setIsAvatarEdit(false);
-      } catch (error: any) {
+      } catch (error: unknown) {
         toast.error("Failed to update avatar. Please try again.");
         console.log(error);
         setIsAvatarEdit(false);

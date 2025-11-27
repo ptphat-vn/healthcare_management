@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
-import * as userService from '~/services/user.service'
+import * as userService from '~/services/user/user.service'
 import { getUsersCollection } from '~/models/user.model'
 import cloudinary from '~/configs/cloundinary.config'
 import fs from 'fs'

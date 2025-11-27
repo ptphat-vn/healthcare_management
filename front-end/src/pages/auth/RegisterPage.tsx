@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import RegisterForm from "@/components/auth/RegisterForm";
+import RegisterForm from "@/components/auth/RegisterForm/RegisterForm";
 import bg_authen2 from "../../assets/images/bg_authen2.png";
 import Bg_register from "../../assets/images/Bg_register.png";
 
