@@ -86,7 +86,7 @@ describe('Instrument Service', () => {
   })
 
   describe('createInstrument', () => {
-    it('creates a new instrument and logs event', async () => {
+    it('creates a new instrument and logs event (happy case)', async () => {
       const createdBy = new ObjectId().toString()
       const insertedId = new ObjectId()
       const creator = { _id: new ObjectId(createdBy), fullName: 'Alice Admin', roleId: new ObjectId() }
@@ -127,7 +127,28 @@ describe('Instrument Service', () => {
       )
     })
 
-    it('throws when instrument name already exists', async () => {
+    it('throws when created document cannot be read back (bad case)', async () => {
+      const creatorId = new ObjectId().toString()
+      const creator = { _id: new ObjectId(creatorId), fullName: 'Alice Admin' }
+      const insertedId = new ObjectId()
+
+      mockInstrumentsCollection.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null)
+      mockInstrumentsCollection.insertOne.mockResolvedValue({ insertedId })
+      mockUsersCollection.findOne.mockResolvedValue(creator)
+
+      await expect(
+        createInstrument(
+          {
+            name: 'Analyzer Missing',
+            categories: ['Hematology']
+          },
+          creatorId
+        )
+      ).rejects.toThrow(HttpError)
+      expect(mockEventLogsCollection.insertOne).not.toHaveBeenCalled()
+    })
+
+    it('throws when instrument name already exists (bad case)', async () => {
       mockInstrumentsCollection.findOne.mockResolvedValueOnce(buildInstrument())
 
       await expect(
@@ -143,7 +164,7 @@ describe('Instrument Service', () => {
   })
 
   describe('listInstruments', () => {
-    it('returns paginated instruments with actor names', async () => {
+    it('returns paginated instruments with actor names (happy case)', async () => {
       const createdBy = new ObjectId()
       const modifier = new ObjectId()
       const items = [
@@ -185,7 +206,31 @@ describe('Instrument Service', () => {
       expect(result.instruments[0].lastModifiedByName).toBe('Modifier')
     })
 
-    it('applies filters when search, status and isActive are provided', async () => {
+    it('returns empty result with default pagination when nothing matches (happy case)', async () => {
+      const cursor = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        toArray: jest.fn().mockResolvedValue([])
+      }
+
+      mockInstrumentsCollection.find.mockReturnValue(cursor)
+      mockInstrumentsCollection.countDocuments.mockResolvedValue(0)
+
+      const result = await listInstruments({})
+
+      expect(result.instruments).toHaveLength(0)
+      expect(result.pagination).toEqual(
+        expect.objectContaining({
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 1
+        })
+      )
+    })
+
+    it('applies filters when search, status and isActive are provided (happy case)', async () => {
       const cursor = {
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
@@ -212,7 +257,7 @@ describe('Instrument Service', () => {
   })
 
   describe('getInstrumentById', () => {
-    it('returns instrument with actor names', async () => {
+    it('returns instrument with actor names (happy case)', async () => {
       const createdBy = new ObjectId()
       const modifier = new ObjectId()
       const instrument = buildInstrument({
@@ -237,11 +282,11 @@ describe('Instrument Service', () => {
       expect(result.lastModifiedByName).toBe('modifier@example.com')
     })
 
-    it('throws for invalid id format', async () => {
+    it('throws for invalid id format (bad case)', async () => {
       await expect(getInstrumentById('invalid')).rejects.toThrow(HttpError)
     })
 
-    it('throws when instrument not found', async () => {
+    it('throws when instrument not found (bad case)', async () => {
       mockInstrumentsCollection.findOne.mockResolvedValue(null)
 
       await expect(getInstrumentById(new ObjectId().toString())).rejects.toThrow(HttpError)
@@ -249,7 +294,7 @@ describe('Instrument Service', () => {
   })
 
   describe('updateInstrument', () => {
-    it('updates instrument, deduplicates categories and logs event', async () => {
+    it('updates instrument, deduplicates categories and logs event (happy case)', async () => {
       const instrumentId = new ObjectId()
       const modifierId = new ObjectId()
       const existing = buildInstrument({ _id: instrumentId, name: 'Analyzer Old' })
@@ -309,13 +354,35 @@ describe('Instrument Service', () => {
       )
     })
 
-    it('throws when instrument id is invalid', async () => {
+    it('throws when updated document cannot be reloaded (bad case)', async () => {
+      const instrumentId = new ObjectId()
+      const modifierId = new ObjectId()
+      const existing = buildInstrument({ _id: instrumentId, name: 'Analyzer Old' })
+
+      mockInstrumentsCollection.findOne
+        .mockResolvedValueOnce(existing)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+      mockUsersCollection.findOne.mockResolvedValue({ _id: modifierId, fullName: 'Bob' })
+
+      await expect(
+        updateInstrument(
+          instrumentId.toString(),
+          {
+            name: 'Analyzer Latest'
+          },
+          modifierId.toString()
+        )
+      ).rejects.toThrow(HttpError)
+    })
+
+    it('throws when instrument id is invalid (bad case)', async () => {
       await expect(
         updateInstrument('invalid', { name: 'Test' }, new ObjectId().toString())
       ).rejects.toThrow(HttpError)
     })
 
-    it('throws when instrument not found', async () => {
+    it('throws when instrument not found (bad case)', async () => {
       mockInstrumentsCollection.findOne.mockResolvedValueOnce(null)
 
       await expect(
@@ -323,7 +390,7 @@ describe('Instrument Service', () => {
       ).rejects.toThrow(HttpError)
     })
 
-    it('throws when new name already exists', async () => {
+    it('throws when new name already exists (bad case)', async () => {
       const instrumentId = new ObjectId()
       mockInstrumentsCollection.findOne.mockResolvedValueOnce(buildInstrument({ _id: instrumentId, name: 'A' }))
       mockInstrumentsCollection.findOne.mockResolvedValueOnce(buildInstrument())
@@ -335,7 +402,7 @@ describe('Instrument Service', () => {
   })
 
   describe('deleteInstrument', () => {
-    it('deletes instrument without active assignments and logs event', async () => {
+    it('deletes instrument without active assignments and logs event (happy case)', async () => {
       const instrumentId = new ObjectId()
       const deletedBy = new ObjectId()
       const instrument = buildInstrument({ _id: instrumentId })
@@ -363,17 +430,29 @@ describe('Instrument Service', () => {
       )
     })
 
-    it('throws when instrument id is invalid', async () => {
+    it('throws when deletion result is empty (bad case)', async () => {
+      const instrumentId = new ObjectId()
+
+      mockInstrumentsCollection.findOne.mockResolvedValueOnce(buildInstrument({ _id: instrumentId }))
+      mockInstrumentReagentAssignmentCollection.findOne.mockResolvedValue(null)
+      mockInstrumentsCollection.findOneAndDelete.mockResolvedValue(null)
+
+      await expect(
+        deleteInstrument(instrumentId.toString(), new ObjectId().toString())
+      ).rejects.toThrow(HttpError)
+    })
+
+    it('throws when instrument id is invalid (bad case)', async () => {
       await expect(deleteInstrument('invalid', new ObjectId().toString())).rejects.toThrow(HttpError)
     })
 
-    it('throws when instrument not found', async () => {
+    it('throws when instrument not found (bad case)', async () => {
       mockInstrumentsCollection.findOne.mockResolvedValueOnce(null)
 
       await expect(deleteInstrument(new ObjectId().toString(), new ObjectId().toString())).rejects.toThrow(HttpError)
     })
 
-    it('throws when instrument has active assignments', async () => {
+    it('throws when instrument has active assignments (bad case)', async () => {
       const instrumentId = new ObjectId()
       mockInstrumentsCollection.findOne.mockResolvedValueOnce(buildInstrument({ _id: instrumentId }))
       mockInstrumentReagentAssignmentCollection.findOne.mockResolvedValue({ instrumentId })
