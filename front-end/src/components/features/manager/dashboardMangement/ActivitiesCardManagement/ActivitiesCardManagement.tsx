@@ -1,5 +1,4 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Clock,
   Activity,
@@ -7,19 +6,19 @@ import {
   XCircle,
   AlertCircle,
   ArrowRight,
-} from 'lucide-react';
-import { useGetEventLogsQuery } from '@/services/eventLogApi';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import 'dayjs/locale/vi';
+} from "lucide-react";
+import { useGetEventLogsQuery } from "@/services/eventLogApi";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/en";
 
 dayjs.extend(relativeTime);
-dayjs.locale('vi');
+dayjs.locale("vi");
 
 export default function ActivitiesCardManagement() {
   // Fetch data
   const { data: eventRes } = useGetEventLogsQuery({
-    offset: 0,
+    page: 1,
     limit: 100,
   });
 
@@ -30,10 +29,10 @@ export default function ActivitiesCardManagement() {
   const getRecentActivities = () => {
     return events.slice(0, 6).map((e) => ({
       id: e.id,
-      action: e.action || 'Hành động',
-      operator: e.operator?.name || e.operator || 'Không xác định',
-      time: e.timestamp ? dayjs(e.timestamp).fromNow() : 'Không xác định',
-      status: e.status || 'info',
+      action: e.action || "Action",
+      operator: e.operator?.name || e.operator || "Unknown",
+      time: e.timestamp ? dayjs(e.timestamp).fromNow() : "Unknown",
+      status: e.status || "info",
     }));
   };
 
@@ -42,18 +41,18 @@ export default function ActivitiesCardManagement() {
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
       <CardHeader className="border-b border-slate-100">
-       <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <CardTitle className="text-slate-900 flex items-center gap-2">
             <Clock className="h-5 w-5 text-indigo-600" />
-            Hoạt động Gần đây
+            Recent Activities
           </CardTitle>
-            <button
-            onClick={() => window.location.href = '/lab_manager/event-log'}
+          <button
+            onClick={() => (window.location.href = "/lab_manager/event-log")}
             className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 transition-colors"
-            >
-            Xem chi tiết
+          >
+            View Details
             <ArrowRight className="h-4 w-4" />
-            </button>
+          </button>
         </div>
       </CardHeader>
       <CardContent className="pt-4">
@@ -66,16 +65,16 @@ export default function ActivitiesCardManagement() {
               >
                 <div
                   className={`p-2 rounded-lg ${
-                    activity.status === 'error'
-                      ? 'bg-red-100'
-                      : activity.status === 'warning'
-                      ? 'bg-yellow-100'
-                      : 'bg-blue-100'
+                    activity.status === "error"
+                      ? "bg-red-100"
+                      : activity.status === "warning"
+                      ? "bg-yellow-100"
+                      : "bg-blue-100"
                   }`}
                 >
-                  {activity.status === 'error' ? (
+                  {activity.status === "error" ? (
                     <XCircle className="h-4 w-4 text-red-600" />
-                  ) : activity.status === 'warning' ? (
+                  ) : activity.status === "warning" ? (
                     <AlertCircle className="h-4 w-4 text-yellow-600" />
                   ) : (
                     <CheckCircle2 className="h-4 w-4 text-blue-600" />
@@ -86,7 +85,7 @@ export default function ActivitiesCardManagement() {
                     {activity.action}
                   </p>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    bởi {activity.operator}
+                    by {String(activity.operator)}
                   </p>
                 </div>
                 <span className="text-xs text-slate-400 whitespace-nowrap">
@@ -97,9 +96,7 @@ export default function ActivitiesCardManagement() {
           ) : (
             <div className="text-center py-8">
               <Activity className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 text-sm">
-                Không có hoạt động gần đây
-              </p>
+              <p className="text-slate-500 text-sm">No recent activities</p>
             </div>
           )}
         </div>

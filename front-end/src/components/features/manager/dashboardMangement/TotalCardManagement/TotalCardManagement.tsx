@@ -1,20 +1,19 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  AlertCircle, 
-  Clock, 
-  TestTube, 
-  TrendingDown, 
-  TrendingUp, 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertCircle,
+  Clock,
+  TestTube,
+  TrendingDown,
+  TrendingUp,
   Users,
   Activity,
-  CheckCircle2
-} from 'lucide-react';
-import { useGetAllUserQuery } from '@/services/userApi';
-import { useGetMedicalRecordsQuery } from '@/services/medicalRecordApi';
-import { useGetAllTestOrderQuery } from '@/services/testOrderApi';
-import { useGetEventLogsQuery } from '@/services/eventLogApi';
-import dayjs from 'dayjs';
+  CheckCircle2,
+} from "lucide-react";
+import { useGetAllUserQuery } from "@/services/userApi";
+import { useGetMedicalRecordsQuery } from "@/services/medicalRecordApi";
+import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
+import { useGetEventLogsQuery } from "@/services/eventLogApi";
+import dayjs from "dayjs";
 
 export default function TotalCardManagement() {
   // Fetch data
@@ -31,7 +30,7 @@ export default function TotalCardManagement() {
     sortOrder: -1,
   });
   const { data: eventRes } = useGetEventLogsQuery({
-    offset: 0,
+    page: 1,
     limit: 100,
   });
 
@@ -111,7 +110,7 @@ export default function TotalCardManagement() {
       <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-blue-50">
-            Tổng Người dùng
+            Total Users
           </CardTitle>
           <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
             <Users className="h-5 w-5 text-white" />
@@ -134,7 +133,7 @@ export default function TotalCardManagement() {
               </div>
             )}
             <span className="text-blue-100 text-xs">
-              +{kpis.usersLast7Days} trong 7 ngày
+              +{kpis.usersLast7Days} in 7 days
             </span>
           </div>
         </CardContent>
@@ -144,7 +143,7 @@ export default function TotalCardManagement() {
       <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-emerald-50">
-            Đơn Xét nghiệm
+            Test Orders
           </CardTitle>
           <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
             <TestTube className="h-5 w-5 text-white" />
@@ -167,7 +166,7 @@ export default function TotalCardManagement() {
               </div>
             )}
             <span className="text-emerald-100 text-xs">
-              +{kpis.testsLast7Days} trong 7 ngày
+              +{kpis.testsLast7Days} in 7 days
             </span>
           </div>
         </CardContent>
@@ -177,7 +176,7 @@ export default function TotalCardManagement() {
       <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-purple-50">
-            Thiết bị Hoạt động
+            Active Equipment
           </CardTitle>
           <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
             <Activity className="h-5 w-5 text-white" />
@@ -192,7 +191,7 @@ export default function TotalCardManagement() {
               <CheckCircle2 className="h-4 w-4" />
               <span className="font-medium">{kpis.abnormalRate}%</span>
             </div>
-            <span className="text-purple-100 text-xs">Tỷ lệ hoạt động</span>
+            <span className="text-purple-100 text-xs">Activity Rate</span>
           </div>
         </CardContent>
       </Card>
@@ -201,7 +200,7 @@ export default function TotalCardManagement() {
       <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-orange-50">
-            Cảnh báo Hệ thống
+            System Alerts
           </CardTitle>
           <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
             <AlertCircle className="h-5 w-5 text-white" />
@@ -214,7 +213,7 @@ export default function TotalCardManagement() {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 text-white/90 text-sm">
               <Clock className="h-4 w-4" />
-              <span className="font-medium">2 cần xử lý</span>
+              <span className="font-medium">2 need attention</span>
             </div>
           </div>
         </CardContent>

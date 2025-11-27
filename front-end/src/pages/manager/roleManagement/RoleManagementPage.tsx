@@ -1,14 +1,12 @@
 import AddRoleModal from "@/components/features/admin/roleManagement/AddRoleModal";
 import RoleList from "@/components/features/admin/roleManagement/roleList";
 
-
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
 export default function RoleManagementPage() {
   const [isOpen, setIsOpen] = useState(false);
-  console.log(isOpen);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen rounded-[20px]">

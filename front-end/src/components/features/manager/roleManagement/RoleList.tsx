@@ -67,7 +67,7 @@ export default function RoleList() {
     const errMsg = (error as any)?.message || error || "Unknown error";
     return (
       <Alert variant="destructive" className="my-8">
-        <AlertTitle>Error loading users</AlertTitle>
+        <AlertTitle>Error loading roles</AlertTitle>
         <AlertDescription>{errMsg}</AlertDescription>
       </Alert>
     );

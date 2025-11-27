@@ -1,5 +1,4 @@
-import MonitoringList from "@/components/features/admin/monitoringSevice/MonitoringList";
-import React from "react";
+import MonitoringList from "@/components/features/admin/monitoringSevice/MonitoringList/MonitoringList";
 
 export default function MonitoringServicePage() {
   return (
@@ -9,7 +8,7 @@ export default function MonitoringServicePage() {
           Event Log Management
         </h1>
         <p className="text-sm text-gray-500 mt-2">
-          Manage all event log in your system.
+          Manage all event logs in your system.
         </p>
       </div>
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import UserList from "@/components/features/admin/userManagement/UserList";
+import UserList from "@/components/features/admin/userManagement/UserList/UserList";
 import AddUserModal from "@/components/features/admin/userManagement/AddUserModal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";

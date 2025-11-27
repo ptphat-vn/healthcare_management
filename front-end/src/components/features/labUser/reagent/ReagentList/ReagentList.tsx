@@ -23,8 +23,8 @@ import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 import { useGetAllReagentsQuery } from "@/services/reagentApi";
 import { formatDate } from "@/utils/formatDate";
 import type { Reagent } from "@/types/reagent.type";
-import EditReagentModal from "./EditReagentModal";
-import DeleteReagentModal from "./DeleteReagentModal";
+import EditReagentModal from "../EditReagentModal/EditReagentModal";
+import DeleteReagentModal from "../DeleteReagentModal/DeleteReagentModal";
 
 interface ReagentListProps {
   onReagentDeleted?: () => void;
@@ -50,7 +50,9 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "catalogNumber" | "manufacturer" | "updatedAt">("updatedAt");
+  const [sortBy, setSortBy] = useState<
+    "name" | "catalogNumber" | "manufacturer" | "updatedAt"
+  >("updatedAt");
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
   const [isActive, setIsActive] = useState<string>("");
 
@@ -99,14 +101,30 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
     <>
       {Array.from({ length: ITEMS_PER_PAGE }).map((_, idx) => (
         <TableRow key={idx}>
-          <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-          <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-          <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-8" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-32" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-24" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-28" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-16" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-6 w-20" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-24" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-8 w-8" />
+          </TableCell>
         </TableRow>
       ))}
     </>
@@ -200,7 +218,11 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -232,9 +254,15 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
       {!isLoading && reagents.length > 0 && (
         <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border">
           <div className="text-sm text-gray-600">
-            Showing <span className="font-semibold">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
-            <span className="font-semibold">{Math.min(currentPage * ITEMS_PER_PAGE, pagination.total)}</span> of{" "}
-            <span className="font-semibold">{pagination.total}</span> results
+            Showing{" "}
+            <span className="font-semibold">
+              {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+            </span>{" "}
+            to{" "}
+            <span className="font-semibold">
+              {Math.min(currentPage * ITEMS_PER_PAGE, pagination.total)}
+            </span>{" "}
+            of <span className="font-semibold">{pagination.total}</span> results
           </div>
           {pagination.totalPages > 1 && (
             <PaginationUI

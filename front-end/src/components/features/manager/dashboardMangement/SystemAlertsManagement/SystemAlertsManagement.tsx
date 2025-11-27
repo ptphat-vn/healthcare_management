@@ -1,5 +1,4 @@
-import React from 'react';
-import { AlertCircle, Clock, TrendingUp } from 'lucide-react';
+import { AlertCircle, Clock, TrendingUp } from "lucide-react";
 
 export default function SystemAlertsManagement() {
   return (
@@ -7,10 +6,10 @@ export default function SystemAlertsManagement() {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-orange-600" />
-          Cảnh báo Hệ thống (chưa có dữ liệu thực :))
+          System Alerts (no real data yet :))
         </h3>
         <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1">
-          Xem tất cả
+          View All
           <TrendingUp className="h-4 w-4" />
         </button>
       </div>
@@ -24,14 +23,14 @@ export default function SystemAlertsManagement() {
             </div>
             <div className="flex-1">
               <p className="font-semibold text-yellow-900 mb-1">
-                Thiết bị XYZ-100 cần bảo trì
+                Equipment XYZ-100 needs maintenance
               </p>
               <p className="text-sm text-yellow-700 mb-2">
-                Đã hoạt động liên tục 720 giờ
+                Has been running continuously for 720 hours
               </p>
               <div className="flex items-center gap-2 text-xs text-yellow-600">
                 <Clock className="h-3 w-3" />
-                <span>2 giờ trước</span>
+                <span>2 hours ago</span>
               </div>
             </div>
           </div>
@@ -45,14 +44,14 @@ export default function SystemAlertsManagement() {
             </div>
             <div className="flex-1">
               <p className="font-semibold text-amber-900 mb-1">
-                Hóa chất Reagent A sắp hết
+                Reagent A chemical is running low
               </p>
               <p className="text-sm text-amber-700 mb-2">
-                Còn lại 15% dung lượng
+                15% capacity remaining
               </p>
               <div className="flex items-center gap-2 text-xs text-amber-600">
                 <Clock className="h-3 w-3" />
-                <span>5 giờ trước</span>
+                <span>5 hours ago</span>
               </div>
             </div>
           </div>

@@ -1,5 +1,4 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AreaChart,
   Area,
@@ -9,14 +8,14 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
-import { BarChart3 } from 'lucide-react';
-import { useGetAllUserQuery } from '@/services/userApi';
-import { useGetAllTestOrderQuery } from '@/services/testOrderApi';
-import dayjs from 'dayjs';
+} from "recharts";
+import { BarChart3 } from "lucide-react";
+import { useGetAllUserQuery } from "@/services/userApi";
+import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
+import dayjs from "dayjs";
 
 export default function TrendChartManagement() {
-   const { data: usersRes } = useGetAllUserQuery({
+  const { data: usersRes } = useGetAllUserQuery({
     limit: 10000,
   });
   const { data: testRes } = useGetAllTestOrderQuery({
@@ -75,10 +74,10 @@ export default function TrendChartManagement() {
           <div>
             <CardTitle className="text-slate-900 flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-indigo-600" />
-              Xu hướng 7 ngày
+              7-Day Trend
             </CardTitle>
             <p className="text-sm text-slate-500 mt-1">
-              Thống kê người dùng và xét nghiệm
+              User and test statistics
             </p>
           </div>
         </div>
@@ -120,7 +119,7 @@ export default function TrendChartManagement() {
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorUsers)"
-              name="Người dùng"
+              name="Users"
             />
             <Area
               type="monotone"
@@ -129,11 +128,11 @@ export default function TrendChartManagement() {
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorTests)"
-              name="Xét nghiệm"
+              name="Tests"
             />
           </AreaChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
+  );
 }
