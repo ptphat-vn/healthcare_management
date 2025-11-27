@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, AlertCircle, Pencil } from "lucide-react";
 import { formatDate } from "@/utils/formatDate";
-import { EditAdminForm } from "@/components/features/admin/profileManagement/EditAdminForm";
+import { EditAdminForm } from "@/components/features/admin/profileManagement/EditAdminFrom/EditAdminForm";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useUpdateAvatarMutation } from "@/services/userApi";

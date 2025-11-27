@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
-import * as testOrderService from '~/services/test-order.service'
+import * as testOrderService from '~/services/testorder/test-order.service'
 
 export const createTestOrderController = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -163,7 +163,7 @@ export const addTestResultsFromHL7Controller = async (req: Request, res: Respons
     const authUserId = (req as any).authUserId
     if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
 
-    const { addTestResultsFromHL7 } = await import('~/services/hl7-processing.service')
+    const { addTestResultsFromHL7 } = await import('~/services/configresult/hl7-processing.service')
     const data = await addTestResultsFromHL7((req.params as { id: string }).id, authUserId.toString())
     return res.status(200).json({
       message: 'HL7 test results processed successfully',
@@ -179,7 +179,7 @@ export const runWithInstrumentController = async (req: Request, res: Response, n
     const authUserId = (req as any).authUserId
     if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
 
-    const { addTestResultsFromHL7UsingInstrument } = await import('~/services/hl7-processing.service')
+    const { addTestResultsFromHL7UsingInstrument } = await import('~/services/configresult/hl7-processing.service')
     const data = await addTestResultsFromHL7UsingInstrument(
       (req.params as { id: string }).id,
       (req.body as { instrumentId: string }).instrumentId,

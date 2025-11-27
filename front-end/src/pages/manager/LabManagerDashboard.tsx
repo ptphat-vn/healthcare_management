@@ -1,12 +1,12 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/vi";
-import TotalCardManagement from "@/components/features/manager/dashboardMangement/TotalCardManagement";
-import TrendChartManagement from "@/components/features/manager/dashboardMangement/TrendChartManagement";
-import StatusDistributionManagement from "@/components/features/manager/dashboardMangement/StatusDistributionManagement";
-import ActivitiesCardManagement from "@/components/features/manager/dashboardMangement/ActivitiesCardManagement";
-import StatusCardManagement from "@/components/features/manager/dashboardMangement/StatusCardManagement";
-import SystemAlertsManagement from "@/components/features/manager/dashboardMangement/SystemAlertsManagement";
+import "dayjs/locale/en";
+import TotalCardManagement from "@/components/features/manager/dashboardMangement/TotalCardManagement/TotalCardManagement";
+import TrendChartManagement from "@/components/features/manager/dashboardMangement/TrendChartManagement/TrendChartManagement";
+import StatusDistributionManagement from "@/components/features/manager/dashboardMangement/StatusDistributionManagement/StatusDistributionManagement";
+import ActivitiesCardManagement from "@/components/features/manager/dashboardMangement/ActivitiesCardManagement/ActivitiesCardManagement";
+import StatusCardManagement from "@/components/features/manager/dashboardMangement/StatusCardManagement/StatusCardManagement";
+import SystemAlertsManagement from "@/components/features/manager/dashboardMangement/SystemAlertsManagement/SystemAlertsManagement";
 import { useGetProfileQuery } from "@/services/baseApi";
 
 dayjs.extend(relativeTime);

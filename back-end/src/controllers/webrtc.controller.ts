@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { generateStringeeAccessToken } from '~/services/stringee.service'
+import { generateStringeeAccessToken } from '~/services/videocall/stringee.service'
 
 
 export const getStringeeTokenController = async (req: Request, res: Response, next: NextFunction) => {
