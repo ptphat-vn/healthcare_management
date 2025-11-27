@@ -70,8 +70,14 @@ export const markAsRead = async (id: string, userId: string) => {
   const userObjectId = parseObjectId(userId, 'user id')
 
   const col = getNotificationsCollection()
-  const res = await col.findOneAndUpdate({ _id: objectId, userId: userObjectId } as any, { $set: { read: true } }, { returnDocument: 'after' as any })
-  const updated = (res as any)?.value
+  const res = await col.findOneAndUpdate(
+    { _id: objectId, userId: userObjectId } as any,
+    { $set: { read: true } },
+    { returnDocument: 'after' as any }
+  )
+
+
+  const updated = (res as any)?.value ?? (res as any)
   if (!updated) throw new HttpError(404, 'Notification not found')
   return updated as WithId<NotificationDocument>
 }
