@@ -24,7 +24,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import AddReagentDialog from "@/components/features/service/reagentInstrument/addReagentDialog/AddReagentDialog";
-import ReagentsTable from "@/components/features/service/reagentInstrument/ReagentsTable";
+import ReagentsTable from "@/components/features/service/reagentInstrument/reagentsTable/ReagentsTable";
 export default function InstrumentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
