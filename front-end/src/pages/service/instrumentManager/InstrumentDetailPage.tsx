@@ -24,7 +24,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import AddReagentDialog from "@/components/features/service/reagentInstrument/addReagentDialog/AddReagentDialog";
-import ReagentsTable from "@/components/features/service/reagentInstrument/ReagentsTable";
+import ReagentsTable from "@/components/features/service/reagentInstrument/ReagentsTable/ReagentsTable";
 export default function InstrumentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -34,8 +34,7 @@ export default function InstrumentDetailPage() {
     isLoading: isLoadingReagents,
     refetch: refetchReagents,
   } = useGetInstrumentReagentsQuery(id || "");
-  const [removeReagent] =
-    useRemoveReagentFromInstrumentMutation();
+  const [removeReagent] = useRemoveReagentFromInstrumentMutation();
 
   if (isLoading) {
     return (
@@ -75,8 +74,8 @@ export default function InstrumentDetailPage() {
 
   const instrument = data.data;
   const reagentsResponse = reagentsData?.data;
-  const reagents = Array.isArray(reagentsResponse?.reagents) 
-    ? reagentsResponse.reagents 
+  const reagents = Array.isArray(reagentsResponse?.reagents)
+    ? reagentsResponse.reagents
     : [];
 
   const handleDeleteReagent = async (assignmentId: string) => {
@@ -245,16 +244,20 @@ export default function InstrumentDetailPage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {instrument.categories && instrument.categories.length > 0 ? (
-                    instrument.categories.map((category: string, index: number) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full"
-                      >
-                        {category}
-                      </span>
-                    ))
+                    instrument.categories.map(
+                      (category: string, index: number) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full"
+                        >
+                          {category}
+                        </span>
+                      )
+                    )
                   ) : (
-                    <span className="text-gray-500 text-sm">No categories assigned</span>
+                    <span className="text-gray-500 text-sm">
+                      No categories assigned
+                    </span>
                   )}
                 </div>
               </div>
@@ -313,7 +316,9 @@ export default function InstrumentDetailPage() {
                   <User className="w-4 h-4" />
                   <span className="font-medium">Created By</span>
                 </div>
-                <p className="text-gray-900">{instrument.createdByName || "N/A"}</p>
+                <p className="text-gray-900">
+                  {instrument.createdByName || "N/A"}
+                </p>
               </div>
 
               {/* Last Modified By */}
@@ -338,8 +343,8 @@ export default function InstrumentDetailPage() {
                 <Beaker className="w-6 h-6 text-green-600" />
                 Assigned Reagents ({reagents.length})
               </CardTitle>
-              <AddReagentDialog 
-                instrumentId={id || ""} 
+              <AddReagentDialog
+                instrumentId={id || ""}
                 onSuccess={refetchReagents}
               />
             </div>
@@ -353,7 +358,9 @@ export default function InstrumentDetailPage() {
             ) : reagents.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                 <Beaker className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600 font-medium mb-2">No reagents assigned</p>
+                <p className="text-gray-600 font-medium mb-2">
+                  No reagents assigned
+                </p>
                 <p className="text-sm text-gray-500">
                   This instrument doesn't have any reagents assigned yet.
                 </p>
