@@ -5,7 +5,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import type { TestOrder } from "./TestOrderList";
+import type { TestOrder } from "../testOrderList/TestOrderList";
 import { useUpdateTestOrderMutation } from "@/services/testOrderApi";
 import { useEffect } from "react";
 import Input from "@/components/ui/input/Input";
