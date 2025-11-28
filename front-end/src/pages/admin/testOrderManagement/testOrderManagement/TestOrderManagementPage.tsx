@@ -1,6 +1,6 @@
 import { useState } from "react";
-import TestOrderList from "@/components/features/admin/testOrderManagement/TestOrderList";
-import AddTestOrderModal from "@/components/features/admin/testOrderManagement/AddTestOrderModal";
+import TestOrderList from "@/components/features/admin/testOrderManagement/testOrderList/TestOrderList";
+import AddTestOrderModal from "@/components/features/admin/testOrderManagement/addTestOrder/addTestOrderModal/AddTestOrderModal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";

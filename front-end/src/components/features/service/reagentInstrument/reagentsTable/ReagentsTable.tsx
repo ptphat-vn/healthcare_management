@@ -16,7 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Eye, Trash2, MoreHorizontal } from "lucide-react";
-import DeleteReagentDialog from "./DeleteReagentDialog";
+import DeleteReagentDialog from "../deleteReagentDialog/DeleteReagentDialog";
+
 
 interface Reagent {
   _id: string;

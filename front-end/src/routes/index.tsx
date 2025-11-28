@@ -11,8 +11,8 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 
 import UserManagementPage from "@/pages/admin/userManagement/UserManagementPage";
 
-import TestOrderManagementPage from "@/pages/admin/testOrderManagement/TestOrderManagementPage";
-import TestOrderDetailPage from "@/pages/admin/testOrderManagement/TestOrderDetailPage";
+import TestOrderManagementPage from "@/pages/admin/testOrderManagement/testOrderManagement/TestOrderManagementPage";
+import TestOrderDetailPage from "@/pages/admin/testOrderManagement/testOrderDetail/TestOrderDetailPage";
 import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
 import MedicalRecordDetail from "@/pages/admin/medicalRecords/medicalRecordDetail/MedicalRecordDetail";
 import TestDetail from "@/pages/admin/medicalRecords/testDetail/TestDetail";

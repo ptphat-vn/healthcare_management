@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, Eye, Inbox } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import EditTestOrderModal from "./EditTestOrderModal";
-import DeleteConfirmDialog from "./DeleteConfirmDialog";
+import EditTestOrderModal from "../editTestOrder/EditTestOrderModal";
+import DeleteConfirmDialog from "../deleteTestOrder/DeleteConfirmDialog";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
 import { formatDate } from "@/utils/formatDate";
