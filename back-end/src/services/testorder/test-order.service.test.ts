@@ -57,7 +57,7 @@ describe('Test Order Service', () => {
     mockMedicalRecordsCollection = {
       findOne: jest.fn(),
       find: jest.fn(),
-      updateOne: jest.fn()
+      updateOne: jest.fn().mockResolvedValue({})
     }
 
     mockUsersCollection = {

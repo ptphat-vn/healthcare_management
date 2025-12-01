@@ -45,11 +45,11 @@ router.put(
 
 router.delete('/patient-records/:id', privilegeMiddleware(['delete_medical_record']), deletePatientRecordController)
 
-router.post(
-  '/patient-records/:id/clinical-notes',
-  privilegeMiddleware(['add_comment']),
-  validateAddClinicalNote,
-  addClinicalNoteController
-)
+// router.post(
+//   '/patient-records/:id/clinical-notes',
+//   privilegeMiddleware(['add_comment']),
+//   validateAddClinicalNote,
+//   addClinicalNoteController
+// )
 
 export default router
