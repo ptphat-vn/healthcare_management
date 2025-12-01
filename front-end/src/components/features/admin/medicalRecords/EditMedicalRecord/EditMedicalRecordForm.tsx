@@ -81,15 +81,15 @@ export function EditMedicalRecordForm({
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Patient's Information
           </h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col space-y-1">
+          <div className="grid grid-cols-1 sm:grid-cols ">
+            {/* <div className="flex flex-col space-y-1">
               <label className="text-xs font-medium text-gray-700">
                 Patient ID
               </label>
               <div className="w-full px-3 py-2 text-sm border rounded-md bg-gray-50 text-gray-700 border-gray-300">
                 {defaultValues.patientId}
               </div>
-            </div>
+            </div> */}
             <Input
               {...register("fullName")}
               label="Full Name"
@@ -98,7 +98,7 @@ export function EditMedicalRecordForm({
               autoComplete="off"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               {...register("dateOfBirth")}
               type="date"
@@ -124,7 +124,7 @@ export function EditMedicalRecordForm({
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-xs font-medium text-gray-700">
                 Blood Type
@@ -161,7 +161,7 @@ export function EditMedicalRecordForm({
               autoComplete="off"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               {...register("email")}
               type="email"
@@ -190,7 +190,7 @@ export function EditMedicalRecordForm({
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Medical Information
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 Allergies
@@ -232,7 +232,7 @@ export function EditMedicalRecordForm({
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 Current Medications
@@ -279,7 +279,7 @@ export function EditMedicalRecordForm({
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Emergency Contact
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               {...register("emergencyName")}
               label="Emergency Contact Name"
@@ -307,7 +307,7 @@ export function EditMedicalRecordForm({
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Insurance Information
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               {...register("insuranceProvider")}
               label="Insurance Provider"
