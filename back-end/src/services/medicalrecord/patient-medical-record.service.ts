@@ -118,6 +118,7 @@ export const createPatientRecord = async (
     medicalHistory: payload.medicalHistory,
     insuranceInfo: payload.insuranceInfo,
     testOrders: [],
+    testResults: [],
     clinicalNotes: [],
     versionHistory: [],
     isDeleted: false,

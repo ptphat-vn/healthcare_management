@@ -23,12 +23,17 @@ export async function generateUnifiedLabAIJson(testResults: AiInputTestResult[])
   const prompt = `Bạn là một chuyên gia đánh giá kết quả xét nghiệm trong hệ thống LIS.
 
 YÊU CẦU ĐẦU RA (BẮT BUỘC):
-- CHỈ TRẢ VỀ MỘT CHUỖI TÓM TẮT LÂM SÀNG (summary) VĂN BẢN THUẦN, MỘT DÒNG.
-- KHÔNG kèm JSON, KHÔNG backticks/code fences/markdown, KHÔNG ký tự xuống dòng (\\n, \\r), KHÔNG dấu ngoặc kép bao quanh.
-- Ngắn gọn, chuyên nghiệp, dễ hiểu.
+
+CHỈ TRẢ VỀ MỘT CHUỖI TÓM TẮT LÂM SÀNG (summary) VĂN BẢN THUẦN, MỘT DÒNG.
+
+KHÔNG kèm JSON, KHÔNG backticks/code fences/markdown, KHÔNG ký tự xuống dòng (\n, \r), KHÔNG dấu ngoặc kép bao quanh.
+
+Ngắn gọn nhưng chi tiết hơn, mang tính chuyên môn cao, gồm: mức độ bất thường, hướng gợi ý chẩn đoán sơ bộ, các nguy cơ lâm sàng tiềm ẩn, và khuyến nghị kiểm tra/đối chiếu thêm nếu cần.
+
+Ngôn ngữ rõ ràng, dễ hiểu nhưng chuyên nghiệp, không liệt kê dạng bullet.
 
 VÍ DỤ ĐẦU RA HỢP LỆ:
-Nồng độ Hemoglobin giảm nhẹ, gợi ý thiếu máu mức độ nhẹ; nên đối chiếu theo tuổi/giới và lâm sàng.
+Nồng độ Hemoglobin giảm nhẹ kèm MCV thấp, gợi ý thiếu máu nhược sắc vi thể nghi do thiếu sắt; nên kiểm tra ferritin, CRP và đối chiếu triệu chứng.
 
 DỮ LIỆU VÀO:
 ${testResults.map((r) => `${r.testName}: ${r.result}${r.unit ? ' ' + r.unit : ''}`).join('\n')}`

@@ -6,7 +6,7 @@ import { getInstrumentsCollection } from '~/models/instrument.model'
 import { getInstrumentReagentAssignmentCollection } from '~/models/instrument-reagent-assignment.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getUsersCollection } from '~/models/user.model'
-import { recordReagentUsageFromTestResults } from '~/services/testorder/test-order.service'
+import { recordReagentUsageFromTestResults, syncMedicalRecordTestResultsSnapshot } from '~/services/testorder/test-order.service'
 
 export interface HL7Message {
   messageId: string
@@ -244,6 +244,8 @@ export async function addTestResultsFromHL7(testOrderId: string, addedBy: string
       console.error('Failed to record reagent usage from HL7 results:', error)
     })
   }
+
+  await syncMedicalRecordTestResultsSnapshot(updated)
   
   // Log the event
   try {
@@ -354,6 +356,8 @@ export async function addTestResultsFromHL7UsingInstrument(testOrderId: string, 
       console.error('Failed to record reagent usage from instrument HL7 results:', error)
     })
   }
+
+  await syncMedicalRecordTestResultsSnapshot(updated)
 
   // Log the event
   try {

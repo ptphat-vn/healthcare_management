@@ -509,6 +509,8 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
     })
   }
 
+  await syncMedicalRecordTestResultsSnapshot(updated)
+
   return updated
 }
 
@@ -747,6 +749,8 @@ export async function reviewTestOrderResults(id: string, reviewedBy: string, res
     // swallow logging errors
   }
 
+  await syncMedicalRecordTestResultsSnapshot(updated)
+
   return attachCommentAuthorNames(updated)
 }
 
@@ -867,8 +871,58 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     // swallow logging errors
   }
 
+  await syncMedicalRecordTestResultsSnapshot(updated)
+
   const responseOrder = await attachCommentAuthorNames(updated)
   return { testOrder: responseOrder, aiDiagnosis: aiSummary }
+}
+
+export async function syncMedicalRecordTestResultsSnapshot(
+  testOrder: Pick<
+    TestOrderDocument,
+    '_id' | 'medicalRecordId' | 'testResults' | 'status' | 'runDate' | 'requestedTests'
+  >
+) {
+  if (!testOrder?._id || !testOrder.medicalRecordId) return
+
+  const patientRecords = getPatientMedicalRecordsCollection()
+  const hasResults = Array.isArray(testOrder.testResults) && testOrder.testResults.length > 0
+  const now = new Date()
+
+  if (!hasResults) {
+    await patientRecords.updateOne(
+      { _id: testOrder.medicalRecordId } as any,
+      {
+        $pull: { testResults: { testOrderId: testOrder._id } },
+        $set: { updatedAt: now }
+      } as any
+    )
+    return
+  }
+
+  const entry = {
+    testOrderId: testOrder._id,
+    testOrderStatus: testOrder.status,
+    runDate: testOrder.runDate,
+    requestedTests: testOrder.requestedTests,
+    testResults: testOrder.testResults,
+    syncedAt: now
+  }
+
+  await patientRecords.updateOne(
+    { _id: testOrder.medicalRecordId } as any,
+    {
+      $pull: { testResults: { testOrderId: testOrder._id } }
+    } as any
+  )
+
+  await patientRecords.updateOne(
+    { _id: testOrder.medicalRecordId } as any,
+    {
+      $push: { testResults: entry },
+      $set: { updatedAt: now }
+    } as any
+  )
 }
 
 // Update comment
