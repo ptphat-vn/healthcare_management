@@ -1,3 +1,4 @@
+
 import {
   useGetProfileQuery,
   useUpdateProfileMutation,
@@ -117,8 +118,6 @@ export default function ProfilePage() {
         await updateAvatar(file).unwrap();
         toast.success("Avatar updated successfully!");
         setIsAvatarEdit(false);
-        // Dispatch event to notify Header to refetch
-        window.dispatchEvent(new CustomEvent("avatarUpdated"));
       } catch (error: unknown) {
         toast.error("Failed to update avatar. Please try again.");
         console.log(error);
@@ -128,15 +127,15 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-5 min-w-[900px] max-w-[1200px] mx-auto ">
-      <div className="max-w-6xl mx-auto ">
+    <div className="min-h-screen bg-gray-50 px-4 py-6">
+      <div className="w-full max-w-5xl mx-auto">
         {/* Main Profile Card */}
-        <Card className="mb-6 ">
-          <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row gap-8">
+        <Card className="mb-6">
+          <CardContent className="p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
               {/* Avatar Section */}
-              <div className="flex flex-col items-center ml-5">
-                <div className="relative w-32 h-32 mb-4">
+              <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+                <div className="relative w-28 h-28 sm:w-32 sm:h-32 mb-4">
                   {avatarPreview ? (
                     <img
                       src={avatarPreview}
@@ -150,7 +149,7 @@ export default function ProfilePage() {
                       className="w-32 h-32 rounded-full object-cover border-4 border-blue-400 shadow"
                     />
                   ) : (
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white">
+                    <div className="w-32 h-32 rounded-full bg-linear-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white">
                       <User className="w-16 h-16" />
                     </div>
                   )}
@@ -184,70 +183,70 @@ export default function ProfilePage() {
                 </Badge>
               </div>
 
-              {/* THANH GẠCH DỌC */}
-              <div className="h-60 border-1 border-gray-150 ml-10"></div>
+              {/* Divider */}
+              <div className="hidden lg:block h-60 w-px bg-gray-200" />
 
               {/* Personal Information */}
-              <div className="flex-1 space-y-4 ml-10">
-                <div className="flex items-center gap-4">
-                  <p className="text-sm font-semibold text-gray-850 w-40">
+              <div className="flex-1 space-y-4">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+                  <p className="text-sm font-semibold text-gray-850 sm:w-40">
                     Email
                   </p>
-                  <p className="text-gray-900 flex-1">{user.email}</p>
+                  <p className="text-gray-900 break-all">{user.email}</p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <p className="text-sm font-semibold text-gray-850 w-40">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+                  <p className="text-sm font-semibold text-gray-850 sm:w-40">
                     Phone number
                   </p>
-                  <p className="text-gray-900 flex-1">{user.phoneNumber}</p>
+                  <p className="text-gray-900">{user.phoneNumber}</p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <p className="text-sm font-semibold text-gray-850 w-40">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+                  <p className="text-sm font-semibold text-gray-850 sm:w-40">
                     Identify Number
                   </p>
-                  <p className="text-gray-900 flex-1">{user.identifyNumber}</p>
+                  <p className="text-gray-900 break-all">
+                    {user.identifyNumber}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <p className="text-sm font-semibold text-gray-850 w-40">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+                  <p className="text-sm font-semibold text-gray-850 sm:w-40">
                     Date of Birth
                   </p>
-                  <p className="text-gray-900 flex-1">
+                  <p className="text-gray-900">
                     {formatDate(user.dateOfBirth)}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <p className="text-sm font-semibold text-gray-850 w-40">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+                  <p className="text-sm font-semibold text-gray-850 sm:w-40">
                     Gender
                   </p>
-                  <p className="text-gray-900 flex-1">
+                  <p className="text-gray-900">
                     {user.gender === "male" ? "Male" : "Female"}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <p className="text-sm font-semibold text-gray-850 w-40">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+                  <p className="text-sm font-semibold text-gray-850 sm:w-40">
                     Address
                   </p>
-                  <p className="text-gray-900 flex-1">
-                    {user.address || "N/A"}
-                  </p>
+                  <p className="text-gray-900">{user.address || "N/A"}</p>
                 </div>
               </div>
 
-              {/* THANH GẠCH DỌC */}
-              <div className="h-60 border-1 border-gray-150 mr-5"></div>
+              {/* Divider */}
+              <div className="hidden lg:block h-60 w-px bg-gray-200" />
 
               {/* Edit Button */}
-              <div className="flex items-start">
+              <div className="flex lg:items-start">
                 <Button
                   onClick={() => setIsEditOpen(true)}
                   className={`${getRoleButtonClass(
                     user?.roleCode
-                  )} px-20 mt-25 mr-5`}
+                  )} w-full sm:w-auto px-8`}
                 >
                   Edit
                 </Button>
