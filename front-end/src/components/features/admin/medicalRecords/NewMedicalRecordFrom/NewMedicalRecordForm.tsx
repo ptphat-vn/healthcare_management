@@ -227,14 +227,14 @@ export function NewMedicalRecordForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               {...register("emergencyName")}
-              label="Emergency Contact Name"
+              label="Emergency Contact Name *"
               error={errors.emergencyName?.message}
               placeholder="Enter emergency contact name"
               autoComplete="off"
             />
             <Input
               {...register("emergencyPhone")}
-              label="Emergency Phone"
+              label="Emergency Phone *"
               error={errors.emergencyPhone?.message}
               placeholder="Enter emergency phone number"
               autoComplete="off"
@@ -242,7 +242,7 @@ export function NewMedicalRecordForm({
           </div>
           <Input
             {...register("emergencyRelationship")}
-            label="Relationship"
+            label="Relationship *"
             error={errors.emergencyRelationship?.message}
             placeholder="Enter relationship"
             autoComplete="off"

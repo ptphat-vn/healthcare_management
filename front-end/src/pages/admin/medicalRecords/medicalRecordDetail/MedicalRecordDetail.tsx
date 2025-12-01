@@ -28,16 +28,13 @@ export default function MedicalRecordDetail() {
   const [activeTab, setActiveTab] = useState<"overview" | "history">(
     "overview"
   );
-
   const {
     data: medicalRecordResponse,
     isLoading,
     isError,
     error,
   } = useGetMedicalRecordByIdQuery(id || "");
-
   const medicalRecord: MedicalRecord | undefined = medicalRecordResponse?.data;
-
   // Fetch test orders for this medical record - search by patient name
   const { data: testOrdersData, isLoading: isLoadingTestOrders, refetch: refetchTestOrders } = useGetAllTestOrderQuery(
     medicalRecord?.fullName
@@ -50,11 +47,9 @@ export default function MedicalRecordDetail() {
         }
       : undefined,
     {
-      skip: !medicalRecord?.fullName, // Don't call API until medicalRecord is loaded
+      skip: !medicalRecord?.fullName, 
     }
   );
-
-  // Refetch test orders when medicalRecord changes
   React.useEffect(() => {
     if (medicalRecord?.fullName) {
       refetchTestOrders();
@@ -85,7 +80,6 @@ export default function MedicalRecordDetail() {
   if (!medicalRecord)
     return <div className="p-6 text-gray-500">Medical record not found.</div>;
 
-  // Calculate age from date of birth
   const calcAge = (dateOfBirth: string) => {
     const d = new Date(dateOfBirth);
     const now = new Date();
@@ -139,13 +133,7 @@ export default function MedicalRecordDetail() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-              <div className="bg-white/20 px-3 sm:px-4 py-2 rounded-lg text-right w-full sm:w-auto">
-                <span className="text-xs sm:text-sm font-medium opacity-90">
-                  Patient ID
-                </span>
-                <p className="text-lg sm:text-xl font-bold">{medicalRecord.patientId}</p>
-              </div>
-              <div className="bg-white/20 px-3 sm:px-4 py-2 rounded-lg text-right w-full sm:w-auto">
+              <div className="bg-white/20 px-3 sm:px-4 py-2 rounded-lg text-left w-full sm:w-auto">
                 <span className="text-xs sm:text-sm font-medium opacity-90">
                   Patient Name
                 </span>
@@ -192,28 +180,12 @@ export default function MedicalRecordDetail() {
               </div>
 
               <div className="space-y-3">
+                {/* Hàng 1: Full Name + Gender */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Patient ID</p>
-                    <p className="font-semibold text-sm sm:text-base text-gray-900">
-                      {medicalRecord.patientId}
-                    </p>
-                  </div>
                   <div>
                     <p className="text-xs sm:text-sm text-gray-500 mb-1">Full Name</p>
                     <p className="font-semibold text-sm sm:text-base text-gray-900">
                       {medicalRecord.fullName}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Date of Birth</p>
-                    <p className="font-semibold text-sm sm:text-base text-gray-900">
-                      {medicalRecord.dateOfBirth
-                        ? new Date(medicalRecord.dateOfBirth).toLocaleDateString()
-                        : "—"}
                     </p>
                   </div>
                   <div>
@@ -224,7 +196,16 @@ export default function MedicalRecordDetail() {
                   </div>
                 </div>
 
+                {/* Hàng 2: Date of Birth + Age */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Date of Birth</p>
+                    <p className="font-semibold text-sm sm:text-base text-gray-900">
+                      {medicalRecord.dateOfBirth
+                        ? new Date(medicalRecord.dateOfBirth).toLocaleDateString()
+                        : "—"}
+                    </p>
+                  </div>
                   <div>
                     <p className="text-xs sm:text-sm text-gray-500 mb-1">Age</p>
                     <p className="font-semibold text-sm sm:text-base text-gray-900">
@@ -234,21 +215,26 @@ export default function MedicalRecordDetail() {
                       years old
                     </p>
                   </div>
+                </div>
+
+                {/* Hàng 3: Blood Type + Phone */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <p className="text-xs sm:text-sm text-gray-500 mb-1">Blood Type</p>
                     <p className="font-semibold text-sm sm:text-base text-gray-900">
                       {medicalRecord.bloodType || "—"}
                     </p>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <p className="text-xs sm:text-sm text-gray-500 mb-1">Phone</p>
                     <p className="font-semibold text-sm sm:text-base text-gray-900">
                       {medicalRecord.phoneNumber}
                     </p>
                   </div>
+                </div>
+
+                {/* Hàng 4: Email */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <p className="text-xs sm:text-sm text-gray-500 mb-1">Email</p>
                     <p className="font-semibold text-sm sm:text-base text-blue-600 underline">
@@ -257,6 +243,7 @@ export default function MedicalRecordDetail() {
                   </div>
                 </div>
 
+                {/* Address giữ full width */}
                 <div>
                   <p className="text-xs sm:text-sm text-gray-500 mb-1">Address</p>
                   <p className="font-semibold text-sm sm:text-base text-gray-900">
@@ -275,7 +262,7 @@ export default function MedicalRecordDetail() {
                   </div>
                 )}
 
-                {/* Record Information */}
+                {/* Record Information giữ nguyên phía dưới */}
                 <div className="border-t pt-3">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">
                     Record Information
@@ -295,16 +282,10 @@ export default function MedicalRecordDetail() {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-500 mb-1">Record ID</p>
-                  <p className="font-semibold text-xs sm:text-sm text-gray-900 break-all">
-                    {medicalRecord._id || medicalRecord.id}
-                  </p>
-                </div>
               </div>
             </div>
 
-            {/* Medical Information - giữ nguyên như cũ nhưng thêm responsive */}
+            {/* Medical Information */}
             <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-4 sm:mb-6">
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -312,7 +293,6 @@ export default function MedicalRecordDetail() {
               </div>
 
               <div className="space-y-3">
-                {/* Medical History - giữ nguyên code cũ */}
                 {medicalRecord.medicalHistory && (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -368,8 +348,6 @@ export default function MedicalRecordDetail() {
                     </div>
                   </>
                 )}
-
-                {/* Emergency Contact và Insurance Info - giữ nguyên nhưng thêm responsive */}
                 {medicalRecord.emergencyContact && (
                   <div className="border-t pt-3">
                     <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">
@@ -462,30 +440,46 @@ export default function MedicalRecordDetail() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-blue-50 hover:bg-blue-50">
-                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">Test Order ID</TableHead>
-                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">Status</TableHead>
-                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">Created Date</TableHead>
-                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">Run Date</TableHead>
-                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">Tests</TableHead>
-                    <TableHead className="font-semibold text-gray-900 text-center text-xs sm:text-sm">Action</TableHead>
+                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm p-3">
+                      Created Date
+                    </TableHead>
+                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">
+                      Run Date
+                    </TableHead>
+                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">
+                      Bác sĩ thực hiện
+                   </TableHead>
+                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">
+                      Status
+                    </TableHead>
+                    <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">
+                      Tests
+                    </TableHead>
+                    <TableHead className="font-semibold text-gray-900 text-center text-xs sm:text-sm">
+                      Action
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {testOrders.map((order) => (
                     <TableRow key={order._id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium text-xs sm:text-sm">{order._id}</TableCell>
+                      <TableCell className="text-xs sm:text-sm p-3">
+                        {new Date(order.createdDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        {order.runDate
+                          ? new Date(order.runDate).toLocaleDateString()
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                      {order.runByUser?.fullName || order.runBy || "—"}
+                      </TableCell>
                       <TableCell>
                         <span
                           className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}
                         >
                           {order.status}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-xs sm:text-sm">
-                        {new Date(order.createdDate).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-xs sm:text-sm">
-                        {order.runDate ? new Date(order.runDate).toLocaleDateString() : "—"}
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm">
                         {order.requestedTests?.length || 0} test(s)
