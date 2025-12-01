@@ -23,12 +23,12 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
 
   socket.on('join', ({ roomId }: { roomId: string }) => {
     if (roomId) {
-      socket.join(roomId);
-      console.log(`[Socket] User ${(socket.data as any).userId || 'unknown'} joined room: ${roomId}`);
-      
+      socket.join(roomId)
+      console.log(`[Socket] User ${(socket.data as any).userId || 'unknown'} joined room: ${roomId}`)
+
       // Debug: Log số clients trong room
-      const room = io.sockets.adapter.rooms.get(roomId);
-      console.log(`[Socket] Room ${roomId} now has ${room?.size || 0} clients`);
+      const room = io.sockets.adapter.rooms.get(roomId)
+      console.log(`[Socket] Room ${roomId} now has ${room?.size || 0} clients`)
     }
   })
 
@@ -36,82 +36,86 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
     if (roomId) socket.leave(roomId)
   })
 
-  socket.on('message', async (payload: {
-    conversationId: string
-    senderId: string
-    receiverId: string
-    content: string
-    metadata?: Record<string, unknown>
-  }) => {
-    try {
-      if (!payload || !payload.conversationId || !payload.senderId || !payload.receiverId) {
-        socket.emit('error', { message: 'Invalid message payload: missing ids' })
-        return
-      }
-      if (typeof payload.content !== 'string' || payload.content.trim() === '') {
-        socket.emit('error', { message: 'Message content is required' })
-        return
-      }
+  socket.on(
+    'message',
+    async (payload: {
+      conversationId: string
+      senderId: string
+      receiverId: string
+      content: string
+      metadata?: Record<string, unknown>
+    }) => {
+      try {
+        if (!payload || !payload.conversationId || !payload.senderId || !payload.receiverId) {
+          socket.emit('error', { message: 'Invalid message payload: missing ids' })
+          return
+        }
+        if (typeof payload.content !== 'string' || payload.content.trim() === '') {
+          socket.emit('error', { message: 'Message content is required' })
+          return
+        }
 
-      const saved = await chatService.saveMessage(payload)
+        const saved = await chatService.saveMessage(payload)
 
+        // Serialize message: Convert ObjectId và Date thành string
+        const serializedMessage = chatService.serializeMessage(saved)
+
+        // Emit serialized message đến conversation room
+        io.to(payload.conversationId).emit('message', serializedMessage)
       // Serialize message: Convert ObjectId và Date thành string
       const serializedMessage = chatService.serializeMessage(saved)
       // Emit serialized message đến conversation room
       io.to(payload.conversationId).emit('message', serializedMessage)
 
-      let senderName: string | undefined = undefined
-      let senderAvatar: string | undefined = undefined
-      try {
-        const sender = await userService.getUserDetail(payload.senderId)
-        senderName = (sender as any).fullName
-        senderAvatar = (sender as any).avatar
-      } catch {
-        // ignore
-      }
+        let senderName: string | undefined = undefined
+        let senderAvatar: string | undefined = undefined
+        try {
+          const sender = await userService.getUserDetail(payload.senderId)
+          senderName = (sender as any).fullName
+          senderAvatar = (sender as any).avatar
+        } catch {
+          // ignore
+        }
 
-      const snippet = String(saved.content || '').slice(0, 120)
-      const notification = {
-        type: 'message',
-        conversationId: payload.conversationId,
-        from: payload.senderId,
-        to: payload.receiverId,
-        messageId: String(saved._id), // Serialize ObjectId thành string
-        content: saved.content,
-        snippet,
-        senderName,
-        senderAvatar,
-        createdAt:
-          saved.createdAt instanceof Date
-            ? saved.createdAt.toISOString()
-            : saved.createdAt
-      }
-
-      io.to(userRoomName(payload.receiverId)).emit('notification', notification)
-
-      try {
-        await notificationService.createNotification({
-          userId: payload.receiverId,
-          actorId: payload.senderId,
+        const snippet = String(saved.content || '').slice(0, 120)
+        const notification = {
           type: 'message',
-          title: senderName ? `${senderName} sent you a message` : 'New message',
-          body: snippet,
-          data: {
-            conversationId: payload.conversationId,
-            messageId: String(saved._id),
-            senderName,
-            senderAvatar
-          }
-        })
-      } catch (e) {
-        console.error('Failed to save notification', e)
-      }
-    } catch (err) {
-      console.error('chat message handling failed', err)
-      socket.emit('error', { message: 'Failed to send message' })
-    }
-  })
+          conversationId: payload.conversationId,
+          from: payload.senderId,
+          to: payload.receiverId,
+          messageId: String(saved._id), // Serialize ObjectId thành string
+          content: saved.content,
+          snippet,
+          senderName,
+          senderAvatar,
+          createdAt: saved.createdAt instanceof Date ? saved.createdAt.toISOString() : saved.createdAt
+        }
 
+        io.to(userRoomName(payload.receiverId)).emit('notification', notification)
+
+        try {
+          await notificationService.createNotification({
+            userId: payload.receiverId,
+            actorId: payload.senderId,
+            type: 'message',
+            title: senderName ? `${senderName} sent you a message` : 'New message',
+            body: snippet,
+            data: {
+              conversationId: payload.conversationId,
+              messageId: String(saved._id),
+              senderName,
+              senderAvatar
+            }
+          })
+        } catch (e) {
+          console.error('Failed to save notification', e)
+        }
+      } catch (err) {
+        console.error('chat message handling failed', err)
+        socket.emit('error', { message: 'Failed to send message' })
+      }
+    }
+  )
 
   const validateCallPayload = (payload: CallSignalPayload | undefined): payload is CallSignalPayload => {
     if (!payload) return false
