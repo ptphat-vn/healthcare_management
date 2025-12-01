@@ -186,6 +186,99 @@ export async function deleteTestOrder(id: string, deletedBy: string) {
   return { message: 'Test order deleted successfully' }
 }
 
+type CommentWithDisplayName = Omit<Comment, 'createdBy' | 'modifiedBy'> & {
+  createdBy: string
+  modifiedBy?: string
+}
+
+const toIdString = (value?: ObjectId | string | null): string | undefined => {
+  if (!value) return undefined
+  return typeof value === 'string' ? value : value.toHexString()
+}
+
+const collectCommentUserIds = (comments: Comment[]): ObjectId[] => {
+  const seen = new Set<string>()
+  const ids: ObjectId[] = []
+
+  for (const comment of comments) {
+    if (comment.createdBy instanceof ObjectId) {
+      const key = comment.createdBy.toHexString()
+      if (!seen.has(key)) {
+        seen.add(key)
+        ids.push(comment.createdBy)
+      }
+    }
+    if (comment.modifiedBy instanceof ObjectId) {
+      const key = comment.modifiedBy.toHexString()
+      if (!seen.has(key)) {
+        seen.add(key)
+        ids.push(comment.modifiedBy)
+      }
+    }
+  }
+
+  return ids
+}
+
+const buildCommentAuthorLookup = async (comments: Comment[]): Promise<Map<string, string>> => {
+  const userIds = collectCommentUserIds(comments)
+  if (!userIds.length) return new Map()
+
+  const usersCol = getUsersCollection()
+  const cursor = typeof usersCol?.find === 'function' ? usersCol.find({ _id: { $in: userIds } }) : null
+  const projectedCursor =
+    cursor && typeof cursor.project === 'function' ? cursor.project({ fullName: 1 }) : cursor
+  const users =
+    projectedCursor && typeof projectedCursor.toArray === 'function'
+      ? ((await projectedCursor.toArray()) as Array<{ _id: ObjectId; fullName?: string }>)
+      : []
+
+  const lookup = new Map<string, string>()
+  for (const user of users) {
+    lookup.set(user._id.toHexString(), user.fullName || 'Unknown user')
+  }
+  return lookup
+}
+
+const mapCommentsWithNames = (comments: Comment[], lookup: Map<string, string>): CommentWithDisplayName[] => {
+  return comments.map((comment) => {
+    const createdById = toIdString(comment.createdBy) || ''
+    const modifiedById = toIdString(comment.modifiedBy)
+    const createdByName = lookup.get(createdById) || createdById
+    const modifiedByName = modifiedById ? lookup.get(modifiedById) || modifiedById : undefined
+
+    // Strip the original ObjectId references before returning
+    const { createdBy, modifiedBy, ...rest } = comment
+
+    return {
+      ...rest,
+      createdBy: createdByName,
+      ...(typeof modifiedByName !== 'undefined' ? { modifiedBy: modifiedByName } : {})
+    }
+  })
+}
+
+const attachCommentAuthorNames = async <T extends { comments?: Comment[] }>(entity: T): Promise<T> => {
+  if (!entity?.comments?.length) {
+    return entity
+  }
+
+  const lookup = await buildCommentAuthorLookup(entity.comments)
+  const commentsWithNames = mapCommentsWithNames(entity.comments, lookup)
+  return { ...(entity as any), comments: commentsWithNames }
+}
+
+const attachCommentAuthorNamesForList = async <T extends { comments?: Comment[] }>(entities: T[]): Promise<T[]> => {
+  const relevantComments = entities.flatMap((entity) => entity.comments || [])
+  if (!relevantComments.length) return entities
+
+  const lookup = await buildCommentAuthorLookup(relevantComments)
+  return entities.map((entity) => {
+    if (!entity?.comments?.length) return entity
+    return { ...(entity as any), comments: mapCommentsWithNames(entity.comments, lookup) }
+  })
+}
+
 export async function getTestOrderDetail(id: string, authUserId?: string, authUserRole?: string) {
   let testOrderObjectId: ObjectId
   try {
@@ -232,11 +325,13 @@ export async function getTestOrderDetail(id: string, authUserId?: string, authUs
     testOrder.runBy ? users.findOne({ _id: testOrder.runBy }) : null
   ])
 
-  return {
+  const result = {
     ...testOrder,
     createdByUser: creator ? { fullName: creator.fullName, email: creator.email } : null,
     runByUser: runner ? { fullName: runner.fullName, email: runner.email } : null
   }
+
+  return attachCommentAuthorNames(result)
 }
 
 export const listTestOrders = async (params: ListTestOrdersParams) => {
@@ -335,8 +430,10 @@ export const listTestOrders = async (params: ListTestOrdersParams) => {
     }
   })
   
+  const testOrdersWithCommenters = await attachCommentAuthorNamesForList(enrichedTestOrders)
+
   return {
-    testOrders: enrichedTestOrders,
+    testOrders: testOrdersWithCommenters,
     pagination: {
       page,
       limit,
@@ -573,7 +670,8 @@ export async function addComment(id: string, content: string, addedBy: string) {
     // swallow logging errors
   }
 
-  return { testOrder: updated, commentId }
+  const responseTestOrder = await attachCommentAuthorNames(updated)
+  return { testOrder: responseTestOrder, commentId }
 }
 
 // Review test order results (manual review)
@@ -649,7 +747,7 @@ export async function reviewTestOrderResults(id: string, reviewedBy: string, res
     // swallow logging errors
   }
 
-  return updated
+  return attachCommentAuthorNames(updated)
 }
 
 // AI auto review test order results
@@ -769,7 +867,8 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     // swallow logging errors
   }
 
-  return { testOrder: updated, aiDiagnosis: aiSummary }
+  const responseOrder = await attachCommentAuthorNames(updated)
+  return { testOrder: responseOrder, aiDiagnosis: aiSummary }
 }
 
 // Update comment
@@ -845,7 +944,7 @@ export async function updateComment(testOrderId: string, commentId: string, cont
     // swallow logging errors
   }
 
-  return updated
+  return attachCommentAuthorNames(updated)
 }
 
 // Delete comment (soft delete)
@@ -918,5 +1017,5 @@ export async function deleteComment(testOrderId: string, commentId: string, dele
     } as any)
   
 
-  return updated
+  return attachCommentAuthorNames(updated)
 }

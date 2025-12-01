@@ -81,7 +81,10 @@ export default function UserList() {
   };
 
   if (error) {
-    const errMsg = (error as any)?.message || error || "Unknown error";
+    const errObject = error as { message?: string };
+    const errMsg =
+      errObject?.message ||
+      (typeof error === "string" ? error : "Unknown error");
     return (
       <Alert variant="destructive" className="my-8">
         <AlertTitle>Error loading users</AlertTitle>
@@ -126,11 +129,11 @@ export default function UserList() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+              <TableRow className="bg-linear-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
                 <TableHead className="font-semibold text-gray-700 w-16">
                   No
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[150px]">
+                <TableHead className="font-semibold text-gray-700 min-w-[150px] sticky left-0 z-20  bg-blue-50">
                   Full name
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 min-w-[200px]">
@@ -216,7 +219,7 @@ export default function UserList() {
                     <TableCell className="text-start font-medium text-gray-600">
                       {(currentPage - 1) * 8 + idx + 1}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900">
+                    <TableCell className="font-medium text-gray-900 sticky left-0 z-20 bg-background">
                       {user.fullName}
                     </TableCell>
                     <TableCell className="text-gray-600">
@@ -235,7 +238,7 @@ export default function UserList() {
                       {formatDate(user.dateOfBirth)}
                     </TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-linear-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
                         {user.roleName}
                       </span>
                     </TableCell>

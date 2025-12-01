@@ -341,7 +341,7 @@ export default function InstrumentDetailPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Beaker className="w-6 h-6 text-green-600" />
-                Assigned Reagents ({reagents.length})
+                Assigned Reagents ({reagents?.length})
               </CardTitle>
               <AddReagentDialog
                 instrumentId={id || ""}
@@ -355,7 +355,7 @@ export default function InstrumentDetailPage() {
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
                 <p className="mt-2 text-gray-600">Loading reagents...</p>
               </div>
-            ) : reagents.length === 0 ? (
+            ) : reagents?.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                 <Beaker className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                 <p className="text-gray-600 font-medium mb-2">
@@ -368,7 +368,7 @@ export default function InstrumentDetailPage() {
             ) : (
               <ReagentsTable
                 instrumentId={id || ""}
-                reagents={reagents}
+                reagents={reagents || []}
                 onDelete={handleDeleteReagent}
               />
             )}
