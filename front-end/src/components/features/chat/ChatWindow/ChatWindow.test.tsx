@@ -26,10 +26,7 @@ vi.mock("@/services/chatApi", () => ({
 }));
 vi.mock("@/components/ui/button", () => ({
   Button: ({ children, size, ...props }: any) => (
-    <button
-      data-testid={size === "icon" ? "send-button" : "button"}
-      {...props}
-    >
+    <button data-testid={size === "icon" ? "send-button" : "button"} {...props}>
       {children}
     </button>
   ),
@@ -43,12 +40,10 @@ vi.mock("@/components/ui/input", () => ({
       onKeyDown={onKeyPress}
       {...props}
     />
-  ), 
+  ),
 }));
 vi.mock("@/components/ui/loading/LoadingSpinner", () => ({
-  default: ({ message }: any) => (
-    <div data-testid="loading">{message}</div>
-  ),
+  default: ({ message }: any) => <div data-testid="loading">{message}</div>,
 }));
 vi.mock("@/components/ui/emoji/EmojiPickerButton", () => ({
   default: ({ onEmojiSelect }: any) => (
@@ -64,9 +59,9 @@ vi.mock("@/components/ui/emoji/EmojiPickerButton", () => ({
 vi.mock("../videoCall/VideoCallButton", () => ({
   default: () => <div data-testid="video-button" />,
 }));
-vi.mock('sonner', () => ({
+vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
-}))
+}));
 
 describe("ChatWindow", () => {
   const baseProps = {
@@ -81,23 +76,17 @@ describe("ChatWindow", () => {
       senderId: "current-user",
       receiverId: "friend-1",
       createdAt: new Date().toISOString(),
-    }
-    const unwrap = vi.fn().mockResolvedValue({ data: responseMessage })
-    const mutate = vi.fn().mockReturnValue({ unwrap })
-    mockUseSendMessageMutation.mockReturnValue([mutate, { isLoading: false }])
-    return { mutate, responseMessage }
-  }
+    };
+    const unwrap = vi.fn().mockResolvedValue({ data: responseMessage });
+    const mutate = vi.fn().mockReturnValue({ unwrap });
+    mockUseSendMessageMutation.mockReturnValue([mutate, { isLoading: false }]);
+    return { mutate, responseMessage };
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
-<<<<<<< HEAD
-    
-    Element.prototype.scrollIntoView = vi.fn();
-    
-=======
     Element.prototype.scrollIntoView = vi.fn();
 
->>>>>>> b8482b13cc11d05de342b290e48eb45cb1f88ea2
     mockUseAuth.mockReturnValue({ user: { data: { _id: "current-user" } } });
     mockUseConversations.mockReturnValue({
       conversations: [],
@@ -110,7 +99,7 @@ describe("ChatWindow", () => {
       isLoading: false,
       error: undefined,
     });
-    mockMutationSuccess()
+    mockMutationSuccess();
   });
 
   it("LOAD: hiển thị lịch sử chat trả về từ API", async () => {
@@ -133,7 +122,9 @@ describe("ChatWindow", () => {
     });
 
     render(<ChatWindow {...baseProps} />);
-    await waitFor(() => expect(screen.getByText("Xin chào")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Xin chào")).toBeInTheDocument()
+    );
   });
 
   it("SEND: gửi tin nhắn mới và cập nhật danh sách", async () => {
@@ -143,7 +134,7 @@ describe("ChatWindow", () => {
       save: vi.fn(),
       update: updateSpy,
     });
-    const { mutate } = mockMutationSuccess()
+    const { mutate } = mockMutationSuccess();
 
     const user = userEvent.setup();
     render(<ChatWindow {...baseProps} />);
@@ -175,29 +166,33 @@ describe("ChatWindow", () => {
     expect(screen.getByText("Đang kết nối...")).toBeInTheDocument();
   });
 
-  it('ERROR: hiển thị toast khi tải cuộc trò chuyện thất bại', () => {
+  it("ERROR: hiển thị toast khi tải cuộc trò chuyện thất bại", () => {
     mockUseGetConversationQuery.mockReturnValue({
       data: undefined,
       isLoading: false,
-      error: new Error('Network'),
-    })
+      error: new Error("Network"),
+    });
 
-    render(<ChatWindow {...baseProps} />)
-    expect(toast.error).toHaveBeenCalledWith('Không thể tải cuộc trò chuyện')
-  })
+    render(<ChatWindow {...baseProps} />);
+    expect(toast.error).toHaveBeenCalledWith("Không thể tải cuộc trò chuyện");
+  });
 
-  it('SEND: khôi phục input và báo lỗi khi gửi thất bại', async () => {
-    const rejectUnwrap = vi.fn().mockRejectedValue({ data: { message: 'Server down' } })
-    const mutate = vi.fn().mockReturnValue({ unwrap: rejectUnwrap })
-    mockUseSendMessageMutation.mockReturnValue([mutate, { isLoading: false }])
+  it("SEND: khôi phục input và báo lỗi khi gửi thất bại", async () => {
+    const rejectUnwrap = vi
+      .fn()
+      .mockRejectedValue({ data: { message: "Server down" } });
+    const mutate = vi.fn().mockReturnValue({ unwrap: rejectUnwrap });
+    mockUseSendMessageMutation.mockReturnValue([mutate, { isLoading: false }]);
 
-    const user = userEvent.setup()
-    render(<ChatWindow {...baseProps} />)
+    const user = userEvent.setup();
+    render(<ChatWindow {...baseProps} />);
 
-    await user.type(screen.getByTestId('message-input'), 'Hello')
-    await user.click(screen.getByTestId('send-button'))
+    await user.type(screen.getByTestId("message-input"), "Hello");
+    await user.click(screen.getByTestId("send-button"));
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Server down'))
-    expect(screen.getByTestId('message-input')).toHaveValue('Hello')
-  })
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Server down")
+    );
+    expect(screen.getByTestId("message-input")).toHaveValue("Hello");
+  });
 });

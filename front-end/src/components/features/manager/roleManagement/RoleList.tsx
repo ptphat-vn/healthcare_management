@@ -1,5 +1,5 @@
-import AddRoleModal from "@/components/features/admin/roleManagement/AddRoleModal";
-import DeleteRoleModal from "@/components/features/admin/roleManagement/DeleteRoleModal";
+import AddRoleModal from "@/components/features/admin/roleManagement/AddRoleModal/AddRoleModal";
+import DeleteRoleModal from "@/components/features/admin/roleManagement/DeleteRoleModal/DeleteRoleModal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ export default function RoleList() {
   const [selectedRole, setSelectedRole] = useState<Roles | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editRole, setEditRole] = useState<Roles | null>(null);
-  const { data, isLoading, error } = useGetAllRoleQuery({
+  const { data, error } = useGetAllRoleQuery({
     search,
     sortBy,
     sortOrder,

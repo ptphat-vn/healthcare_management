@@ -1,4 +1,3 @@
-import CommentsSection from "@/components/features/admin/testOrderManagement/testOrderDetail/CommentsSection";
 import OrderInfoSection from "@/components/features/admin/testOrderManagement/testOrderDetail/OrderInfoSection";
 import PatientInfoSection from "@/components/features/admin/testOrderManagement/testOrderDetail/PatientInfoSection";
 import TestResultsSection from "@/components/features/admin/testOrderManagement/testOrderDetail/TestResultsSection";
@@ -8,7 +7,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetDetailTestOrderQuery } from "@/services/testOrderApi";
 
-type Tab = "overview" | "results" | "comments";
+type Tab = "overview" | "results";
 
 export default function TestOrderDetailPage() {
   const navigate = useNavigate();
@@ -65,21 +64,21 @@ export default function TestOrderDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-2 sm:mb-0">
           <Button
             variant="outline"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 mb-4"
+            className="flex items-center gap-2 mb-4 w-full sm:w-auto justify-center"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Test Orders
           </Button>
 
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               Test Order Details
             </h1>
             <p className="text-gray-600">
@@ -91,10 +90,10 @@ export default function TestOrderDetailPage() {
 
         {/* Tabs */}
         <div className="border-b bg-white rounded-t-lg shadow-sm">
-          <div className="flex">
+          <div className="flex flex-wrap gap-2 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`py-3 px-6 text-base font-semibold transition-colors border-b-2 ${
+              className={`py-2 px-4 text-sm sm:text-base font-semibold transition-colors border-b-2 shrink-0 ${
                 activeTab === "overview"
                   ? "text-blue-600 border-blue-600"
                   : "text-gray-600 border-transparent hover:text-gray-900"
@@ -104,7 +103,7 @@ export default function TestOrderDetailPage() {
             </button>
             <button
               onClick={() => setActiveTab("results")}
-              className={`py-3 px-6 text-base font-semibold transition-colors border-b-2 ${
+              className={`py-2 px-4 text-sm sm:text-base font-semibold transition-colors border-b-2 shrink-0 ${
                 activeTab === "results"
                   ? "text-blue-600 border-blue-600"
                   : "text-gray-600 border-transparent hover:text-gray-900"
@@ -112,23 +111,13 @@ export default function TestOrderDetailPage() {
             >
               Test Results ({order.testResults?.length || 0})
             </button>
-            <button
-              onClick={() => setActiveTab("comments")}
-              className={`py-3 px-6 text-base font-semibold transition-colors border-b-2 ${
-                activeTab === "comments"
-                  ? "text-blue-600 border-blue-600"
-                  : "text-gray-600 border-transparent hover:text-gray-900"
-              }`}
-            >
-              Comments
-            </button>
           </div>
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-b-lg p-6 shadow-sm">
+        <div className="bg-white rounded-b-lg p-4 sm:p-6 shadow-sm">
           {activeTab === "overview" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <PatientInfoSection order={order} />
               <OrderInfoSection order={order} />
             </div>
@@ -138,13 +127,7 @@ export default function TestOrderDetailPage() {
             <TestResultsSection
               testResults={order.testResults || []}
               testOrderId={orderId as string}
-            />
-          )}
-
-          {activeTab === "comments" && (
-            <CommentsSection
               comments={order.comments || []}
-              testOrderId={orderId as string}
             />
           )}
         </div>

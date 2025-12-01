@@ -107,7 +107,7 @@ export const userApi = baseApi.injectEndpoints({
           body: formData,
         };
       },
-      invalidatesTags: ["Profile"],
+      invalidatesTags: ["User", "Profile"],
     }),
   }),
 });

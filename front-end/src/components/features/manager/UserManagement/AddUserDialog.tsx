@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useCreateUserMutation } from "@/services/userApi";
 import type { CreateUserFormData } from "@/schemas/userSchema";
 import { toast } from "sonner";
+import type { CreateUserRequest } from "@/types/request.type";
 
 interface AddUserDialog {
   open?: boolean;

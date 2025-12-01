@@ -49,15 +49,17 @@ export default function CommentItem({
   };
 
   return (
-    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <p className="font-semibold text-gray-900">{comment.createdBy}</p>
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-3 sm:space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1">
+          <p className="font-semibold text-gray-900 wrap-break-word">
+            {comment.createdBy}
+          </p>
           <p className="text-xs text-gray-500">
             {formatDate(comment.createdAt)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-1 sm:gap-2">
           {comment.modifiedBy && (
             <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-semibold">
               Edited
@@ -68,7 +70,7 @@ export default function CommentItem({
             size="sm"
             onClick={handleEdit}
             disabled={isLoading}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 shrink-0"
           >
             <Edit2 className="h-4 w-4" />
           </Button>
@@ -77,7 +79,7 @@ export default function CommentItem({
             size="sm"
             onClick={() => onDelete(comment._id)}
             disabled={isLoading}
-            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -85,7 +87,7 @@ export default function CommentItem({
       </div>
 
       {isEditing ? (
-        <div className="mt-3">
+        <div className="space-y-3">
           <textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
@@ -93,7 +95,7 @@ export default function CommentItem({
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
             rows={3}
           />
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               variant="outline"
               size="sm"

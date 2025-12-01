@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "@/stores/authSlice";
+import { baseApi } from "@/services/baseApi";
 import UserList from "./UserList";
 import type { User } from "@/types/user.type";
 
@@ -8,6 +12,20 @@ import type { User } from "@/types/user.type";
 vi.mock("@/services/userApi", () => ({
   useGetAllUserQuery: vi.fn(),
   useDeleteUserMutation: vi.fn(() => [vi.fn(), { isLoading: false }]),
+  useUpdateUserMutation: vi.fn(() => [vi.fn(), { isLoading: false }]),
+}));
+
+// Mock roleApi for EditUserForm
+vi.mock("@/services/roleApi", () => ({
+  useGetAllRoleQuery: vi.fn(() => ({
+    data: {
+      data: {
+        role: [],
+      },
+    },
+    isLoading: false,
+    error: undefined,
+  })),
 }));
 
 vi.mock("@/hooks/useAuth", () => ({
@@ -24,23 +42,74 @@ vi.mock("react-router-dom", () => ({
   useNavigate: vi.fn(() => vi.fn()),
 }));
 
-vi.mock("@/components/features/admin/userManagement/EditUserModal", () => ({
-  default: ({
-    open,
-    user,
+// Mock dropdown menu - always show content for testing
+vi.mock("@/components/ui/dropdown-menu", () => ({
+  DropdownMenu: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="dropdown-menu">{children}</div>
+  ),
+  DropdownMenuTrigger: ({
+    children,
   }: {
-    open: boolean;
-    user: User | null;
-    onOpenChange: (open: boolean) => void;
-  }) => {
-    if (!open || !user) return null;
-    return (
-      <div data-testid="edit-user-modal">
-        <div>Edit User: {user.fullName}</div>
-      </div>
-    );
-  },
+    children?: React.ReactNode;
+    asChild?: boolean;
+  }) => <div data-testid="dropdown-trigger">{children}</div>,
+  DropdownMenuContent: ({
+    children,
+    align,
+    className,
+  }: {
+    children?: React.ReactNode;
+    align?: string;
+    className?: string;
+  }) => (
+    <div
+      data-testid="dropdown-content"
+      data-align={align}
+      className={className}
+    >
+      {children}
+    </div>
+  ),
+  DropdownMenuItem: ({
+    children,
+    onClick,
+    className,
+  }: {
+    children?: React.ReactNode;
+    onClick?: () => void;
+    className?: string;
+  }) => (
+    <div
+      data-testid="dropdown-item"
+      onClick={onClick}
+      className={className}
+      role="menuitem"
+    >
+      {children}
+    </div>
+  ),
 }));
+
+vi.mock(
+  "@/components/features/admin/userManagement/EditUser/EditUserModal/EditUserModal",
+  () => ({
+    default: ({
+      open,
+      user,
+    }: {
+      open: boolean;
+      user: User | null;
+      onOpenChange: (open: boolean) => void;
+    }) => {
+      if (!open || !user) return null;
+      return (
+        <div data-testid="edit-user-modal">
+          <div>Edit User: {user.fullName}</div>
+        </div>
+      );
+    },
+  })
+);
 
 vi.mock(
   "@/components/features/admin/userManagement/DeleteUserModal/DeleteUserModal",
@@ -125,6 +194,19 @@ import { useGetAllUserQuery } from "@/services/userApi";
 
 const mockUseGetAllUserQuery = vi.mocked(useGetAllUserQuery);
 
+function renderWithProvider(component: React.ReactElement) {
+  const store = configureStore({
+    reducer: {
+      auth: authReducer,
+      [baseApi.reducerPath]: baseApi.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(baseApi.middleware),
+  });
+
+  return render(<Provider store={store}>{component}</Provider>);
+}
+
 describe("UserList", () => {
   const mockUsers: User[] = [
     {
@@ -174,7 +256,7 @@ describe("UserList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllUserQuery>);
 
-    render(<UserList />);
+    renderWithProvider(<UserList />);
 
     await waitFor(() => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
@@ -214,7 +296,7 @@ describe("UserList", () => {
       error: { message: "Failed to load users" },
     } as unknown as ReturnType<typeof useGetAllUserQuery>);
 
-    render(<UserList />);
+    renderWithProvider(<UserList />);
 
     expect(screen.getByText("Error loading users")).toBeInTheDocument();
     expect(screen.getByText("Failed to load users")).toBeInTheDocument();
@@ -232,7 +314,7 @@ describe("UserList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllUserQuery>);
 
-    render(<UserList />);
+    renderWithProvider(<UserList />);
 
     await waitFor(() => {
       expect(screen.getByText("No users found")).toBeInTheDocument();
@@ -254,7 +336,7 @@ describe("UserList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllUserQuery>);
 
-    render(<UserList />);
+    renderWithProvider(<UserList />);
 
     expect(mockUseGetAllUserQuery).toHaveBeenCalledWith({
       page: 1,
@@ -280,34 +362,23 @@ describe("UserList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllUserQuery>);
 
-    render(<UserList />);
+    renderWithProvider(<UserList />);
 
     await waitFor(() => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
     });
 
-    // Find and click the actions button
-    const actionButtons = screen.getAllByRole("button");
-    const moreButton = actionButtons.find((btn) =>
-      btn.getAttribute("aria-label")?.includes("Actions")
-    );
+    // Find the Edit button in the dropdown menu
+    const editButtons = screen.getAllByText("Edit");
+    expect(editButtons.length).toBeGreaterThan(0);
 
-    if (moreButton) {
-      await user.click(moreButton);
+    // Click the first Edit button
+    await user.click(editButtons[0]);
 
-      // Wait for dropdown menu and click Edit
-      await waitFor(async () => {
-        const editButton = screen.getByText("Edit");
-        if (editButton) {
-          await user.click(editButton);
-        }
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId("edit-user-modal")).toBeInTheDocument();
-        expect(screen.getByText("Edit User: John Doe")).toBeInTheDocument();
-      });
-    }
+    await waitFor(() => {
+      expect(screen.getByTestId("edit-user-modal")).toBeInTheDocument();
+      expect(screen.getByText("Edit User: John Doe")).toBeInTheDocument();
+    });
   });
 
   it("should open delete modal when delete button is clicked", async () => {
@@ -324,34 +395,23 @@ describe("UserList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllUserQuery>);
 
-    render(<UserList />);
+    renderWithProvider(<UserList />);
 
     await waitFor(() => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
     });
 
-    // Find and click the actions button
-    const actionButtons = screen.getAllByRole("button");
-    const moreButton = actionButtons.find((btn) =>
-      btn.getAttribute("aria-label")?.includes("Actions")
-    );
+    // Find the Delete button in the dropdown menu
+    const deleteButtons = screen.getAllByText("Delete");
+    expect(deleteButtons.length).toBeGreaterThan(0);
 
-    if (moreButton) {
-      await user.click(moreButton);
+    // Click the first Delete button
+    await user.click(deleteButtons[0]);
 
-      // Wait for dropdown menu and click Delete
-      await waitFor(async () => {
-        const deleteButton = screen.getByText("Delete");
-        if (deleteButton) {
-          await user.click(deleteButton);
-        }
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId("delete-user-modal")).toBeInTheDocument();
-        expect(screen.getByText("Delete User: John Doe")).toBeInTheDocument();
-      });
-    }
+    await waitFor(() => {
+      expect(screen.getByTestId("delete-user-modal")).toBeInTheDocument();
+      expect(screen.getByText("Delete User: John Doe")).toBeInTheDocument();
+    });
   });
 
   it("should display pagination information correctly", async () => {
@@ -366,7 +426,7 @@ describe("UserList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllUserQuery>);
 
-    render(<UserList />);
+    renderWithProvider(<UserList />);
 
     await waitFor(() => {
       expect(screen.getByText(/Showing/)).toBeInTheDocument();
@@ -393,7 +453,7 @@ describe("UserList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllUserQuery>);
 
-    render(<UserList />);
+    renderWithProvider(<UserList />);
 
     await waitFor(() => {
       expect(screen.getByText("Male")).toBeInTheDocument();
@@ -429,7 +489,7 @@ describe("UserList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllUserQuery>);
 
-    render(<UserList />);
+    renderWithProvider(<UserList />);
 
     await waitFor(() => {
       // Status badges appear in table, and also in select options
