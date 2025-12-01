@@ -117,11 +117,11 @@ export default function SideBar({ open, onOpenChange }: SideBarProps) {
         to: "/lab_user/test-order",
         icon: <TestTubeDiagonal />,
       },
-      {
-        label: "Event Log",
-        to: "/lab_user/event-log",
-        icon: <History />,
-      },
+      // {
+      //   label: "Event Log",
+      //   to: "/lab_user/event-log",
+      //   icon: <History />,
+      // },
       {
         label: "Reagent",
         to: "/lab_user/reagent-management",

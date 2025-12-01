@@ -1,5 +1,6 @@
 import type { Collection, ObjectId } from 'mongodb'
 import { getDb } from '~/configs/mongodb.config'
+import type { CBCPanelTestName, TestResult } from '~/models/test-order.model'
 
 export const PATIENT_MEDICAL_RECORDS_COLLECTION = 'patient_medical_records'
 
@@ -32,6 +33,7 @@ export interface PatientMedicalRecordDocument {
   }
 
   testOrders?: ObjectId[]
+  testResults?: MedicalRecordTestResult[]
   clinicalNotes?: ClinicalNote[]
   versionHistory?: RecordVersion[]
   isDeleted?: boolean
@@ -44,6 +46,15 @@ export interface PatientMedicalRecordDocument {
   createdByName?: string
   lastModifiedBy?: ObjectId
   lastModifiedByName?: string
+}
+
+export interface MedicalRecordTestResult {
+  testOrderId: ObjectId
+  testOrderStatus: 'pending' | 'cancelled' | 'completed' | 'reviewed' | 'ai_reviewed'
+  runDate?: Date
+  requestedTests?: CBCPanelTestName[]
+  testResults: TestResult[]
+  syncedAt: Date
 }
 
 export interface ClinicalNote {
