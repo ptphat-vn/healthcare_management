@@ -29,7 +29,7 @@ export default function DeleteRoleModal({
 
   const handleConfirm = async () => {
     try {
-      await deleteRole(role._id as any).unwrap();
+      await deleteRole({ roleId: role._id as string }).unwrap();
       onOpenChange(false);
       toast.success("Role deleted successfully!");
     } catch (err) {

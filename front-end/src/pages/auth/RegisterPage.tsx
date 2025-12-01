@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import RegisterForm from "@/components/auth/RegisterForm/RegisterForm";
 import bg_authen2 from "../../assets/images/bg_authen2.png";
 import Bg_register from "../../assets/images/Bg_register.png";
+import logo_HemoLab from "/logo_HemoLab.png";
 
 export default function RegisterPage() {
   return (
@@ -25,15 +26,11 @@ export default function RegisterPage() {
         >
           <div className="flex flex-col items-center space-y-1 mb-3">
             <div className="flex items-center gap-1">
-              <svg width={50} height={50} viewBox="0 0 60 60" fill="none">
-                <path
-                  d="M6 32h10l6-16 12 40 6-24h10"
-                  stroke="#222"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <img
+                src={logo_HemoLab}
+                alt="HemoLab"
+                className="w-10 h-10 sm:w-12 sm:h-12"
+              />
             </div>
             <h2 className="text-xl font-semibold text-gray-800">
               Register Now
@@ -50,21 +47,17 @@ export default function RegisterPage() {
           style={{ pointerEvents: "none" }}
         />
         <div className="relative z-10 flex items-center gap-4 mr-8 justify-end">
-          <svg width={56} height={56} viewBox="0 0 56 56" fill="none">
-            <path
-              d="M6 32h10l6-16 12 40 6-24h10"
-              stroke="#222"
-              strokeWidth={3}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <img
+            src={logo_HemoLab}
+            alt="HemoLab"
+            className="w-20 h-20 sm:w-24 sm:h-24"
+          />
           <div className="text-right">
             <h1 className="text-4xl font-extrabold text-gray-900 mb-1">
-              Laboratory Management
+              HemoLab Management
             </h1>
             <p className="text-xl text-gray-700 font-normal">
-              Register to access your laboratory system
+              Register to access your HemoLab system
             </p>
           </div>
         </div>

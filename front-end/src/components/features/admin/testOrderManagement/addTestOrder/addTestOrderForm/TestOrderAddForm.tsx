@@ -27,7 +27,13 @@ export function TestOrderAddForm({
     data: medicalRecords,
     isLoading: isMedicalRecordsLoading,
     error: medicalRecordsError,
-  } = useGetMedicalRecordsQuery();
+  } = useGetMedicalRecordsQuery({
+    page: 1,
+    limit: 10,
+    sortBy: "createdAt",
+    sortOrder: -1,
+    search: "",
+  });
 
   const [selectedMedicalRecord, setSelectedMedicalRecord] = useState(
     initialMedicalRecordId

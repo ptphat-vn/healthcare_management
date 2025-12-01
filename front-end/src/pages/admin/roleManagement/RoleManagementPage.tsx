@@ -1,5 +1,5 @@
-import AddRoleModal from "@/components/features/admin/roleManagement/AddRoleModal";
-import RoleList from "@/components/features/admin/roleManagement/roleList";
+import AddRoleModal from "@/components/features/admin/roleManagement/AddRoleModal/AddRoleModal";
+import RoleList from "@/components/features/admin/roleManagement/RoleList/roleList";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
