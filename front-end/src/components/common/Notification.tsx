@@ -21,7 +21,8 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { socketService } from "@/services/socketService";
 import {
   useGetNotificationsSummaryQuery,
@@ -29,19 +30,95 @@ import {
   useMarkAllAsReadMutation,
 } from "@/services/notificationApi";
 import type { Notification as NotificationType } from "@/types/notification.type";
+import { useNavigate } from "react-router-dom";
 
 export default function Notification() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const roleCode = user?.data?.roleCode || "patient";
   const { data: summary, refetch } = useGetNotificationsSummaryQuery(10);
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead] = useMarkAllAsReadMutation();
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const notifications = summary?.data?.latest || [];
-  const unreadCount = summary?.data?.unreadCount || 0;
+  const generateId = () => {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  };
+
+  const normalizeNotification = useCallback(
+    (raw: any): NotificationType => {
+      const normalizeId = (id: any) => {
+        if (!id) return generateId();
+        if (typeof id === "string") return id;
+        if (typeof id === "object" && "$oid" in id) return (id as any).$oid;
+        return String(id);
+      };
+
+      return {
+        _id: normalizeId(raw?._id),
+        userId: String(raw?.userId ?? user?.data?._id ?? ""),
+        actorId: raw?.actorId ? String(raw.actorId) : undefined,
+        type: raw?.type ?? "message",
+        title:
+          raw?.title ??
+          (raw?.data?.senderName
+            ? `${raw.data.senderName} sent you a message`
+            : "New notification"),
+        body: raw?.body ?? raw?.data?.snippet ?? "",
+        data: raw?.data,
+        read: Boolean(raw?.read),
+        createdAt: raw?.createdAt
+          ? new Date(raw.createdAt).toISOString()
+          : new Date().toISOString(),
+      };
+    },
+    [user?.data?._id]
+  );
+
+  const normalizeList = useCallback(
+    (input: any): NotificationType[] => {
+      if (!input) return [];
+      const arr = Array.isArray(input) ? input : [input];
+      return arr.map((item) => normalizeNotification(item));
+    },
+    [normalizeNotification]
+  );
+
+  useEffect(() => {
+    if (summary?.data) {
+      const normalizedList = normalizeList(summary.data.latest);
+      // Merge với notifications hiện tại, tránh duplicate
+      setNotifications((prev) => {
+        const existingIds = new Set(prev.map((n) => n._id));
+        const newOnes = normalizedList.filter((n) => !existingIds.has(n._id));
+        // Giữ lại notifications từ socket nếu chưa có trong summary
+        const merged = [...newOnes, ...prev];
+        // Sort theo createdAt mới nhất trước
+        return merged
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+          .slice(0, 10);
+      });
+      // Chỉ update count từ server nếu lớn hơn count hiện tại (tránh ghi đè khi có notification mới từ socket)
+      const serverCount =
+        summary.data.unreadCount ??
+        (summary.data as any).count ??
+        (summary.data as any).total ??
+        0;
+      setUnreadCount((prev) => Math.max(prev, serverCount));
+    }
+  }, [summary, normalizeList]);
 
   // Listen for real-time notifications
   useEffect(() => {
     const handleNewNotification = (notification: NotificationType) => {
-      console.log('[Notification] Received notification event:', notification);
+      console.log("[Notification] Received notification event:", notification);
       toast.info(notification.title, {
         description: notification.body,
       });
@@ -49,7 +126,7 @@ export default function Notification() {
     };
 
     const handleUnreadCountUpdate = (data: any) => {
-      console.log('[Notification] Received unread-count update:', data);
+      console.log("[Notification] Received unread-count update:", data);
       // Refetch để cập nhật unread count và danh sách notifications
       refetch();
     };
@@ -61,13 +138,32 @@ export default function Notification() {
       socketService.off("notification", handleNewNotification);
       socketService.off("notification:unread-count", handleUnreadCountUpdate);
     };
-  }, [refetch]);
+  }, [refetch, user?.data?._id, normalizeNotification]);
 
   const handleMarkAsRead = async (id: string) => {
     try {
-      await markAsRead(id).unwrap();
-      // Không hiển thị toast khi thành công
-    } catch {
+      console.log("Marking notification as read:", id);
+      // Chỉ trừ count nếu notification chưa được đọc
+      const notification = notifications.find((n) => n._id === id);
+      const wasUnread = notification && !notification.read;
+
+      const result = await markAsRead(id).unwrap();
+      console.log("Mark as read result:", result);
+
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((item) => (item._id === id ? { ...item, read: true } : item))
+      );
+
+      // Chỉ trừ count nếu notification chưa được đọc
+      if (wasUnread) {
+        setUnreadCount((prev) => Math.max(prev - 1, 0));
+      }
+
+      // Refetch để sync với server
+      refetch();
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
       toast.error("Failed to mark as read");
     }
   };
@@ -75,9 +171,41 @@ export default function Notification() {
   const handleMarkAllAsRead = async () => {
     try {
       await markAllAsRead().unwrap();
-      // Không hiển thị toast khi thành công
+      setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+      setUnreadCount(0);
+      // Refetch để sync với server
+      refetch();
     } catch {
       toast.error("Failed to mark all as read");
+    }
+  };
+
+  const handleViewAll = () => {
+    navigate(`/${roleCode}/chat`);
+  };
+
+  const handleNotificationClick = (notification: NotificationType) => {
+    // Mark as read when clicked
+    if (!notification.read) {
+      handleMarkAsRead(notification._id);
+    }
+
+    // If it's a message notification, navigate to chat with the sender
+    if (
+      (notification.type === "message" ||
+        notification.type === "chat_message") &&
+      notification.actorId
+    ) {
+      const senderName = notification.data?.senderName || "Người dùng";
+      const senderAvatar = notification.data?.senderAvatar;
+
+      // Navigate to chat page with userId query param
+      navigate(`/${roleCode}/chat?userId=${notification.actorId}`, {
+        state: {
+          userName: senderName,
+          avatar: senderAvatar,
+        },
+      });
     }
   };
 
@@ -165,7 +293,16 @@ export default function Notification() {
                   "flex items-start gap-3 p-3 cursor-pointer hover:bg-gray-100 border-b last:border-b-0",
                   getNotificationBgColor(notification.type, notification.read)
                 )}
-                onClick={() => handleMarkAsRead(notification._id)}
+                onClick={() => {
+                  if (
+                    notification.type === "message" ||
+                    notification.type === "chat_message"
+                  ) {
+                    handleNotificationClick(notification);
+                  } else {
+                    handleMarkAsRead(notification._id);
+                  }
+                }}
               >
                 <div className="flex-shrink-0 mt-1">
                   {getNotificationIcon(notification.type)}
@@ -210,6 +347,7 @@ export default function Notification() {
               <Button
                 variant="ghost"
                 className="w-full text-sm text-blue-600 hover:text-blue-700"
+                onClick={handleViewAll}
               >
                 View all notifications
               </Button>

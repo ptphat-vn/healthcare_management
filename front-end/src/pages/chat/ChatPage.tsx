@@ -1,18 +1,97 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useLocation } from "react-router-dom";
 import ChatWindow from "@/components/features/chat/ChatWindow/ChatWindow";
 import ChatList from "@/components/features/chat/ChatList/ChatList";
 import { socketService } from "@/services/socketService";
 import { useConversations } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
+import { useChatPeers } from "@/hooks/useChatPeers";
 import type { ChatMessage } from "@/types/chat-type";
 
 export default function ChatPage() {
   const { user } = useAuth();
   const currentUserId = user?.data?._id;
-  const { update } = useConversations(currentUserId);
+  const { update, conversations, save } = useConversations(currentUserId);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const [selectedUserId, setSelectedUserId] = useState<string>();
   const [selectedUserName, setSelectedUserName] = useState("");
   const [selectedUserAvatar, setSelectedUserAvatar] = useState<string>();
+
+  const userIdFromQuery = searchParams.get("userId");
+
+  interface LocationState {
+    userName?: string;
+    avatar?: string;
+  }
+  const stateUserName = (location.state as LocationState | null)?.userName;
+  const stateAvatar = (location.state as LocationState | null)?.avatar;
+
+  const clearUserIdParam = useCallback(() => {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.delete("userId");
+      return params;
+    });
+  }, [setSearchParams]);
+
+  // Use useChatPeers to get user info if needed
+  const { users } = useChatPeers("");
+
+  useEffect(() => {
+    if (
+      userIdFromQuery &&
+      userIdFromQuery !== currentUserId &&
+      userIdFromQuery !== selectedUserId
+    ) {
+      if (stateUserName) {
+        setSelectedUserId(userIdFromQuery);
+        setSelectedUserName(stateUserName);
+        setSelectedUserAvatar(stateAvatar);
+
+        const existingConversation = conversations.find(
+          (c) => c.userId === userIdFromQuery
+        );
+        if (!existingConversation) {
+          save({
+            userId: userIdFromQuery,
+            userName: stateUserName,
+            avatar: stateAvatar,
+            lastMessageTime: new Date(),
+          });
+        }
+
+        clearUserIdParam();
+      } else {
+        const userFromList = users?.find((u) => u._id === userIdFromQuery);
+        const conversation = conversations.find(
+          (c) => c.userId === userIdFromQuery
+        );
+
+        if (userFromList) {
+          setSelectedUserId(userIdFromQuery);
+          setSelectedUserName(userFromList.fullName || "Người dùng");
+          setSelectedUserAvatar(userFromList.avatar);
+          clearUserIdParam();
+        } else if (conversation) {
+          setSelectedUserId(userIdFromQuery);
+          setSelectedUserName(conversation.userName);
+          setSelectedUserAvatar(conversation.avatar);
+          clearUserIdParam();
+        }
+      }
+    }
+  }, [
+    userIdFromQuery,
+    currentUserId,
+    selectedUserId,
+    stateUserName,
+    stateAvatar,
+    users,
+    conversations,
+    save,
+    clearUserIdParam,
+  ]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -39,6 +118,7 @@ export default function ChatPage() {
     setSelectedUserId(userId);
     setSelectedUserName(userName);
     setSelectedUserAvatar(avatar);
+    clearUserIdParam();
   };
 
   const handleCloseChat = () => {
@@ -49,7 +129,7 @@ export default function ChatPage() {
 
   return (
     <div className="h-[calc(100vh-4rem-1.5rem)] flex flex-col md:flex-row -m-3 bg-white">
-      <div className="bg-white border-r w-full md:w-80 md:flex-shrink-0 h-[60vh] md:h-full">
+      <div className="bg-white border-r w-full md:w-80 md:shrink-0 h-[60vh] md:h-full">
         <ChatList
           onSelectChat={handleSelectChat}
           selectedUserId={selectedUserId}
