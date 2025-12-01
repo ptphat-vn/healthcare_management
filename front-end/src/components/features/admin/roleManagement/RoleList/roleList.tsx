@@ -21,23 +21,27 @@ import type { Roles } from "@/types/roles.type";
 import formatPrivilege from "@/utils/formatPrivilege";
 import { Edit, Inbox, MoreHorizontal, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import DeleteRoleModal from "./DeleteRoleModal";
-import AddRoleModal from "./AddRoleModal";
+import DeleteRoleModal from "../DeleteRoleModal/DeleteRoleModal";
+import AddRoleModal from "../AddRoleModal/AddRoleModal";
+import ViewPrivilegesModal from "../ViewPrivilegesModal/ViewPrivilegesModal";
 
 export default function RoleList() {
   const [roleList, setRoleList] = useState<Roles[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "code" | "createdAt" | "">("");
+  const [sortBy, setSortBy] = useState<"name" | "code" | "createAt" | "">("");
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Roles | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editRole, setEditRole] = useState<Roles | null>(null);
+  const [privilegesModalOpen, setPrivilegesModalOpen] = useState(false);
+  const [selectedRoleForPrivileges, setSelectedRoleForPrivileges] =
+    useState<Roles | null>(null);
 
   const { data, isLoading, error } = useGetAllRoleQuery({
     search,
-    sortBy: sortBy,
+    sortBy: sortBy as "name" | "code" | "createAt" | undefined,
     sortOrder,
     page: currentPage,
     limit: 8,
@@ -66,6 +70,11 @@ export default function RoleList() {
     setAddModalOpen(true);
   };
 
+  const handleViewPrivileges = (role: Roles) => {
+    setSelectedRoleForPrivileges(role);
+    setPrivilegesModalOpen(true);
+  };
+
   const handleClearFilters = () => {
     setSearch("");
     setSortBy("");
@@ -85,10 +94,8 @@ export default function RoleList() {
   }
 
   if (error) {
-    const errMsg =
-      (error as any)?.data?.message ||
-      (error as any)?.message ||
-      "Unknown error";
+    const err = error as { data?: { message?: string }; message?: string };
+    const errMsg = err?.data?.message || err?.message || "Unknown error";
     return (
       <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
         <div className="flex items-center">
@@ -127,7 +134,7 @@ export default function RoleList() {
           ]}
           sortByValue={sortBy}
           sortOrder={sortOrder}
-          onSortByChange={(v) => setSortBy(v as "name" | "code" | "createdAt")}
+          onSortByChange={(v) => setSortBy(v as "name" | "code" | "createAt")}
           onSortOrderChange={(v) => setSortOrder(v)}
           showClearFilters={true}
           onClearFilters={handleClearFilters}
@@ -189,7 +196,10 @@ export default function RoleList() {
                       {formatPrivilege(role.code)}
                     </TableCell>
                     <TableCell className="text-gray-600">
-                      <div className="flex flex-wrap gap-1 items-center">
+                      <div
+                        className="flex flex-wrap gap-1 items-center cursor-pointer"
+                        onClick={() => handleViewPrivileges(role)}
+                      >
                         {role.privileges.slice(0, 2).map((p, i) => (
                           <Badge key={i} variant="secondary">
                             {formatPrivilege(p)}
@@ -197,12 +207,21 @@ export default function RoleList() {
                         ))}
                         {role.privileges.length > 2 && (
                           <span
-                            className="ml-2 text-xs text-gray-500 cursor-pointer hover:text-gray-700"
-                            title={role.privileges.join(", ")}
+                            className="ml-2 text-xs text-blue-600 font-medium cursor-pointer hover:text-blue-800 hover:underline"
+                            title={`Click to view all ${role.privileges.length} privileges`}
                           >
                             +{role.privileges.length - 2} more
                           </span>
                         )}
+                        {role.privileges.length <= 2 &&
+                          role.privileges.length > 0 && (
+                            <span
+                              className="ml-2 text-xs text-blue-600 font-medium cursor-pointer hover:text-blue-800 hover:underline"
+                              title="Click to view all privileges"
+                            >
+                              View all
+                            </span>
+                          )}
                       </div>
                     </TableCell>
                     <TableCell className="text-gray-700">
@@ -285,6 +304,12 @@ export default function RoleList() {
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
         role={editRole}
+      />
+
+      <ViewPrivilegesModal
+        open={privilegesModalOpen}
+        onOpenChange={setPrivilegesModalOpen}
+        role={selectedRoleForPrivileges}
       />
     </div>
   );

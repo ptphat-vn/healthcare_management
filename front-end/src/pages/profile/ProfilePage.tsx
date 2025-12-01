@@ -117,6 +117,8 @@ export default function ProfilePage() {
         await updateAvatar(file).unwrap();
         toast.success("Avatar updated successfully!");
         setIsAvatarEdit(false);
+        // Dispatch event to notify Header to refetch
+        window.dispatchEvent(new CustomEvent("avatarUpdated"));
       } catch (error: unknown) {
         toast.error("Failed to update avatar. Please try again.");
         console.log(error);

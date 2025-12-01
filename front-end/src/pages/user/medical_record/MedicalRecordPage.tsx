@@ -517,3 +517,11 @@ export default function MedicalRecordPatientPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+

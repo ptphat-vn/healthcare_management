@@ -39,7 +39,7 @@ const createQueryState = (overrides?: Record<string, unknown>) => ({
 describe("UserDetail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseParams.mockReturnValue({ _id: "user-1" });
+    mockUseParams.mockReturnValue({ id: "user-1" });
   });
 
   test("renders loading state", () => {
@@ -65,7 +65,7 @@ describe("UserDetail", () => {
     render(<UserDetail />);
 
     expect(
-      screen.getByText("Error loading user: Something went wrong")
+      screen.getByText(/Error loading user: Something went wrong/)
     ).toBeInTheDocument();
   });
 
@@ -74,7 +74,7 @@ describe("UserDetail", () => {
 
     render(<UserDetail />);
 
-    expect(screen.getByText("User not found.")).toBeInTheDocument();
+    expect(screen.getByText(/User not found/)).toBeInTheDocument();
   });
 
   test("renders user details when data is present", () => {
@@ -99,7 +99,10 @@ describe("UserDetail", () => {
 
     render(<UserDetail />);
 
-    expect(mockUseGetDetailUserQuery).toHaveBeenCalledWith({ id: "user-1" });
+    expect(mockUseGetDetailUserQuery).toHaveBeenCalledWith(
+      { id: "user-1" },
+      { skip: false }
+    );
     expect(screen.getByTestId("button-back")).toHaveTextContent("User List");
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.getByText("Admin")).toBeInTheDocument();
@@ -118,7 +121,7 @@ describe("UserDetail", () => {
       status: 2,
     };
 
-    mockUseParams.mockReturnValue({ _id: "user-2" });
+    mockUseParams.mockReturnValue({ id: "user-2" });
     mockUseGetDetailUserQuery.mockReturnValue(
       createQueryState({ data: { data: userData } })
     );

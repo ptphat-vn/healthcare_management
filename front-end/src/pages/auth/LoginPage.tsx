@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import LoginForm from "@/components/auth/loginForm/LoginForm";
 import bg_authen from "../../assets/images/bg_authen.png";
 import bg_login from "../../assets/images/bg_login.png";
-
+import logo_HemoLab from "/logo_HemoLab.png";
 export default function LoginPage() {
   return (
     <div
@@ -21,27 +21,17 @@ export default function LoginPage() {
           alt="background"
         />
         <div className="relative z-10 flex items-center gap-4 ml-0 lg:ml-8">
-          <svg
-            width={56}
-            height={56}
-            viewBox="0 0 56 56"
-            fill="none"
-            className="w-12 h-12 lg:w-14 lg:h-14"
-          >
-            <path
-              d="M6 32h10l6-16 12 40 6-24h10"
-              stroke="#222"
-              strokeWidth={3}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <img
+            className="w-20 h-20 sm:w-24 sm:h-24"
+            src={logo_HemoLab}
+            alt="HemoLab"
+          />
           <div>
             <h1 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-1">
-              Laboratory Management
+              HemoLab Management
             </h1>
             <p className="text-base lg:text-xl text-gray-700 font-normal">
-              Sign in to access your laboratory system
+              Sign in to access your HemoLab system
             </p>
           </div>
         </div>
@@ -59,25 +49,15 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-2 mb-2">
-              <svg
-                width={48}
-                height={48}
-                viewBox="0 0 56 56"
-                fill="none"
+              <img
+                src={logo_HemoLab}
+                alt="HemoLab"
                 className="w-10 h-10 sm:w-12 sm:h-12"
-              >
-                <path
-                  d="M6 32h10l6-16 12 40 6-24h10"
-                  stroke="#222"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              />
             </div>
             {/* Show title on mobile */}
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 lg:hidden text-center">
-              Laboratory Management
+              HemoLab Management
             </h1>
             <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
               Login to continue
