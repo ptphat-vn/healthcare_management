@@ -12,6 +12,8 @@ import Input from "@/components/ui/input/Input";
 import { useGetAllUserQuery } from "@/services/userApi";
 import { type User } from "@/types/user.type";
 import { Combobox } from "@/components/ui/combobox";
+import {Select,SelectContent, SelectItem,SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 interface NewMedicalRecordFormProps {
   onSubmit: (data: CreateMedicalRecordRequest) => void;
@@ -26,10 +28,10 @@ export function NewMedicalRecordForm({
 }: NewMedicalRecordFormProps) {
   // Fetch all users
   const { data: usersData, isLoading: isLoadingUsers } = useGetAllUserQuery({
-    limit: 1000, // Get enough users
-    status: 1, // Only active users
+    limit: 1000, 
+    status: 1, 
   });
-  // Transform users to combobox options
+  
   const patientOptions = useMemo(() => {
     if (!usersData?.data?.user) return [];
     
@@ -97,7 +99,7 @@ export function NewMedicalRecordForm({
               )}
             />
             {errors.userId && (
-              <p className="text-xs text-red-500">{errors.userId.message}</p>
+              <p className="text-sm text-red-500">{errors.userId.message}</p>
             )}
           </div>
         </div>
@@ -111,23 +113,35 @@ export function NewMedicalRecordForm({
               <label className="text-xs font-medium text-gray-700">
                 Blood Type
               </label>
-              <select
-                {...register("bloodType")}
-                defaultValue=""
-                className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                  errors.bloodType?.message ? "border-red-500" : "border-gray-300"
-                }`}
-              >
-                <option value="">Select Blood Type</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-              </select>
+              <Controller
+                name="bloodType"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value || undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger 
+                      className={`w-full h-8 text-sm ${
+                        errors.bloodType?.message ? "border-red-500" : ""
+                      }`}
+                      size="sm"
+                    >
+                      <SelectValue placeholder="Select Blood Type" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[180px]">
+                      <SelectItem value="A+">A+</SelectItem>
+                      <SelectItem value="A-">A-</SelectItem>
+                      <SelectItem value="B+">B+</SelectItem>
+                      <SelectItem value="B-">B-</SelectItem>
+                      <SelectItem value="AB+">AB+</SelectItem>
+                      <SelectItem value="AB-">AB-</SelectItem>
+                      <SelectItem value="O+">O+</SelectItem>
+                      <SelectItem value="O-">O-</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {errors.bloodType?.message && (
                 <p className="text-xs text-red-500">{errors.bloodType.message}</p>
               )}
