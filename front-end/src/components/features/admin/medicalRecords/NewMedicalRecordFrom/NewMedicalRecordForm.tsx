@@ -74,12 +74,10 @@ export function NewMedicalRecordForm({
 
   return (
     <div className="flex flex-col gap-1">
-      <form className="space-y-2" onSubmit={handleSubmit(onFormSubmit)}>
+      <form className="space-y-2 sm:space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
         <div className="space-y-3">
-   
-          
           <div className="flex flex-col space-y-1">
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700">
             Select Patient <span className="text-red-500">*</span>
             </label>
             <Controller
@@ -105,12 +103,12 @@ export function NewMedicalRecordForm({
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-700 border-b pb-1">
             Clinical Information
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
-              <label className="text-xs font-medium text-gray-700">
+              <label className="text-sm font-medium text-gray-700">
                 Blood Type
               </label>
               <Controller
@@ -143,18 +141,17 @@ export function NewMedicalRecordForm({
                 )}
               />
               {errors.bloodType?.message && (
-                <p className="text-xs text-red-500">{errors.bloodType.message}</p>
+                <p className="text-sm text-red-500">{errors.bloodType.message}</p>
               )}
             </div>
           </div>
         </div>
 
-        {/* Rest of the form remains the same */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-700 border-b pb-1">
             Medical History
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 Allergies
@@ -188,7 +185,7 @@ export function NewMedicalRecordForm({
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 Current Medications
@@ -224,10 +221,10 @@ export function NewMedicalRecordForm({
           </div>
         </div>
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-700 border-b pb-1">
             Emergency Contact
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               {...register("emergencyName")}
               label="Emergency Contact Name"
@@ -252,10 +249,10 @@ export function NewMedicalRecordForm({
           />
         </div>
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-700 border-b pb-1">
             Insurance Information
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               {...register("insuranceProvider")}
               label="Insurance Provider"
@@ -278,18 +275,18 @@ export function NewMedicalRecordForm({
             error={errors.insuranceExpiryDate?.message}
           />
         </div>
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 sm:space-x-2 pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
+            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full sm:w-auto"
           >
             Close
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full sm:w-auto"
           >
             {isLoading ? "Creating..." : "Create Medical Record"}
           </button>

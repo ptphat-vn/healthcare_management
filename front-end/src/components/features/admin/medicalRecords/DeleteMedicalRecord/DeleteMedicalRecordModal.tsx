@@ -35,22 +35,22 @@ export default function DeleteMedicalRecordModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-4 sm:p-6">
         <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-100 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
             </div>
-            <DialogTitle className="text-xl font-semibold text-gray-900">
+            <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900">
               Delete Medical Record
             </DialogTitle>
           </div>
-          <DialogDescription className="text-base text-gray-600 pt-2">
+          <DialogDescription className="text-sm sm:text-base text-gray-600 pt-2">
             Are you sure you want to delete this medical record? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 my-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 my-3 sm:my-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-500">Patient:</span>
@@ -67,10 +67,10 @@ export default function DeleteMedicalRecordModal({
           </div>
         </div>
 
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 sm:p-4 rounded">
           <div className="flex items-start">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-yellow-800">
+            <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+            <div className="text-xs sm:text-sm text-yellow-800">
               <p className="font-medium">Warning:</p>
               <p className="mt-1">
                 All data associated with this medical record will be permanently deleted
@@ -80,11 +80,11 @@ export default function DeleteMedicalRecordModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 mt-6">
-          <Button type="button" variant="outline" onClick={handleCancel}>
+        <DialogFooter className="gap-2 mt-4 sm:mt-6 flex-col sm:flex-row">
+          <Button type="button" variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button type="button" variant="destructive" onClick={handleConfirm}>
+          <Button type="button" variant="destructive" onClick={handleConfirm} className="w-full sm:w-auto">
             Delete Medical Record
           </Button>
         </DialogFooter>
