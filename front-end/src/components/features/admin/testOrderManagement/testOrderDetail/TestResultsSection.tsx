@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import AddTestResultModal from "./AddTestResultModal";
+import CommentsSection from "./CommentsSection";
 import { useCreateTestOrderReviewByAIMutation } from "@/services/testOrderApi";
 import { toast } from "sonner";
 
@@ -31,9 +32,20 @@ interface TestResult {
   createdAt: string;
 }
 
+interface Comment {
+  _id: string;
+  content: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  modifiedBy?: string;
+  isDeleted: boolean;
+}
+
 interface TestResultsSectionProps {
   testResults: TestResult[];
   testOrderId: string;
+  comments: Comment[];
 }
 
 const getResultStatusColor = (status: string) => {
@@ -57,6 +69,7 @@ const getFlagBadge = (flag: string) => {
 export default function TestResultsSection({
   testResults,
   testOrderId,
+  comments,
 }: TestResultsSectionProps) {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [aiReviewTestOrd, { isLoading }] =
@@ -228,24 +241,7 @@ export default function TestResultsSection({
         </CardContent>
       </Card>
 
-      {/* HL7 Info */}
-      {testResults[0]?.hl7MessageId && (
-        <Card className="border-gray-200 shadow-sm">
-          <CardHeader className="bg-gray-50">
-            <CardTitle className="text-gray-700">
-              HL7 Message Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <p className="text-xs text-gray-600 mb-2">HL7 Message ID</p>
-              <p className="font-mono text-sm text-gray-900 break-all">
-                {testResults[0].hl7MessageId}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <CommentsSection comments={comments} testOrderId={testOrderId} />
 
       {/* Add Test Result Modal */}
       <AddTestResultModal

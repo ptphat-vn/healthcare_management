@@ -59,7 +59,9 @@ export default function SearchAndFilter({
           <Input
             placeholder={searchPlaceholder}
             value={searchTerm}
-            onChange={(e) => onSearchChange((e as any).target.value)}
+            onChange={(e) =>
+              onSearchChange((e.target as HTMLInputElement).value)
+            }
             className="pl-10 w-full py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 transition"
           />
         </div>

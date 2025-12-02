@@ -1,3 +1,4 @@
+
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -65,12 +66,14 @@ export function EditAdminForm({
   };
 
   return (
-    <div className="flex flex-col gap-1 rounded-md p-10 font-medium bg-green-50 text-black-800 border border-green-100 min-w-[900px] max-w-[1200px] mx-auto">
-      <h3 className="text-3xl text-black font-semibold mb-5 ">Edit Profile</h3>
-      <form className="space-y-2 " onSubmit={handleSubmit(handleFormSubmit)}>
-        <div className="grid grid-cols-3 gap-2">
+    <div className="flex flex-col gap-4 rounded-md p-4 sm:p-6 lg:p-8 font-medium bg-green-50 text-black-800 border border-green-100 w-full max-w-4xl mx-auto">
+      <h3 className="text-2xl md:text-3xl text-black font-semibold">
+        Edit Profile
+      </h3>
+      <form className="space-y-4" onSubmit={handleSubmit(handleFormSubmit)}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Name */}
-          <div className="w-100 ">
+          <div className="w-full">
             <Input
               {...register("fullName")}
               label="Full name"
@@ -81,7 +84,7 @@ export function EditAdminForm({
             />
           </div>
           {/* Email */}
-          <div className="w-100 ml-17">
+          <div className="w-full">
             <Input
               {...register("email")}
               type="email"
@@ -93,14 +96,14 @@ export function EditAdminForm({
             />
           </div>
           {/* Gender */}
-          <div className="flex flex-col space-y-1 mt-[5px] ml-34">
+          <div className="flex flex-col space-y-1">
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Gender
               <span className="text-red-500">*</span>
             </label>
             <select
               {...register("gender")}
-              className={`flex h-[39px] w-50 rounded-md border ${
+              className={`flex h-[42px] w-full rounded-md border ${
                 errors.gender?.message
                   ? "border-red-500 focus-visible:ring-red-500"
                   : "border-gray-300"
@@ -118,9 +121,9 @@ export function EditAdminForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Phone */}
-          <div className="w-85">
+          <div className="w-full">
             <Input
               {...register("phone")}
               label="Phone"
@@ -131,7 +134,7 @@ export function EditAdminForm({
             />
           </div>
           {/* CCCD */}
-          <div className="w-100 ml-2 ">
+          <div className="w-full">
             <Input
               {...register("identifyNumber")}
               label="Identify number"
@@ -142,7 +145,7 @@ export function EditAdminForm({
             />
           </div>
           {/* Date of Birth */}
-          <div className="flex flex-col space-y-1 mt-[6px] ml-19">
+          <div className="flex flex-col space-y-1">
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Date of Birth
               <span className="text-red-500">*</span>
@@ -155,7 +158,7 @@ export function EditAdminForm({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className={`w-65 rounded-md border ${
+                      className={`w-full rounded-md border ${
                         errors.dateOfBirth
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-300 focus:ring-blue-500"
@@ -210,11 +213,11 @@ export function EditAdminForm({
           />
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
+            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full sm:w-auto"
           >
             Close
           </button>
@@ -223,14 +226,14 @@ export function EditAdminForm({
             disabled={isLoading}
             className={`cursor-pointer ${getRoleButtonClass(
               defaultValues.roleCode
-            )}`}
+            )} h-10 px-4 sm:px-6 w-full sm:w-auto`}
           >
             {isLoading ? "Updating..." : "Update User"}
           </button>
         </div>
 
         {errors.root?.message && (
-          <span className="text-xs text-red-500 break-words">
+          <span className="text-xs text-red-500 wrap-break-word">
             {errors.root?.message}
           </span>
         )}

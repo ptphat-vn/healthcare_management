@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "@/stores/authSlice";
+import { baseApi } from "@/services/baseApi";
 import RoleList from "./RoleList";
 import type { Roles } from "@/types/roles.type";
 
@@ -302,16 +306,35 @@ vi.mock("lucide-react", () => ({
   Edit: () => <span data-testid="edit-icon" />,
   MoreHorizontal: () => <span data-testid="more-horizontal-icon" />,
   Trash2: () => <span data-testid="trash-icon" />,
+  X: () => <span data-testid="x-icon" />,
+  Shield: () => <span data-testid="shield-icon" />,
+  Inbox: () => <span data-testid="inbox-icon" />,
 }));
 
 // Mock roleApi
 vi.mock("@/services/roleApi", () => ({
   useGetAllRoleQuery: vi.fn(),
+  useDeleteRoleMutation: vi.fn(() => [vi.fn(), { isLoading: false }]),
+  useCreateRoleMutation: vi.fn(() => [vi.fn(), { isLoading: false }]),
+  useUpdateRoleMutation: vi.fn(() => [vi.fn(), { isLoading: false }]),
 }));
 
 import { useGetAllRoleQuery } from "@/services/roleApi";
 
 const mockUseGetAllRoleQuery = vi.mocked(useGetAllRoleQuery);
+
+function renderWithProvider(component: React.ReactElement) {
+  const store = configureStore({
+    reducer: {
+      auth: authReducer,
+      [baseApi.reducerPath]: baseApi.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(baseApi.middleware),
+  });
+
+  return render(<Provider store={store}>{component}</Provider>);
+}
 
 describe("RoleList", () => {
   const mockRoles: Roles[] = [
@@ -365,7 +388,7 @@ describe("RoleList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllRoleQuery>);
 
-    render(<RoleList />);
+    renderWithProvider(<RoleList />);
 
     expect(screen.getByTestId("table")).toBeInTheDocument();
     // Use getAllByText since role names appear in both name and code columns
@@ -394,7 +417,7 @@ describe("RoleList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllRoleQuery>);
 
-    render(<RoleList />);
+    renderWithProvider(<RoleList />);
 
     await waitFor(() => {
       expect(screen.getByText("No roles found")).toBeInTheDocument();
@@ -423,7 +446,7 @@ describe("RoleList", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllRoleQuery>);
 
-    render(<RoleList />);
+    renderWithProvider(<RoleList />);
 
     // Check that Admin role is rendered (appears in both name and code columns)
     const adminTexts = screen.getAllByText("Admin");
@@ -448,7 +471,7 @@ describe("RoleList", () => {
       error: { message: "Failed to load roles" },
     } as unknown as ReturnType<typeof useGetAllRoleQuery>);
 
-    render(<RoleList />);
+    renderWithProvider(<RoleList />);
 
     expect(screen.getByTestId("alert")).toBeInTheDocument();
     expect(screen.getByText("Error loading roles")).toBeInTheDocument();

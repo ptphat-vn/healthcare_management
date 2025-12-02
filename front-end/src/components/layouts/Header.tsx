@@ -12,7 +12,7 @@ import Notification from "@/components/common/Notification";
 import { Button } from "@/components/ui/button";
 import { useGetProfileQuery } from "@/services/baseApi";
 import { useEffect } from "react";
-
+import logo_HemoLab from "/logo_HemoLab.png";
 interface HeaderProps {
   onMenuClick?: () => void;
 }
@@ -70,10 +70,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const headerColorClass = getRoleHeaderClass(roleCode);
   const roleBadgeClass = getRoleBadgeClass(roleCode);
 
-  // Listen for avatar update events
+  // Listen for avatar update events and refetch profile
   useEffect(() => {
     const handleAvatarUpdate = () => {
-      refetch();
+      // Small delay to ensure backend has processed the update
+      setTimeout(() => {
+        refetch();
+      }, 300);
     };
 
     window.addEventListener("avatarUpdated", handleAvatarUpdate);
@@ -102,28 +105,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-sm rounded-lg ring-1 ring-white/20 hover:bg-white/20 transition-all">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M3 12h4l3-8 4 16 3-10h4"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <img src={logo_HemoLab} alt="" />
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-base sm:text-lg font-semibold tracking-tight">
-                  CareCenter
+                  HemoLab
                 </h1>
-                <p className="text-xs text-white/80 -mt-0.5">
-                  Healthcare management
-                </p>
+                <p className="text-xs text-white/80 -mt-0.5">Management</p>
               </div>
             </Link>
           </div>

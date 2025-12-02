@@ -100,15 +100,25 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
     limit: itemsPerPage,
   });
 
-  const testOrders: TestOrder[] = (data as any)?.data?.testOrder || [];
-  const pagination = (data as any)?.data?.pagination || {
+  const testOrders: TestOrder[] =
+    (data as { data: { testOrder: TestOrder[] } })?.data?.testOrder || [];
+  const pagination = (
+    data as {
+      data: {
+        pagination: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+      };
+    }
+  )?.data?.pagination || {
     page: 1,
     limit: itemsPerPage,
     total: 0,
     totalPages: 1,
   };
-
-
 
   const handleView = (order: TestOrder) => {
     const roleCode = user?.data?.roleCode || "admin";
@@ -135,17 +145,7 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
       {error && !isLoading && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
           <div className="flex-shrink-0">
-            <svg
-              className="h-5 w-5 text-red-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <Inbox className="h-5 w-5 text-red-600" />
           </div>
           <div className="flex-1">
             <h3 className="text-red-800 font-semibold">
@@ -172,19 +172,25 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
             { value: "status", label: "Status" },
           ]}
           sortByValue={sortBy}
-          onSortByChange={setSortBy}
+          onSortByChange={(value) =>
+            setSortBy(
+              value as "patientName" | "createdDate" | "runDate" | "status"
+            )
+          }
           sortOrder={sortOrder}
           onSortOrderChange={setSortOrder}
-          statusOptions={[
-            { value: "", label: "All" },
-            { value: "pending", label: "Pending" },
-            { value: "completed", label: "Completed" },
-            { value: "reviewed", label: "Reviewed" },
-            { value: "ai_reviewed", label: "AI Reviewed" },
-            { value: "cancelled", label: "Cancelled" },
-          ]}
-          statusValue={status}
-          onStatusChange={setStatus}
+          status={status as number | "" | undefined}
+          onStatusChange={(value) =>
+            setStatus(
+              value as
+                | "pending"
+                | "cancelled"
+                | "completed"
+                | "reviewed"
+                | "ai_reviewed"
+                | ""
+            )
+          }
         />
       </div>
 

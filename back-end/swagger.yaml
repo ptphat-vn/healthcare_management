@@ -2860,58 +2860,58 @@ paths:
         '409':
           description: Cannot delete record with active test orders
 
-  /patient-records/{id}/clinical-notes:
-    post:
-      tags:
-        - Patient Medical Records
-      summary: Add clinical note to patient record
-      description: Add a clinical note to a patient medical record
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Patient medical record ID
-          schema:
-            type: string
-            example: '507f1f77bcf86cd799439011'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - content
-                - noteType
-              properties:
-                content:
-                  type: string
-                  example: 'Patient shows improvement in blood pressure readings'
-                noteType:
-                  type: string
-                  enum: [general, diagnosis, treatment, follow_up, other]
-                  example: 'treatment'
-      responses:
-        '200':
-          description: Clinical note added successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Clinical note added successfully'
-                  data:
-                    $ref: '#/components/schemas/PatientMedicalRecord'
-        '400':
-          description: Validation error
-        '401':
-          description: Unauthorized
-        '404':
-          description: Patient record not found
+  # /patient-records/{id}/clinical-notes:
+  #   post:
+  #     tags:
+  #       - Patient Medical Records
+  #     summary: Add clinical note to patient record
+  #     description: Add a clinical note to a patient medical record
+  #     security:
+  #       - bearerAuth: []
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         description: Patient medical record ID
+  #         schema:
+  #           type: string
+  #           example: '507f1f77bcf86cd799439011'
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             required:
+  #               - content
+  #               - noteType
+  #             properties:
+  #               content:
+  #                 type: string
+  #                 example: 'Patient shows improvement in blood pressure readings'
+  #               noteType:
+  #                 type: string
+  #                 enum: [general, diagnosis, treatment, follow_up, other]
+  #                 example: 'treatment'
+  #     responses:
+  #       '200':
+  #         description: Clinical note added successfully
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: 'Clinical note added successfully'
+  #                 data:
+  #                   $ref: '#/components/schemas/PatientMedicalRecord'
+  #       '400':
+  #         description: Validation error
+  #       '401':
+  #         description: Unauthorized
+  #       '404':
+  #         description: Patient record not found
 
   /test-orders/{id}/ai-review:
     post:
@@ -5493,6 +5493,11 @@ components:
           items:
             type: string
           example: ['507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012']
+        testResults:
+          type: array
+          description: Latest synced laboratory results linked to this medical record
+          items:
+            $ref: '#/components/schemas/MedicalRecordTestResult'
         clinicalNotes:
           type: array
           items:
@@ -5582,6 +5587,39 @@ components:
         lastModifiedByName:
           type: string
           example: 'Bob Tran'
+
+    MedicalRecordTestResult:
+      type: object
+      properties:
+        testOrderId:
+          type: string
+          description: ID của phiếu xét nghiệm nguồn
+          example: '64c8fdf3c4f1d2a7b9e12345'
+        testOrderStatus:
+          type: string
+          enum: [pending, cancelled, completed, reviewed, ai_reviewed]
+          example: 'reviewed'
+        runDate:
+          type: string
+          format: date-time
+          description: Thời điểm chạy xét nghiệm
+          example: '2024-02-01T09:15:00Z'
+        requestedTests:
+          type: array
+          description: Danh sách xét nghiệm được yêu cầu trong phiếu
+          items:
+            type: string
+          example: ['Hemoglobin', 'White Blood Cell Count']
+        testResults:
+          type: array
+          description: Kết quả chi tiết của từng chỉ số
+          items:
+            $ref: '#/components/schemas/TestResult'
+        syncedAt:
+          type: string
+          format: date-time
+          description: Thời điểm đồng bộ dữ liệu vào bệnh án
+          example: '2024-02-01T09:20:00Z'
 
     Pagination:
       type: object
