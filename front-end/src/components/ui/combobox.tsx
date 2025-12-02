@@ -69,17 +69,33 @@ export function Combobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
-        <div className="flex items-center border-b px-3">
+      <PopoverContent 
+        className="p-0 w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] overflow-visible" 
+        align="start"
+        sideOffset={4}
+        onWheel={(e) => {
+          // Allow wheel events to propagate
+          e.stopPropagation()
+        }}
+      >       
+       <div className="flex items-center border-b px-3">
           <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           <Input
             placeholder={searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="border-0 focus-visible:ring-0"
+            onWheel={(e) => e.stopPropagation()}
           />
         </div>
-        <div className="max-h-[300px] overflow-auto p-1">
+        <div 
+          className="max-h-[300px] overflow-y-auto overflow-x-hidden p-1"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            touchAction: 'pan-y'
+          }}
+        >
           {filteredOptions.length === 0 ? (
             <div className="py-6 text-center text-sm text-muted-foreground">
               {emptyMessage}
@@ -88,13 +104,15 @@ export function Combobox({
             filteredOptions.map((option) => (
               <button
                 key={option.value}
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
                   onValueChange(option.value)
                   setOpen(false)
                   setSearch("")
                 }}
                 className={cn(
-                  "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                  "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground active:bg-accent",
                   value === option.value && "bg-accent"
                 )}
               >

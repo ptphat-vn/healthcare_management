@@ -16,9 +16,9 @@ export default function RegisterPage() {
         padding: 0,
       }}
     >
-      <div className="flex flex-1 items-center justify-center px-8 relative z-10">
+      <div className="flex flex-1 items-center justify-center px-7 relative z-10">
         <motion.div
-          className="bg-white rounded-xl shadow-md p-6 max-w-md w-full relative z-20"
+          className="bg-white rounded-lg shadow-md p-4.5 max-w-md w-full relative z-20"
           initial={{ x: 100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: -100, opacity: 0 }}
