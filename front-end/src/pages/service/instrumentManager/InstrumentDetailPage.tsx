@@ -75,7 +75,7 @@ export default function InstrumentDetailPage() {
   const instrument = data.data;
   const reagentsResponse = reagentsData?.data;
   const reagents = Array.isArray(reagentsResponse?.reagents)
-    ? reagentsResponse.reagents
+    ? reagentsResponse?.reagents
     : [];
 
   const handleDeleteReagent = async (assignmentId: string) => {

@@ -5,15 +5,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TestOrderList from "./TestOrderList";
 
-const {
-  mockUseGetAllTestOrderQuery,
-  mockUseAuth,
-  mockNavigate,
-} = vi.hoisted(() => ({
-  mockUseGetAllTestOrderQuery: vi.fn(),
-  mockUseAuth: vi.fn(),
-  mockNavigate: vi.fn(),
-}));
+const { mockUseGetAllTestOrderQuery, mockUseAuth, mockNavigate } = vi.hoisted(
+  () => ({
+    mockUseGetAllTestOrderQuery: vi.fn(),
+    mockUseAuth: vi.fn(),
+    mockNavigate: vi.fn(),
+  })
+);
 
 vi.mock("@/services/testOrderApi", () => ({
   useGetAllTestOrderQuery: (...args: any[]) =>
@@ -26,7 +24,7 @@ vi.mock("@/hooks/useAuth", () => ({
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>(
-    "react-router-dom",
+    "react-router-dom"
   );
   return {
     ...actual,
@@ -46,7 +44,11 @@ vi.mock("./DeleteConfirmDialog", () => ({
 
 vi.mock("@/components/ui/searchAndFilter/SearchAndFilter", () => ({
   __esModule: true,
-  default: ({ onSearchChange }: { onSearchChange: (value: string) => void }) => (
+  default: ({
+    onSearchChange,
+  }: {
+    onSearchChange: (value: string) => void;
+  }) => (
     <div data-testid="search-filter">
       <button type="button" onClick={() => onSearchChange("query")}>
         trigger-search
@@ -118,11 +120,9 @@ describe("Danh sách đơn xét nghiệm", () => {
     render(<TestOrderList />);
 
     expect(
-      document.querySelectorAll('[data-slot="skeleton"]').length,
+      document.querySelectorAll('[data-slot="skeleton"]').length
     ).toBeGreaterThan(0);
-    expect(
-      screen.queryByText(/No test orders found/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/No test orders found/i)).not.toBeInTheDocument();
   });
 
   it("hiển thị lỗi khi gọi API thất bại", () => {
@@ -134,9 +134,7 @@ describe("Danh sách đơn xét nghiệm", () => {
 
     render(<TestOrderList />);
 
-    expect(
-      screen.getByText(/Error loading test orders/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Error loading test orders/i)).toBeInTheDocument();
     expect(screen.getByText(/Server error/i)).toBeInTheDocument();
   });
 
@@ -156,7 +154,7 @@ describe("Danh sách đơn xét nghiệm", () => {
 
     expect(screen.getByText(/No test orders found/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Try adjusting your search or filter criteria/i),
+      screen.getByText(/Try adjusting your search or filter criteria/i)
     ).toBeInTheDocument();
   });
 
@@ -179,7 +177,10 @@ describe("Danh sách đơn xét nghiệm", () => {
               email: "john@example.com",
               status: "completed",
               createdDate: "2024-01-01T00:00:00.000Z",
-              createdByUser: { fullName: "Alice Admin", email: "alice@lab.com" },
+              createdByUser: {
+                fullName: "Alice Admin",
+                email: "alice@lab.com",
+              },
             },
           ],
           pagination: { page: 1, limit: 8, total: 1, totalPages: 1 },
@@ -198,4 +199,3 @@ describe("Danh sách đơn xét nghiệm", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/lab/test-order/order-1");
   });
 });
-

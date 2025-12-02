@@ -20,9 +20,7 @@ export default function MedicalHistoryCard({
     bgClass: string
   ) => {
     if (!items || items.length === 0) {
-      return (
-        <span className="text-gray-400 italic text-sm">None</span>
-      );
+      return <span className="text-gray-400 italic text-sm">None</span>;
     }
 
     return (
@@ -95,4 +93,3 @@ export default function MedicalHistoryCard({
     </Card>
   );
 }
-

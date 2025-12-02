@@ -49,8 +49,18 @@ const customBaseQuery: BaseQueryFn<
 > = async (agrs, api, extraOptions) => {
   let result = await baseQuery(agrs, api, extraOptions);
 
+  const url = typeof agrs === "string" ? agrs : agrs.url;
+  const isAuthEndpoint =
+    url?.includes("/auth/login") ||
+    url?.includes("/auth/register") ||
+    url?.includes("/auth/login-google");
+
   if (result.error?.status === 401) {
     const errorData = result.error.data as ErrorResponse;
+
+    if (isAuthEndpoint) {
+      return result;
+    }
 
     if (errorData.message === "Access denied, token expired") {
       const refreshToken = (api.getState() as RootState).auth.refreshToken;
