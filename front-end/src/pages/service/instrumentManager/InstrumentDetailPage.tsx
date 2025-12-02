@@ -24,11 +24,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import AddReagentDialog from "@/components/features/service/reagentInstrument/addReagentDialog/AddReagentDialog";
-<<<<<<< HEAD
 import ReagentsTable from "@/components/features/service/reagentInstrument/reagentsTable/ReagentsTable";
-=======
-import ReagentsTable from "@/components/features/service/reagentInstrument/ReagentsTable/ReagentsTable";
->>>>>>> 7556a39c9d65f3514680ae77420e4396e1f05247
 export default function InstrumentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -79,7 +75,7 @@ export default function InstrumentDetailPage() {
   const instrument = data.data;
   const reagentsResponse = reagentsData?.data;
   const reagents = Array.isArray(reagentsResponse?.reagents)
-    ? reagentsResponse.reagents
+    ? reagentsResponse?.reagents
     : [];
 
   const handleDeleteReagent = async (assignmentId: string) => {

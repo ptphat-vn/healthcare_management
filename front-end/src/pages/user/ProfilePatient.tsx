@@ -43,6 +43,8 @@ export default function ProfilePatient() {
     }
   }, [user?._id, user?.avatar]);
 
+  console.log(user, "userrr");
+
   // Calculate age from date of birth
   const calculateAge = (dob: string) => {
     const birthDate = new Date(dob);
