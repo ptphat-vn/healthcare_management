@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Input from "@/components/ui/input/Input";
 
 export default function StepNewPassword({
   identifier,
@@ -29,28 +30,40 @@ export default function StepNewPassword({
         e.preventDefault();
         onSubmit();
       }}
-      className="space-y-4"
+      className="space-y-4 w-full"
     >
       <h3 className="text-lg font-semibold">Đặt mật khẩu mới</h3>
-      <input
-        value={identifier}
-        readOnly
-        className="w-full px-3 py-2 border rounded-md focus:outline-none bg-gray-50"
-      />
-      <input
-        placeholder="New password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-      />
-      <input
-        placeholder="Confirm password"
-        type="password"
-        value={confirm}
-        onChange={(e) => setConfirm(e.target.value)}
-        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-      />
+      
+      <div className="w-full">
+        <Input
+          value={identifier}
+          readOnly
+          className="bg-gray-50 h-10 sm:h-11 text-sm sm:text-base w-full"
+        />
+      </div>
+      
+      <div className="w-full">
+        <Input
+          type="password"
+          label="New password"
+          placeholder="New password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="h-10 sm:h-11 text-sm sm:text-base w-full"
+        />
+      </div>
+      
+      <div className="w-full">
+        <Input
+          type="password"
+          label="Confirm password"
+          placeholder="Confirm password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          className="h-10 sm:h-11 text-sm sm:text-base w-full"
+        />
+      </div>
+      
       <div className="flex items-center justify-between">
         <button
           type="submit"
