@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "@/stores/authSlice";
@@ -80,7 +79,7 @@ vi.mock("@/components/ui/dropdown-menu", () => ({
   ),
   DropdownMenuTrigger: ({
     children,
-    asChild,
+    asChild: _asChild,
   }: {
     children?: React.ReactNode;
     asChild?: boolean;
@@ -159,9 +158,9 @@ vi.mock("@/components/ui/searchAndFilter/SearchAndFilter", () => ({
     onSearchChange,
     sortOptions,
     sortByValue,
-    sortOrder,
+    sortOrder: _sortOrder,
     onSortByChange,
-    onSortOrderChange,
+    onSortOrderChange: _onSortOrderChange,
     onClearFilters,
   }: {
     searchTerm: string;
@@ -428,8 +427,6 @@ describe("RoleList", () => {
   });
 
   it("should handle edit and delete actions", async () => {
-    const user = userEvent.setup();
-
     mockUseGetAllRoleQuery.mockReturnValue({
       data: {
         data: {

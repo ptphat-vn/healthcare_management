@@ -132,6 +132,7 @@ export interface VendorSupplyHisSearch {
   reagentId?: string;
   vendorId?: string;
   vendorName?: string;
+  status?: string;
   startDate?: string;
   endDate?: string;
   page?: number;

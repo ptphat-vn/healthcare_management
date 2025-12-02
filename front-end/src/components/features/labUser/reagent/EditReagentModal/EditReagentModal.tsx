@@ -66,8 +66,10 @@ export default function EditReagentModal({
         description: reagent.description || "",
         usagePerRun: reagent.usagePerRun || { min: 0, max: 0, unit: "ml" },
         ratio: reagent.ratio || "",
-        categories: reagent.categories || "",
-        storageCondition: reagent.storageCondition || "",
+        categories: Array.isArray(reagent.categories)
+          ? reagent.categories.join(", ")
+          : reagent.categories || "",
+        storageConditions: reagent.storageCondition || "",
         isActive: reagent.isActive ?? true,
       });
     }

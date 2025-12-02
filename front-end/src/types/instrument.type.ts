@@ -1,31 +1,43 @@
 import type { ReagentInstrument } from "./reagent.type";
 
-export type ReagentCategory = 
-  | 'Hematology'
-  | 'Biochemistry'
-  | 'Immunology'
-  | 'Molecular/PCR'
-  | 'Microbiology'
-  | 'Coagulation'
-  | 'Enzyme';
+export type ReagentCategory =
+  | "Hematology"
+  | "Biochemistry"
+  | "Immunology"
+  | "Molecular/PCR"
+  | "Microbiology"
+  | "Coagulation"
+  | "Enzyme";
 
 export interface Instrument {
   _id: string;
   name: string;
-  model: string;
-  manufacturer: string;
-  serialNumber: string;
-  location: string;
-  description: string;
-  categories: ReagentCategory[];
-  isActive: boolean;
+
+  code?: string;
+  model?: string;
+  manufacturer?: string;
+  serialNumber?: string;
+  location?: string;
+  description?: string;
+  categories?: ReagentCategory[];
+  isActive?: boolean;
   status: InstrumentStatus;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  lastModifiedBy: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  lastModifiedBy?: string;
   createdByName?: string;
   lastModifiedByName?: string;
+  // Additional metadata useful for dashboards and mocks
+  purchaseDate?: string;
+  lastMaintenanceDate?: string;
+  lastCalibrationDate?: string;
+  responsiblePerson?: string;
+  responsiblePersonId?: string;
+  nextMaintenanceDate?: string;
+  reagentLevel?: number;
+  mode?: InstrumentMode;
+  notes?: string;
 }
 
 // Backend uses: 'Active' | 'Inactive' | 'Maintenance' | 'Out of Service'

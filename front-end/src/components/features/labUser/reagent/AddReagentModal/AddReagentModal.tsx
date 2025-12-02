@@ -47,7 +47,7 @@ export default function AddReagentModal({
       unit: "ml",
     },
     ratio: "",
-    category: "",
+    categories: "",
     storageConditions: "",
     isActive: true,
   });
@@ -129,7 +129,7 @@ export default function AddReagentModal({
         description: "",
         usagePerRun: { min: 0, max: 0, unit: "ml" },
         ratio: "",
-        category: "",
+        categories: "",
         storageConditions: "",
         isActive: true,
       });
@@ -208,8 +208,8 @@ export default function AddReagentModal({
             <div className="space-y-1.5">
               <Label className="text-sm font-semibold">Category</Label>
               <Input
-                name="category"
-                value={formData.category}
+                name="categories"
+                value={formData.categories}
                 onChange={handleChange}
                 placeholder="e.g. Chemical, Enzyme"
                 className="h-9"

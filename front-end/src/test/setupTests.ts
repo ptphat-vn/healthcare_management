@@ -1,6 +1,6 @@
-import '@testing-library/jest-dom'
-import { vi } from 'vitest'
-import React from 'react'
+import "@testing-library/jest-dom"
+import { vi } from "vitest"
+import React from "react"
 
 // Chỉ mock khi đang trong test environment
 if (typeof vi !== 'undefined') {
@@ -47,7 +47,7 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 // Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
+;(globalThis as any).IntersectionObserver = class IntersectionObserver {
   disconnect() {}
   observe() {}
   takeRecords() {

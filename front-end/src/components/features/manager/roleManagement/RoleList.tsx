@@ -29,7 +29,7 @@ export default function RoleList() {
   const [roleList, setRoleList] = useState<Roles[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "code" | "createAt">("");
+  const [sortBy, setSortBy] = useState<string>("name");
   const [sortOrder, setSortOrder] = useState<1 | -1 | undefined>(-1);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Roles | null>(null);
@@ -37,7 +37,7 @@ export default function RoleList() {
   const [editRole, setEditRole] = useState<Roles | null>(null);
   const { data, error } = useGetAllRoleQuery({
     search,
-    sortBy,
+    sortBy: sortBy as "name" | "code" | "createAt" | undefined,
     sortOrder,
     page: currentPage,
     limit: 8,
@@ -86,10 +86,10 @@ export default function RoleList() {
           ]}
           sortByValue={sortBy}
           sortOrder={sortOrder}
-          onSortByChange={(v) => setSortBy(v as "name" | "code" | "createAt")}
-          onSortOrderChange={(v) =>
-            setSortOrder(v === "" ? -1 : (Number(v) as 1 | -1))
+          onSortByChange={(v) =>
+            setSortBy(v as "name" | "code" | "createAt")
           }
+          onSortOrderChange={(v) => setSortOrder(v)}
           showClearFilters
           onClearFilters={() => {
             setSearch("");
