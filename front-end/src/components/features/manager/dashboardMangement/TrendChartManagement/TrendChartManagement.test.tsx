@@ -133,7 +133,7 @@ vi.mock("dayjs", () => {
     format: mockFormat,
   }));
 
-  const mockDayjs = vi.fn((date?: string) => ({
+  const mockDayjs = vi.fn((_date?: string) => ({
     format: mockFormat,
     subtract: mockSubtract,
   }));

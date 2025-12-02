@@ -422,7 +422,7 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
             setIsDeleteDialogOpen(open);
             if (!open) setDeletingOrder(null);
           }}
-          order={deletingOrder}
+          order={deletingOrder as any}
           onSuccess={() => {
             if (onOrderDeleted) {
               onOrderDeleted();

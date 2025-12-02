@@ -110,7 +110,7 @@ describe("LabManagerDashboard", () => {
     // Check welcome message parts
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     // Check that welcome back text exists (using getAllByText since it might match multiple elements)
-    const welcomeTexts = screen.getAllByText((content, element) => {
+    const welcomeTexts = screen.getAllByText((_content, element) => {
       return element?.textContent?.includes("welcome back") || false;
     });
     expect(welcomeTexts.length).toBeGreaterThan(0);
@@ -137,7 +137,7 @@ describe("LabManagerDashboard", () => {
 
     expect(screen.getByText("Jane Smith")).toBeInTheDocument();
     // Check that welcome back text exists
-    const welcomeTexts = screen.getAllByText((content, element) => {
+    const welcomeTexts = screen.getAllByText((_content, element) => {
       return element?.textContent?.includes("welcome back") || false;
     });
     expect(welcomeTexts.length).toBeGreaterThan(0);
@@ -179,7 +179,7 @@ describe("LabManagerDashboard", () => {
 
     expect(screen.getByText("User")).toBeInTheDocument();
     // Check that welcome back text exists
-    const welcomeTexts = screen.getAllByText((content, element) => {
+    const welcomeTexts = screen.getAllByText((_content, element) => {
       return element?.textContent?.includes("welcome back") || false;
     });
     expect(welcomeTexts.length).toBeGreaterThan(0);

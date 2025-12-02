@@ -94,7 +94,14 @@ export default function AddRoleModal({
       setIsLoading(true);
 
       if (isEditMode && role) {
-        const result = await updateRole({ id: role._id, ...data }).unwrap();
+        if (!role._id) {
+          throw new Error("Role id is missing");
+        }
+        const result = await updateRole({
+          id: role._id,
+          ...data,
+          description: data.description || "",
+        }).unwrap();
         toast.success(result?.message || "Role updated successfully!");
       } else {
         const result = await createRole(data as any).unwrap();

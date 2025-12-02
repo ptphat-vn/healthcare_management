@@ -30,7 +30,7 @@ export function useSocketConnection(conversationId: string, onMessage?: (msg: Ch
     setIsConnected(socketService.isConnected());
 
     // Track timeout và mounted state
-    let joinTimeoutId: NodeJS.Timeout | null = null;
+    let joinTimeoutId: ReturnType<typeof setTimeout> | null = null;
     let isMounted = true;
     const hasJoinedRef = { current: false }; // Sử dụng ref object thay vì biến thường
 
