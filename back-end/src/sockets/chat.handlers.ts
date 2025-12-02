@@ -57,6 +57,7 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
 
         const saved = await chatService.saveMessage(payload)
 
+
         let senderName: string | undefined = undefined
         let senderAvatar: string | undefined = undefined
         try {
