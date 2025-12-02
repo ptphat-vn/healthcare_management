@@ -15,7 +15,7 @@ import {
 import storage from "redux-persist/lib/storage";
 import authSlice, { logout } from "./authSlice";
 import { baseApi } from "@/services/baseApi";
-import { reagentApi } from "@/services/reagentApi"; // Thêm dòng này
+// Thêm dòng này
 
 const listenerMiddleware = createListenerMiddleware();
 //lắng nghe xem có phải action logout hay không
@@ -24,12 +24,11 @@ listenerMiddleware.startListening({
   actionCreator: logout,
   effect: async (_, listenerApi) => {
     listenerApi.dispatch(baseApi.util.resetApiState());
-    // listenerApi.dispatch(reagentApi.util.resetApiState()); // Thêm dòng này
     persistor.purge();
   },
 });
 
-const persistCofig = {
+const persistConfig = {
   key: "root",
   storage,
   whitelist: ["auth"],
@@ -37,11 +36,10 @@ const persistCofig = {
 
 const rootReducer = combineReducers({
   [baseApi.reducerPath]: baseApi.reducer,
-  // [reagentApi.reducerPath]: reagentApi.reducer, // Thêm dòng này
   auth: authSlice,
 });
 
-const persistedReducer = persistReducer(persistCofig, rootReducer);
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
