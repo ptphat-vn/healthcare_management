@@ -42,7 +42,7 @@ export default function RegisterForm() {
 
   return (
     <div className="flex flex-col gap-1">
-      <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-1" onSubmit={handleSubmit(onSubmit)}>
         <Input
           {...register("fullName")}
           label="Full name"
@@ -95,7 +95,7 @@ export default function RegisterForm() {
             <select
               id="gender"
               {...register("gender")}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full px-2 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Select gender</option>
               <option value="male">Male</option>
