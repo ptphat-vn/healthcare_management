@@ -23,6 +23,8 @@ export interface TestOrderDocument {
   address: string
   phoneNumber: string
   email: string
+  // Blood type resolved from the linked medical record (or randomly assigned if missing)
+  bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
   status: 'pending' | 'cancelled' | 'completed' | 'reviewed' | 'ai_reviewed'
   createdDate: Date
   createdBy: ObjectId
