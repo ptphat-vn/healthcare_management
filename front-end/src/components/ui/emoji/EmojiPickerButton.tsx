@@ -53,15 +53,24 @@ export default function EmojiPickerButton({ onEmojiSelect }: EmojiPickerButtonPr
       >
         <Smile className="w-5 h-5 text-gray-600" />
       </Button>
+
       {showEmojiPicker && (
-        <div className="absolute bottom-full right-0 mb-2 z-50">
-          <EmojiPicker
-            onEmojiClick={handleEmojiClick}
-            autoFocusSearch={false}
-            skinTonesDisabled={true}
-            width={350}
-            height={400}
-          />
+        <div
+          className="
+            absolute bottom-full left-0 md:right-0 md:left-auto mb-1 z-50
+            w-[240px] sm:w-[260px] md:w-[320px]
+            max-w-[calc(100vw-2rem)]
+          "
+        >
+          <div className="emoji-picker-container bg-white rounded-lg shadow-lg border">
+            <EmojiPicker
+              onEmojiClick={handleEmojiClick}
+              autoFocusSearch={false}
+              skinTonesDisabled={true}
+              width="100%"
+              previewConfig={{ showPreview: false }}
+            />
+          </div>
         </div>
       )}
     </div>

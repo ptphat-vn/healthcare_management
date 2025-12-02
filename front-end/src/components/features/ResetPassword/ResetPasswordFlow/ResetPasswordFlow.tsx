@@ -107,7 +107,7 @@ export default function ResetPasswordFlow() {
   };
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden px-1">
       <div className="space-y-6">
         {step === 1 && (
           <div className="animate-in fade-in-up">
