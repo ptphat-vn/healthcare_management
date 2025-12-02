@@ -372,7 +372,6 @@ export default function AddReagentModal({
                       <SelectItem value="ml">ml</SelectItem>
                       <SelectItem value="μl">μl</SelectItem>
                       <SelectItem value="L">L</SelectItem>
-
                     </SelectContent>
                   </Select>
                 </div>

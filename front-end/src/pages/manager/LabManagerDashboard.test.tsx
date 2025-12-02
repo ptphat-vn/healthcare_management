@@ -70,15 +70,6 @@ vi.mock(
   })
 );
 
-vi.mock(
-  "@/components/features/manager/dashboardMangement/SystemAlertsManagement/SystemAlertsManagement",
-  () => ({
-    default: () => (
-      <div data-testid="system-alerts-management">SystemAlertsManagement</div>
-    ),
-  })
-);
-
 // Mock baseApi
 vi.mock("@/services/baseApi", () => ({
   useGetProfileQuery: vi.fn(),
@@ -165,7 +156,6 @@ describe("LabManagerDashboard", () => {
       screen.getByTestId("activities-card-management")
     ).toBeInTheDocument();
     expect(screen.getByTestId("status-card-management")).toBeInTheDocument();
-    expect(screen.getByTestId("system-alerts-management")).toBeInTheDocument();
   });
 
   it("should display default user name when profile data is not available", () => {
