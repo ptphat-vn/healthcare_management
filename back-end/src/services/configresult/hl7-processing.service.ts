@@ -7,6 +7,14 @@ import { getInstrumentReagentAssignmentCollection } from '~/models/instrument-re
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getUsersCollection } from '~/models/user.model'
 import { recordReagentUsageFromTestResults, syncMedicalRecordTestResultsSnapshot } from '~/services/testorder/test-order.service'
+import { getPatientMedicalRecordsCollection } from '~/models/patient-medical-record.model'
+
+const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const
+
+const getRandomBloodType = (): (typeof BLOOD_TYPES)[number] => {
+  const index = Math.floor(Math.random() * BLOOD_TYPES.length)
+  return BLOOD_TYPES[index]
+}
 
 export interface HL7Message {
   messageId: string
@@ -277,6 +285,7 @@ export async function addTestResultsFromHL7UsingInstrument(testOrderId: string, 
   const instrumentsCol = getInstrumentsCollection()
   const assignmentsCol = getInstrumentReagentAssignmentCollection()
   const eventLogs = getEventLogsCollection()
+  const medicalRecordsCol = getPatientMedicalRecordsCollection()
 
   // Verify test order and instrument
   const [testOrder, instrument] = await Promise.all([
@@ -312,6 +321,11 @@ export async function addTestResultsFromHL7UsingInstrument(testOrderId: string, 
   // Process HL7 message
   const processedResults = await processHL7Message(hl7Message)
 
+  // Resolve blood type from medical record (or random if missing), but DO NOT expose as a testResult row
+  const medicalRecord = await medicalRecordsCol.findOne({ _id: testOrder.medicalRecordId } as any)
+  const bloodTypeFromRecord = medicalRecord?.bloodType
+  const resolvedBloodType = bloodTypeFromRecord || getRandomBloodType()
+
   // Attach instrument and reagent metadata into each processed result
   const processedWithMeta = processedResults.map(r => ({
     ...r,
@@ -339,6 +353,7 @@ export async function addTestResultsFromHL7UsingInstrument(testOrderId: string, 
     {
       $set: {
         testResults: processedWithMeta,
+        bloodType: resolvedBloodType,
         status: 'completed',
         runDate: now,
         runBy: new ObjectId(addedBy),
