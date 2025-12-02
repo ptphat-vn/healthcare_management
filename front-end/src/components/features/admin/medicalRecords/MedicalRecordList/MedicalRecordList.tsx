@@ -88,8 +88,10 @@ export default function MedicalRecordList() {
     const roleCode = user?.data?.roleCode;
     if (roleCode === "admin") {
       navigate(`/admin/medical-records/${record._id || record.id}`);
-    } else {
+    } else if (roleCode === "lab_user") {
       navigate(`/lab_user/medical-records/${record._id || record.id}`);
+    } else {
+      navigate(`/lab_manager/medical-records/${record._id || record.id}`);
     }
   };
 

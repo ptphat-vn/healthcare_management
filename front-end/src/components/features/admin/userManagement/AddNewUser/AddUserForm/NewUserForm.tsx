@@ -40,8 +40,8 @@ export function NewUserForm({
 
   return (
     <div className="flex flex-col gap-1">
-      <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-2 gap-2">
+      <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* Name */}
           <Input
             {...register("fullName")}
@@ -63,7 +63,7 @@ export function NewUserForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* Birthday */}
           <Input
             {...register("dateOfBirth")}
@@ -97,7 +97,7 @@ export function NewUserForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* Phone */}
           <Input
             {...register("phone")}
@@ -118,7 +118,7 @@ export function NewUserForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* Password */}
           <Input
             {...register("password")}
@@ -139,11 +139,11 @@ export function NewUserForm({
           />
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className="flex justify-end gap-2 pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
+            className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
           >
             Close
           </button>

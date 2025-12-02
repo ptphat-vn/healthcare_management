@@ -188,7 +188,7 @@ export default function EditReagentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] sm:w-full max-w-xl lg:max-w-2xl p-0 gap-0 max-h-[90vh] flex flex-col overflow-hidden mx-auto rounded-lg sm:rounded-lg">
+      <DialogContent className="w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] md:w-full max-w-xl lg:max-w-2xl p-0 gap-0 max-h-[90vh] flex flex-col overflow-hidden mx-auto rounded-lg">
         <DialogHeader className="px-3 sm:px-5 pt-3 sm:pt-4 pb-2 sm:pb-3 border-b shrink-0 rounded-t-lg">
           <DialogTitle className="text-base sm:text-lg lg:text-xl">
             Edit Reagent
@@ -204,7 +204,7 @@ export default function EditReagentModal({
         >
           <div className="px-3 sm:px-5 py-2.5 sm:py-3 flex-1 overflow-y-auto overflow-x-hidden min-w-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2.5 sm:gap-x-4 gap-y-2 sm:gap-y-2.5 min-w-0">
-              {/* Row 1: Reagent Name */}
+              {/* Row 1: Reagent Name - Full width */}
               <div className="col-span-1 sm:col-span-2 space-y-1 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
                   Reagent Name <span className="text-red-500">*</span>
@@ -219,7 +219,7 @@ export default function EditReagentModal({
                 />
               </div>
 
-              {/* Row 2: Catalog, Manufacturer, CAS */}
+              {/* Row 2: Catalog Number, Manufacturer, CAS Number */}
               <div className="space-y-1 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
                   Catalog Number <span className="text-red-500">*</span>
@@ -229,7 +229,7 @@ export default function EditReagentModal({
                   value={formData.catalogNumber}
                   onChange={handleChange}
                   required
-                  placeholder="e.g. DL-100"
+                  placeholder="e.g.  DL-100"
                   className="h-8 text-sm w-full min-w-0"
                 />
               </div>
@@ -242,7 +242,7 @@ export default function EditReagentModal({
                   value={formData.manufacturer}
                   onChange={handleChange}
                   required
-                  placeholder="e.g. Acme Diagnostics"
+                  placeholder="e.g.  Acme Diagnostics"
                   className="h-8 text-sm w-full min-w-0"
                 />
               </div>
@@ -254,12 +254,12 @@ export default function EditReagentModal({
                   name="casNumber"
                   value={formData.casNumber}
                   onChange={handleChange}
-                  placeholder="e.g. 7732-18-5"
+                  placeholder="e.g.  7732-18-5"
                   className="h-8 text-sm w-full min-w-0"
                 />
               </div>
 
-              {/* Row 3: Category, Ratio, Storage */}
+              {/* Row 3: Category, Ratio, Storage Conditions */}
               <div className="space-y-1 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
                   Category
@@ -304,7 +304,7 @@ export default function EditReagentModal({
                   name="storageConditions"
                   value={formData.storageConditions}
                   onChange={handleChange}
-                  placeholder="e.g. 2-8°C"
+                  placeholder="e.g.  2-8°C"
                   className="h-8 text-sm w-full min-w-0"
                 />
               </div>
@@ -383,8 +383,7 @@ export default function EditReagentModal({
                     <SelectContent>
                       <SelectItem value="ml">ml</SelectItem>
                       <SelectItem value="μl">μl</SelectItem>
-                      <SelectItem value="g">g</SelectItem>
-                      <SelectItem value="mg">mg</SelectItem>
+                      <SelectItem value="L">L</SelectItem> 
                     </SelectContent>
                   </Select>
                 </div>
@@ -422,7 +421,7 @@ export default function EditReagentModal({
                 </Select>
               </div>
 
-              {/* Row 5: Description */}
+              {/* Row 5: Description - Full width */}
               <div className="col-span-1 sm:col-span-2 space-y-1 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
                   Description
@@ -432,7 +431,7 @@ export default function EditReagentModal({
                   value={formData.description}
                   onChange={handleChange}
                   rows={2}
-                  placeholder="Detailed description..."
+                  placeholder="Detailed description of usage and application..."
                   className="w-full px-2.5 py-1.5 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>

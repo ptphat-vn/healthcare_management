@@ -40,7 +40,7 @@ export default function DeleteInstrumentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -61,9 +61,9 @@ export default function DeleteInstrumentModal({
           </div>
           <div>
             <span className="text-sm font-medium text-gray-700">
-              Instrument Code:{" "}
+              Serial Number:{" "}
             </span>
-            <span className="text-sm text-gray-900">{instrument.code}</span>
+            <span className="text-sm text-gray-900">{instrument.serialNumber}</span>
           </div>
           <div>
             <span className="text-sm font-medium text-gray-700">Model: </span>
@@ -71,11 +71,12 @@ export default function DeleteInstrumentModal({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
@@ -83,6 +84,7 @@ export default function DeleteInstrumentModal({
             variant="destructive"
             onClick={handleDelete}
             disabled={isLoading}
+            className="w-full sm:w-auto"
           >
             {isLoading ? "Deleting..." : "Delete Instrument"}
           </Button>

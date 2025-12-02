@@ -42,9 +42,9 @@ export function NewInstrumentForm({
   const { user } = useAuth();
 
   return (
-    <div className="flex flex-col gap-1">
-      <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-2 gap-2">
+    <div className="flex flex-col gap-2">
+      <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* Instrument Name */}
           <Input
             {...register("name")}
@@ -64,7 +64,7 @@ export function NewInstrumentForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* Manufacturer */}
           <Input
             {...register("manufacturer")}
@@ -83,7 +83,7 @@ export function NewInstrumentForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* Location */}
           <Input
             {...register("location")}
@@ -145,7 +145,7 @@ export function NewInstrumentForm({
               name="categories"
               control={control}
               render={({ field }) => (
-                <div className="grid grid-cols-2 gap-2 p-3 border rounded-md">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 border rounded-md">
                   {REAGENT_CATEGORIES.map((category) => (
                     <div key={category} className="flex items-center space-x-2">
                       <Checkbox
@@ -177,18 +177,20 @@ export function NewInstrumentForm({
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className="flex justify-end gap-2 pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
+            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-9 px-4 text-sm sm:h-10 sm:px-4"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className={getRoleButtonClass(user?.data.roleCode)}
+            className={`${getRoleButtonClass(
+              user?.data.roleCode
+            )} h-9 px-4 text-sm sm:h-10 sm:px-4`}
           >
             {isLoading ? "Creating..." : "Add Instrument"}
           </button>

@@ -129,7 +129,30 @@ export default function AddReagentModal({
     }
 
     try {
-      await createReagent(formData).unwrap();
+      // Transform data to match backend schema
+      const { storageConditions, categories, ...restFormData } = formData;
+      const payload: {
+        name: string;
+        catalogNumber?: string;
+        manufacturer: string;
+        casNumber?: string;
+        description?: string;
+        usagePerRun?: { min: number; max: number; unit: string };
+        ratio?: string;
+        categories?: string[];
+        storageCondition?: number;
+        isActive?: boolean;
+      } = {
+        ...restFormData,
+        // Convert categories string to array if provided
+        categories: categories ? [categories] : undefined,
+        // Convert storageConditions string to storageCondition number if provided
+        storageCondition: storageConditions
+          ? Number(storageConditions)
+          : undefined,
+      };
+
+      await createReagent(payload as unknown as CreateReagentRequest).unwrap();
       toast.success("Reagent added successfully");
       onOpenChange(false);
       setFormData({
@@ -348,8 +371,8 @@ export default function AddReagentModal({
                     <SelectContent>
                       <SelectItem value="ml">ml</SelectItem>
                       <SelectItem value="μl">μl</SelectItem>
-                      <SelectItem value="g">g</SelectItem>
-                      <SelectItem value="mg">mg</SelectItem>
+                      <SelectItem value="L">L</SelectItem>
+
                     </SelectContent>
                   </Select>
                 </div>

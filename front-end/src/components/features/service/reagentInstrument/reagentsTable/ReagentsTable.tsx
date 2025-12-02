@@ -81,22 +81,22 @@ export default function ReagentsTable({
               <TableHead className="font-semibold text-gray-700 min-w-[200px]">
                 Reagent Name
               </TableHead>
-              <TableHead className="font-semibold text-gray-700 min-w-[120px]">
+              <TableHead className="font-semibold text-gray-700 min-w-[120px] hidden sm:table-cell">
                 Lot Number
               </TableHead>
               <TableHead className="font-semibold text-gray-700 min-w-[100px]">
                 Quantity
               </TableHead>
-              <TableHead className="font-semibold text-gray-700 min-w-[100px]">
+              <TableHead className="font-semibold text-gray-700 min-w-[100px] hidden md:table-cell">
                 Unit
               </TableHead>
-              <TableHead className="font-semibold text-gray-700 min-w-[120px]">
+              <TableHead className="font-semibold text-gray-700 min-w-[140px] hidden lg:table-cell">
                 Expiration Date
               </TableHead>
-              <TableHead className="font-semibold text-gray-700 min-w-[120px]">
+              <TableHead className="font-semibold text-gray-700 min-w-[140px] hidden lg:table-cell">
                 Assigned Date
               </TableHead>
-              <TableHead className="text-center font-semibold text-gray-700 w-32">
+              <TableHead className="text-center font-semibold text-gray-700 w-24 sm:w-32">
                 Actions
               </TableHead>
             </TableRow>
@@ -123,21 +123,21 @@ export default function ReagentsTable({
                   <TableCell className="font-medium text-gray-900">
                     {reagent.reagentName}
                   </TableCell>
-                  <TableCell className="text-gray-700">
+                  <TableCell className="text-gray-700 hidden sm:table-cell">
                     {reagent.lotNumber || "N/A"}
                   </TableCell>
                   <TableCell className="text-gray-700">
                     {reagent.quantity}
                   </TableCell>
-                  <TableCell className="text-gray-700">
+                  <TableCell className="text-gray-700 hidden md:table-cell">
                     {reagent.unitOfMeasure}
                   </TableCell>
-                  <TableCell className="text-gray-700">
+                  <TableCell className="text-gray-700 hidden lg:table-cell">
                     {new Date(reagent.expirationDate).toLocaleDateString(
                       "en-GB"
                     )}
                   </TableCell>
-                  <TableCell className="text-gray-700">
+                  <TableCell className="text-gray-700 hidden lg:table-cell">
                     {new Date(reagent.assignedAt).toLocaleDateString("en-GB")}
                   </TableCell>
                   <TableCell className="text-center">
@@ -165,7 +165,7 @@ export default function ReagentsTable({
                           disabled={isDeleting}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Remove
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

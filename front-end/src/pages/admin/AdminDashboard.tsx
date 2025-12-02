@@ -239,49 +239,49 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      title: "Tổng người dùng",
+      title: "Total Users",
       value: stats.totalUsers,
       icon: Users,
       iconColor: "#2563eb",
     },
     {
-      title: "Người dùng hoạt động",
+      title: "Active Users",
       value: stats.activeUsers,
       icon: UserCheck,
       iconColor: "#16a34a",
     },
     {
-      title: "Người dùng mới tháng này",
+      title: "New Users This Month",
       value: stats.newUsersThisMonth,
       icon: TrendingUp,
       iconColor: "#9333ea",
     },
     {
-      title: "Người dùng mới hôm nay",
+      title: "New Users Today",
       value: stats.newUsersToday,
       icon: UserPlus,
       iconColor: "#0891b2",
     },
     {
-      title: "Quản trị viên",
+      title: "Administrators",
       value: stats.adminUsers,
       icon: Shield,
       iconColor: "#4f46e5",
     },
     {
-      title: "Người dùng thường",
+      title: "Regular Users",
       value: stats.regularUsers,
       icon: User,
       iconColor: "#6b7280",
     },
     {
-      title: "Người dùng không hoạt động",
+      title: "Inactive Users",
       value: stats.inactiveUsers,
       icon: Activity,
       iconColor: "#ea580c",
     },
     {
-      title: "Tài khoản bị khóa",
+      title: "Blocked Accounts",
       value: stats.blockedUsers,
       icon: UserX,
       iconColor: "#dc2626",
@@ -297,7 +297,7 @@ export default function AdminDashboard() {
               Welcome, {user?.data?.fullName || "Admin"}! 👋
             </h1>
             <p className="text-blue-100 text-lg">
-              Tổng quan về tất cả người dùng trong hệ thống
+              Overview of all users in the system
             </p>
           </div>
           {/* <div className="hidden md:flex items-center gap-4">
@@ -345,7 +345,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center">
               <Crown className="h-5 w-5 mr-2 text-purple-600" />
-              Phân bố vai trò
+              Role Distribution
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -357,7 +357,7 @@ export default function AdminDashboard() {
                       {role.role}
                     </span>
                     <span className="text-sm font-bold text-gray-900">
-                      {role.count} người
+                      {role.count} users
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -367,7 +367,7 @@ export default function AdminDashboard() {
                     ></div>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {role.percentage.toFixed(1)}% tổng số
+                    {role.percentage.toFixed(1)}% of total
                   </div>
                 </div>
               ))}
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center">
               <Activity className="h-5 w-5 mr-2 text-green-600" />
-              Hoạt động gần đây
+              Recent Activity
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -430,7 +430,7 @@ export default function AdminDashboard() {
         <Card className="border-2 border-gray-200">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">
-              Thống kê chi tiết
+              Detailed Statistics
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -439,7 +439,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center space-x-3">
                   <Users className="h-5 w-5 text-blue-600" />
                   <span className="font-medium text-gray-700">
-                    Tỷ lệ hoạt động
+                    Activity Rate
                   </span>
                 </div>
                 <span className="text-xl font-bold text-blue-600">
@@ -453,7 +453,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center space-x-3">
                   <TrendingUp className="h-5 w-5 text-green-600" />
                   <span className="font-medium text-gray-700">
-                    Tăng trưởng tháng này
+                    Monthly Growth
                   </span>
                 </div>
                 <span className="text-xl font-bold text-green-600">
@@ -464,7 +464,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center space-x-3">
                   <Crown className="h-5 w-5 text-purple-600" />
                   <span className="font-medium text-gray-700">
-                    Tỷ lệ quản trị viên
+                    Administrator Ratio
                   </span>
                 </div>
                 <span className="text-xl font-bold text-purple-600">
@@ -478,7 +478,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center space-x-3">
                   <AlertCircle className="h-5 w-5 text-red-600" />
                   <span className="font-medium text-gray-700">
-                    Tài khoản cần xem xét
+                    Accounts Need Review
                   </span>
                 </div>
                 <span className="text-xl font-bold text-red-600">
