@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Input from "@/components/ui/input/Input";
 
 export default function StepEmail({
   identifier,
@@ -23,18 +24,27 @@ export default function StepEmail({
         e.preventDefault();
         onSend();
       }}
-      className="space-y-4"
+      className="space-y-4 w-full"
     >
-      <div className="space-y-2">
-        <label htmlFor="email-input" className="text-sm font-medium">Email</label>
-        <input
+      {/* <div className="w-full">
+        <Input
           id="email-input"
+          type="email"
+          label="Email"
           placeholder="example123@gmail.com"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="h-10 sm:h-11 text-sm sm:text-base w-full"
         />
-      </div>
+      </div> */}
+      <Input
+          id="email-input"
+          type="email"
+          label="Email"
+          placeholder="example123@gmail.com"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+        />
 
       <div className="flex items-center justify-between">
         <button

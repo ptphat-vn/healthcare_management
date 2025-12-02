@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import bg_authen from "@/assets/images/bg_authen.png";
 import bg_login from "@/assets/images/bg_login.png";
+import logo_HemoLab from "/logo_HemoLab.png";
 import ResetPasswordFlow from "@/components/features/ResetPassword/ResetPasswordFlow/ResetPasswordFlow";
 
 export default function ForgotPasswordPage() {
@@ -20,19 +21,18 @@ export default function ForgotPasswordPage() {
           alt="background"
         />
         <div className="relative z-10 flex items-center gap-4 ml-8">
-          <svg width={56} height={56} viewBox="0 0 56 56" fill="none">
-            <path
-              d="M6 32h10l6-16 12 40 6-24h10"
-              stroke="#222"
-              strokeWidth={3}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <img
+            className="w-20 h-20 sm:w-24 sm:h-24"
+            src={logo_HemoLab}
+            alt="HemoLab"
+          />
           <div>
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-1">
-              Laboratory Management
+            <h1 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-1">
+              HemoLab Management
             </h1>
+            <p className="text-base lg:text-xl text-gray-700 font-normal">
+              Reset your password to access your account
+            </p>
           </div>
         </div>
       </div>
