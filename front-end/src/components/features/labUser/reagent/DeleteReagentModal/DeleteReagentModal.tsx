@@ -43,35 +43,41 @@ export default function DeleteReagentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-sm px-4 sm:px-5 py-4">
-        <DialogHeader className="px-0">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+      <DialogContent className="w-[calc(100%-2rem)] sm:w-full max-w-sm p-0 gap-0 mx-auto rounded-lg">
+        <DialogHeader className="px-3 sm:px-5 pt-3 sm:pt-4 pb-2 sm:pb-3 border-b shrink-0 rounded-t-lg">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+              <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
             </div>
             <div>
-              <DialogTitle className="text-xl">Delete Reagent</DialogTitle>
-              <DialogDescription className="mt-1">
+              <DialogTitle className="text-base sm:text-lg lg:text-xl">
+                Delete Reagent
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm mt-0.5">
                 This action cannot be undone.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 my-2">
-          <p className="text-sm text-gray-600 mb-2">
-            You are about to delete:
-          </p>
-          <div className="space-y-1">
-            <p className="font-semibold text-gray-900">{reagent?.name}</p>
-            <p className="text-sm text-gray-600">
-              Catalog: {reagent?.catalogNumber} | Manufacturer:{" "}
-              {reagent?.manufacturer}
+        <div className="px-3 sm:px-5 py-3 sm:py-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2">
+              You are about to delete:
             </p>
+            <div className="space-y-1">
+              <p className="font-semibold text-sm sm:text-base text-gray-900">
+                {reagent?.name}
+              </p>
+              <p className="text-xs sm:text-sm text-gray-600">
+                Catalog: {reagent?.catalogNumber} | Manufacturer:{" "}
+                {reagent?.manufacturer}
+              </p>
+            </div>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 flex flex-col sm:flex-row sm:justify-end pt-4">
+        <DialogFooter className="px-3 sm:px-5 py-2.5 sm:py-3 border-t flex flex-col sm:flex-row sm:justify-end gap-2 shrink-0 rounded-b-lg">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
