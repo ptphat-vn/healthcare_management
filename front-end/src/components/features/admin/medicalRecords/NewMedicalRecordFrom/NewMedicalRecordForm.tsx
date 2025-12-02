@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,12 +18,16 @@ interface NewMedicalRecordFormProps {
   onSubmit: (data: CreateMedicalRecordRequest) => void;
   onClose: () => void;
   isLoading?: boolean;
+  hideButtons?: boolean;
+  formId?: string;
 }
 
 export function NewMedicalRecordForm({
   onSubmit,
   onClose,
   isLoading = false,
+  hideButtons = false,
+  formId,
 }: NewMedicalRecordFormProps) {
   // Fetch all users
   const { data: usersData, isLoading: isLoadingUsers } = useGetAllUserQuery({
@@ -74,7 +77,11 @@ export function NewMedicalRecordForm({
 
   return (
     <div className="flex flex-col gap-1">
-      <form className="space-y-2 sm:space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
+      <form 
+        id={formId}
+        className="space-y-2 sm:space-y-3" 
+        onSubmit={handleSubmit(onFormSubmit)}
+      >
         <div className="space-y-3">
           <div className="flex flex-col space-y-1">
             <label className="text-sm font-medium text-gray-700">
@@ -275,22 +282,24 @@ export function NewMedicalRecordForm({
             error={errors.insuranceExpiryDate?.message}
           />
         </div>
-        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 sm:space-x-2 pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full sm:w-auto"
-          >
-            Close
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full sm:w-auto"
-          >
-            {isLoading ? "Creating..." : "Create Medical Record"}
-          </button>
-        </div>
+        {!hideButtons && (
+          <div className="flex flex-row justify-end gap-2 sm:gap-2 sm:space-x-2 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
+            >
+              Close
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+            >
+              {isLoading ? "Creating..." : "Create Medical Record"}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
