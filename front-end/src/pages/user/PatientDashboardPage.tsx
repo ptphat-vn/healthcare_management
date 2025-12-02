@@ -1,18 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   User,
   FileText,
-  HeartPulse,
   MessageCircle,
   Bell,
   CalendarDays,
   Activity,
   Clock,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetMedicalRecordsQuery } from "@/services/medicalRecordApi";
 import { useGetNotificationsQuery } from "@/services/notificationApi";
 import { useState, useEffect } from "react";
+import type { Notification as NotificationType } from "@/types/notification.type";
 
 const features = [
   {
@@ -20,30 +22,28 @@ const features = [
     description: "View and update your personal information.",
     icon: <User className="w-8 h-8 text-blue-400" />,
     color: "bg-blue-50 border-blue-100",
+    path: "/patient/profile",
   },
   {
     title: "Medical Records",
     description: "Access your medical records and history.",
     icon: <FileText className="w-8 h-8 text-green-400" />,
     color: "bg-green-50 border-green-100",
+    path: "/patient/medical-record",
   },
   {
     title: "Chat with Doctor",
     description: "Chat directly with your doctor using real-time messaging.",
     icon: <MessageCircle className="w-8 h-8 text-indigo-400" />,
     color: "bg-indigo-50 border-indigo-100",
-  },
-  {
-    title: "Health Status",
-    description: "Monitor your health status and vitals.",
-    icon: <HeartPulse className="w-8 h-8 text-pink-400" />,
-    color: "bg-pink-50 border-pink-100",
+    path: "/patient/chat",
   },
 ];
 
 export default function PatientDashboardPage() {
   const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const navigate = useNavigate();
 
   // API Queries
   const { data: medicalRecordsData, isLoading: recordsLoading } =
@@ -58,16 +58,14 @@ export default function PatientDashboardPage() {
       { skip: !user?.data?._id }
     );
 
-  // Update time every minute
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
   const fullName = user?.data?.fullName || "Patient";
-  const role = "Patient"; // Fixed role assignment
+  const role = "Patient";
 
-  // Avatar với fallback đẹp
   const getAvatarUrl = () => {
     if (user?.data?.avatar) {
       return user.data.avatar;
@@ -77,7 +75,6 @@ export default function PatientDashboardPage() {
     )}&background=3b82f6&color=ffffff&size=200&font-size=0.6`;
   };
 
-  // Tính toán stats từ API data
   const stats = [
     {
       label: "Medical Records",
@@ -96,7 +93,11 @@ export default function PatientDashboardPage() {
       value: medicalRecordsData?.data?.patient?.[0]
         ? new Date(
             medicalRecordsData.data.patient[0].createdAt
-          ).toLocaleDateString("vi-VN")
+          ).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
         : "No visits",
       icon: <CalendarDays className="w-5 h-5 text-blue-400" />,
       loading: recordsLoading,
@@ -109,15 +110,20 @@ export default function PatientDashboardPage() {
     },
   ];
 
-  // Hiển thị notifications từ API
-  const notifications =
-    notificationsData?.data?.notifications?.slice(0, 5)?.map((notif: any) => ({
-      id: notif._id,
-      message: notif.message,
-      time: new Date(notif.createdAt).toLocaleString("vi-VN"),
-      icon: <Bell className="w-4 h-4 text-yellow-400" />,
-      isRead: notif.isRead,
-    })) || [];
+  const recentNotifications =
+    notificationsData?.data?.notifications
+      ?.slice(0, 5)
+      ?.map((notif: NotificationType) => ({
+        id: notif._id,
+        message: notif.title || notif.body,
+        time: new Date(notif.createdAt).toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        isRead: notif.read,
+      })) || [];
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -127,168 +133,220 @@ export default function PatientDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 p-8">
-      {/* Welcome Header */}
-      <div className="flex flex-col items-center mb-12">
-        <div className="relative">
-          <img
-            src={getAvatarUrl()}
-            alt={`${fullName}'s Avatar`}
-            className="w-28 h-28 rounded-full border-4 border-blue-100 shadow-xl object-cover transition-transform hover:scale-105"
-            onError={(e) => {
-              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                fullName
-              )}&background=3b82f6&color=ffffff&size=200&font-size=0.6`;
-            }}
-          />
-          <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-            <Activity className="w-4 h-4 text-white" />
-          </div>
-        </div>
-        <h2 className="mt-4 text-4xl font-bold text-gray-800 tracking-tight">
-          {getGreeting()}, {fullName}! 👋
-        </h2>
-        <p className="mt-2 text-base text-gray-500 flex items-center gap-2">
-          <span>Welcome back to your health dashboard</span>
-          <span className="text-gray-400">•</span>
-          <span className="text-blue-500 font-medium">{role}</span>
-        </p>
-        <p className="text-sm text-gray-400 flex items-center gap-1 mt-1">
-          <Clock className="w-4 h-4" />
-          {currentTime.toLocaleString("vi-VN", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </p>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="relative overflow-hidden bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg px-6 py-5 transition-all duration-300 group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-full p-3 group-hover:scale-110 transition-transform">
-                {stat.icon}
-              </div>
-              <div className="flex-1">
-                {stat.loading ? (
-                  <>
-                    <div className="h-6 bg-gray-200 rounded animate-pulse mb-1"></div>
-                    <div className="h-4 bg-gray-100 rounded animate-pulse w-2/3"></div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold text-gray-800">
-                      {typeof stat.value === "number" && stat.value > 999
-                        ? `${(stat.value / 1000).toFixed(1)}k`
-                        : stat.value}
-                    </div>
-                    <div className="text-sm text-gray-500 font-medium">
-                      {stat.label}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-blue-50 opacity-0 group-hover:opacity-30 transition-opacity"></div>
-          </div>
-        ))}
-      </div>
-
-      {/* Features */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-        {features.map((f) => (
-          <Card
-            key={f.title}
-            className={`relative overflow-hidden border ${f.color} shadow hover:shadow-lg transition-all duration-200 group cursor-pointer`}
-          >
-            <CardHeader className="flex flex-col items-center pt-8 pb-2">
-              <div className="mb-3 group-hover:scale-110 transition-transform">
-                {f.icon}
-              </div>
-              <CardTitle className="text-lg font-semibold text-gray-700">
-                {f.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center pb-8">
-              <p className="text-gray-500 text-sm">{f.description}</p>
-            </CardContent>
-            <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-100 via-indigo-100 to-pink-100 opacity-60" />
-          </Card>
-        ))}
-      </div>
-
-      {/* Notifications */}
-      <div className="max-w-2xl mx-auto bg-white rounded-xl border border-gray-100 shadow-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Bell className="w-5 h-5 text-yellow-500" />
-            </div>
-            <span>Recent Notifications</span>
-          </div>
-          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            {notifications.length} items
-          </span>
-        </h3>
-
-        {notificationsLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-3">
-                <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-                <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
-                  <div className="h-3 bg-gray-100 rounded animate-pulse w-2/3"></div>
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-rose-50 py-8 px-4 sm:py-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
+        <section className="grid gap-6 lg:grid-cols-[5fr,3fr]">
+          <Card className="border border-blue-100 bg-white/80 shadow-xl backdrop-blur">
+            <CardContent className="flex flex-col items-center gap-8 p-6 md:p-8 lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative mx-auto lg:mx-0">
+                <img
+                  src={getAvatarUrl()}
+                  alt={`${fullName}'s Avatar`}
+                  className="h-32 w-32 rounded-3xl border-4 border-white object-cover shadow-lg ring-4 ring-blue-100 transition-transform duration-300 hover:scale-105"
+                  onError={(e) => {
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      fullName
+                    )}&background=3b82f6&color=ffffff&size=200&font-size=0.6`;
+                  }}
+                />
+                <div className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl border-4 border-white bg-emerald-400 text-white shadow-md">
+                  <Activity className="h-5 w-5" />
                 </div>
               </div>
-            ))}
-          </div>
-        ) : notifications.length > 0 ? (
-          <ul className="space-y-2">
-            {notifications.map((n: any) => (
-              <li
-                key={n.id}
-                className={`group flex items-start gap-3 p-3 rounded-lg border transition-all duration-200 hover:bg-blue-50 hover:border-blue-200 ${
-                  n.isRead
-                    ? "bg-gray-50 border-gray-100"
-                    : "bg-blue-50 border-blue-200"
-                }`}
-              >
-                <div className="mt-1">{n.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-sm leading-relaxed ${
-                      n.isRead ? "text-gray-600" : "text-gray-800 font-medium"
-                    }`}
+
+              <div className="flex-1 space-y-4 text-center lg:text-left">
+                <div className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-500">
+                  HemoLab Management
+                </div>
+                <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                  {getGreeting()}, {fullName}! 👋
+                </h1>
+                <p className="text-base text-slate-600">
+                  Stay on top of your health journey with real-time updates,
+                  instant access to records, and direct lines to your care team.
+                </p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start">
+                  <Button
+                    className="w-full sm:w-auto"
+                    onClick={() => navigate("/patient/profile")}
                   >
-                    {n.message}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {n.time}
-                  </p>
+                    Update profile
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    onClick={() => navigate("/patient/chat")}
+                  >
+                    Message doctor
+                  </Button>
                 </div>
-                {!n.isRead && (
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>No notifications yet</p>
-            <p className="text-sm text-gray-400 mt-1">You're all caught up!</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-slate-900/10 bg-gradient-to-br from-violet-500 via-indigo-500 to-blue-500 text-white shadow-2xl">
+            <CardContent className="flex h-full flex-col justify-between gap-6 p-6 sm:p-8">
+              <div className="space-y-2">
+                <p className="text-sm uppercase tracking-widest text-slate-300">
+                  Status
+                </p>
+                <div className="flex items-center gap-2 text-lg font-semibold">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                  {role}
+                </div>
+                <p className="text-sm text-slate-400">
+                  You are logged in with secure patient permissions.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm uppercase tracking-widest text-slate-300">
+                  Local time
+                </p>
+                <div className="flex items-center gap-2 text-xl font-semibold">
+                  <Clock className="h-5 w-5" />
+                  {currentTime.toLocaleString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Quick insights
+              </h2>
+              <p className="text-sm text-slate-500">
+                Refreshed automatically every minute.
+              </p>
+            </div>
+            <span className="text-xs uppercase tracking-widest text-slate-400">
+              Overview
+            </span>
           </div>
-        )}
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white/90 p-5 shadow transition hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="rounded-2xl bg-slate-50 p-3 text-slate-600 shadow-inner">
+                    {stat.icon}
+                  </div>
+                  <div className="flex-1">
+                    {stat.loading ? (
+                      <div className="space-y-2">
+                        <div className="h-6 w-24 rounded bg-slate-200 animate-pulse" />
+                        <div className="h-4 w-16 rounded bg-slate-100 animate-pulse" />
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-2xl font-bold text-slate-900">
+                          {typeof stat.value === "number" && stat.value > 999
+                            ? `${(stat.value / 1000).toFixed(1)}k`
+                            : stat.value}
+                        </p>
+                        <p className="text-sm text-slate-500">{stat.label}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-linear-to-r from-blue-200 via-sky-200 to-indigo-200" />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-8 lg:grid-cols-[3fr,2fr]">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Take action
+              </h2>
+              <p className="text-sm text-slate-500">
+                Jump straight to the page you need.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {features.map((f) => (
+                <Card
+                  key={f.title}
+                  className={`relative flex h-full flex-col overflow-hidden border ${f.color} shadow hover:shadow-lg transition-all duration-200 group cursor-pointer`}
+                  onClick={() => navigate(f.path)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      navigate(f.path);
+                    }
+                  }}
+                >
+                  <CardHeader className="flex flex-col items-start gap-4 pt-8 pb-2">
+                    <div className="rounded-2xl bg-white/80 p-3 text-slate-700 shadow group-hover:scale-105 transition">
+                      {f.icon}
+                    </div>
+                    <CardTitle className="text-lg font-semibold text-gray-800">
+                      {f.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-8">
+                    <p className="text-sm text-gray-500">{f.description}</p>
+                  </CardContent>
+                  <div className="absolute inset-x-6 bottom-4 h-px bg-linear-to-r from-blue-200 via-indigo-200 to-pink-200 opacity-70" />
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          <Card className="border border-slate-100 bg-white/90 shadow-lg">
+            <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
+              <CardTitle className="text-lg text-slate-900">
+                Recent notifications
+              </CardTitle>
+              <p className="text-sm text-slate-500">
+                Latest updates from your care team and system.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 pb-4 sm:px-6 sm:pb-6">
+              {recentNotifications.length ? (
+                recentNotifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    className="rounded-xl border border-slate-100 p-4 text-sm shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-medium text-slate-800">
+                        {notif.message}
+                      </p>
+                      <span className="text-xs text-slate-400">
+                        {notif.time}
+                      </span>
+                    </div>
+                    {!notif.isRead && (
+                      <span className="mt-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-600">
+                        New
+                      </span>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                  You are all caught up. We'll drop your next update here.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </div>
   );

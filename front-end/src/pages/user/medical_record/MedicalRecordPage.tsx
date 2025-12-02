@@ -1,21 +1,49 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  User,
-  Phone,
-  Mail,
-  CalendarDays,
-  Home,
-  IdCard,
-  HeartPulse,
-  Shield,
-  FileText,
-  Users,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
-
+import { Card, CardContent } from "@/components/ui/card";
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
 import { useGetMedicalRecordsQuery } from "@/services/medicalRecordApi";
+import type {
+  MedicalRecord,
+  PatientTestOrderWithResults,
+} from "@/types/medicalRecord.type";
+import type { TestResults } from "@/types/testOrder.type";
+import { AlertCircle } from "lucide-react";
+import MedicalRecordHeader from "@/components/features/user/MedicalRecord/MedicalRecordHeader";
+import EmergencyContactCard from "@/components/features/user/MedicalRecord/EmergencyContactCard";
+import MedicalHistoryCard from "@/components/features/user/MedicalRecord/MedicalHistoryCard";
+import InsuranceInfoCard from "@/components/features/user/MedicalRecord/InsuranceInfoCard";
+import TestResultsCard from "@/components/features/user/MedicalRecord/TestResultsCard";
+
+const formatDate = (value?: string, config?: Intl.DateTimeFormatOptions) => {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    ...config,
+  });
+};
+
+const formatDateTime = (value?: string) => {
+  if (!value) return "—";
+  return new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const calculateAge = (dob?: string) => {
+  if (!dob) return undefined;
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+  return age;
+};
 
 export default function MedicalRecordPatientPage() {
   const {
@@ -25,503 +53,198 @@ export default function MedicalRecordPatientPage() {
     error,
   } = useGetMedicalRecordsQuery({ limit: 10 });
 
-  const calculateAge = (dob: string) => {
-    const age = new Date().getFullYear() - new Date(dob).getFullYear();
-    return age;
-  };
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 p-8">
-        <LoadingSpinner message="Đang tải thông tin hồ sơ bệnh án..." />
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <LoadingSpinner message="Loading your medical record..." />
       </div>
     );
   }
 
   if (isError || !medicalRecordResponse?.data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <p className="text-red-600 font-semibold">
-              {error && "data" in error
-                ? (error.data as { message?: string })?.message ||
-                  "Không thể tải thông tin hồ sơ bệnh án"
-                : "Không tìm thấy hồ sơ bệnh án"}
-            </p>
+      <div className="min-h-screen bg-slate-50 py-10 px-4">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-rose-100 bg-white p-8 text-center shadow">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-rose-50">
+            <AlertCircle className="h-7 w-7 text-rose-500" />
           </div>
+          <h2 className="text-xl font-semibold text-slate-900">
+            Unable to load medical record
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">
+            {error && "data" in error
+              ? (error.data as { message?: string })?.message ||
+                "Please try again in a moment."
+              : "Please try again in a moment."}
+          </p>
         </div>
       </div>
     );
   }
 
-  const medicalRecord = medicalRecordResponse.data;
-  console.log(medicalRecord);
+  const patientRecord: MedicalRecord | undefined =
+    medicalRecordResponse.data.patient?.[0];
+
+  if (!patientRecord) {
+    return (
+      <div className="min-h-screen bg-slate-50 py-10 px-4">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-blue-100 bg-white p-8 text-center shadow">
+          <h2 className="text-xl font-semibold text-slate-900">
+            No medical record found
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">
+            We could not locate an active record associated with your account.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const age = calculateAge(patientRecord.dateOfBirth);
+  const testResults: TestResults[] = Array.isArray(patientRecord.testResults)
+    ? (patientRecord.testResults as PatientTestOrderWithResults[]).flatMap(
+        (group) => group.testResults ?? []
+      )
+    : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-              <FileText className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Medical Record
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Complete patient health information
-              </p>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+        <section className="grid gap-6 lg:grid-cols-[2.2fr,1fr]">
+          <Card className="border border-slate-200 bg-white shadow-sm">
+            <CardContent className="flex flex-col gap-8 p-8">
+              <MedicalRecordHeader patientRecord={patientRecord} age={age} />
 
-        {/* Patient Info */}
-        <Card className="mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 animate-fade-in">
-          <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-blue-100">
-            <CardTitle className="flex items-center gap-3 text-blue-700">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
-                <User className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold">Patient Information</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="py-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50/50 transition-colors duration-200 group">
-                <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                  <IdCard className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                    Patient ID
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-sm text-slate-900">
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                    Contact
                   </p>
-                  <p className="font-bold text-gray-900 text-lg">
-                    {medicalRecord.patient[0]._id}
+                  <p className="mt-2 font-semibold text-slate-900">
+                    {patientRecord.phoneNumber}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {patientRecord.email}
                   </p>
                 </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-indigo-50/50 transition-colors duration-200 group">
-                <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                  <User className="w-5 h-5 text-indigo-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                    Full Name
-                  </p>
-                  <p className="font-bold text-gray-900 text-lg">
-                    {medicalRecord.patient[0].fullName}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-pink-50/50 transition-colors duration-200 group">
-                <div className="p-2 bg-pink-100 rounded-lg group-hover:bg-pink-200 transition-colors">
-                  <CalendarDays className="w-5 h-5 text-pink-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                    Date of Birth
-                  </p>
-                  <p className="font-bold text-gray-900 text-lg">
-                    {medicalRecord.patient[0].dateOfBirth}{" "}
-                    <span className="text-pink-600">
-                      ({calculateAge(medicalRecord.patient[0].dateOfBirth)}{" "}
-                      years)
-                    </span>
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-green-50/50 transition-colors duration-200 group">
-                <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                  <Shield className="w-5 h-5 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                    Gender
-                  </p>
-                  <p className="font-bold text-gray-900 text-lg capitalize">
-                    {medicalRecord.patient[0].gender}
-                  </p>
-                </div>
-              </div>
-              {medicalRecord.patient[0].bloodType && (
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-red-50/50 transition-colors duration-200 group">
-                  <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
-                    <HeartPulse className="w-5 h-5 text-red-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                      Blood Type
-                    </p>
-                    <p className="font-bold text-gray-900 text-lg">
-                      {medicalRecord.patient[0].bloodType}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {medicalRecord.patient[0].identifyNumber && (
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-purple-50/50 transition-colors duration-200 group">
-                  <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                    <IdCard className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                      ID Number
-                    </p>
-                    <p className="font-bold text-gray-900 text-lg">
-                      {medicalRecord.patient[0].identifyNumber}
-                    </p>
-                  </div>
-                </div>
-              )}
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50/50 transition-colors duration-200 group">
-                <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                  <Phone className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                    Phone Number
-                  </p>
-                  <p className="font-bold text-gray-900 text-lg">
-                    {medicalRecord.patient[0].phoneNumber}
-                  </p>
-                </div>
-              </div>
-              {medicalRecord.patient[0].email && (
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-indigo-50/50 transition-colors duration-200 group">
-                  <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                    <Mail className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                      Email
-                    </p>
-                    <p className="font-bold text-gray-900 text-lg break-all">
-                      {medicalRecord.patient[0].email}
-                    </p>
-                  </div>
-                </div>
-              )}
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-green-50/50 transition-colors duration-200 group">
-                <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                  <Home className="w-5 h-5 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-sm text-slate-900">
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
                     Address
                   </p>
-                  <p className="font-bold text-gray-900 text-lg">
-                    {medicalRecord.patient[0].address}
+                  <p className="mt-2 font-semibold text-slate-900">
+                    {patientRecord.address}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Updated {formatDate(patientRecord.updatedAt)}
                   </p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Emergency Contact */}
-        {medicalRecord.patient[0].emergencyContact && (
-          <Card className="mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 animate-fade-in">
-            <CardHeader className="bg-gradient-to-r from-yellow-50 via-orange-50 to-amber-50 border-b border-yellow-100">
-              <CardTitle className="flex items-center gap-3 text-yellow-700">
-                <div className="p-2 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg shadow-md">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">Emergency Contact</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="py-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-yellow-50/50 transition-colors duration-200 group">
-                  <div className="p-2 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
-                    <User className="w-5 h-5 text-yellow-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                      Name
+              <div className="grid gap-4 md:grid-cols-2">
+                {patientRecord.identifyNumber && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Identity Number
                     </p>
-                    <p className="font-bold text-gray-900 text-lg">
-                      {medicalRecord.patient[0].emergencyContact.name}
+                    <p className="text-sm font-semibold text-slate-900">
+                      {patientRecord.identifyNumber}
                     </p>
                   </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-orange-50/50 transition-colors duration-200 group">
-                  <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
-                    <Phone className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                      Phone Number
-                    </p>
-                    <p className="font-bold text-gray-900 text-lg">
-                      {medicalRecord.patient[0].emergencyContact.phoneNumber}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-red-50/50 transition-colors duration-200 group">
-                  <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
-                    <Users className="w-5 h-5 text-red-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                      Relationship
-                    </p>
-                    <p className="font-bold text-gray-900 text-lg">
-                      {medicalRecord.patient[0].emergencyContact.relationship}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Medical History */}
-        {medicalRecord.patient[0].medicalHistory && (
-          <Card className="mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 animate-fade-in">
-            <CardHeader className="bg-gradient-to-r from-red-50 via-pink-50 to-rose-50 border-b border-red-100">
-              <CardTitle className="flex items-center gap-3 text-red-700">
-                <div className="p-2 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg shadow-md">
-                  <HeartPulse className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">Medical History</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-4 rounded-xl bg-red-50/50 border border-red-100 hover:bg-red-50 transition-colors">
-                  <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                    Allergies
+                )}
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Date of Birth
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {medicalRecord.patient[0].medicalHistory.allergies &&
-                    medicalRecord.patient[0].medicalHistory.allergies.length >
-                      0 ? (
-                      medicalRecord.patient[0].medicalHistory.allergies.map(
-                        (allergy: string, idx: number) => (
-                          <span
-                            key={idx}
-                            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-shadow"
-                          >
-                            {allergy}
-                          </span>
-                        )
-                      )
-                    ) : (
-                      <span className="text-gray-400 italic text-sm">None</span>
-                    )}
-                  </div>
-                </div>
-                <div className="p-4 rounded-xl bg-yellow-50/50 border border-yellow-100 hover:bg-yellow-50 transition-colors">
-                  <p className="text-xs font-bold text-yellow-700 uppercase tracking-wide mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                    Chronic Conditions
+                  <p className="text-sm font-semibold text-slate-900">
+                    {formatDate(patientRecord.dateOfBirth)}{" "}
+                    {age !== undefined && `(${age} yrs)`}
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {medicalRecord.patient[0].medicalHistory
-                      .chronicConditions &&
-                    medicalRecord.patient[0].medicalHistory.chronicConditions
-                      .length > 0 ? (
-                      medicalRecord.patient[0].medicalHistory.chronicConditions.map(
-                        (condition: string, idx: number) => (
-                          <span
-                            key={idx}
-                            className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-shadow"
-                          >
-                            {condition}
-                          </span>
-                        )
-                      )
-                    ) : (
-                      <span className="text-gray-400 italic text-sm">None</span>
-                    )}
-                  </div>
                 </div>
-                <div className="p-4 rounded-xl bg-blue-50/50 border border-blue-100 hover:bg-blue-50 transition-colors">
-                  <p className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                    Previous Surgeries
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Gender
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {medicalRecord.patient[0].medicalHistory
-                      .previousSurgeries &&
-                    medicalRecord.patient[0].medicalHistory.previousSurgeries
-                      .length > 0 ? (
-                      medicalRecord.patient[0].medicalHistory.previousSurgeries.map(
-                        (surgery: string, idx: number) => (
-                          <span
-                            key={idx}
-                            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-shadow"
-                          >
-                            {surgery}
-                          </span>
-                        )
-                      )
-                    ) : (
-                      <span className="text-gray-400 italic text-sm">None</span>
-                    )}
-                  </div>
+                  <p className="text-sm font-semibold capitalize text-slate-900">
+                    {patientRecord.gender}
+                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Insurance Info */}
-        {medicalRecord.patient[0].insuranceInfo && (
-          <Card className="mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 animate-fade-in">
-            <CardHeader className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 border-b border-green-100">
-              <CardTitle className="flex items-center gap-3 text-green-700">
-                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md">
-                  <Shield className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">Insurance Information</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-green-50/50 transition-colors duration-200 group">
-                  <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                    <Shield className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                      Provider
+                {patientRecord.bloodType && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Blood Type
                     </p>
-                    <p className="font-bold text-gray-900 text-lg">
-                      {medicalRecord.patient[0].insuranceInfo.provider}
+                    <p className="text-sm font-semibold text-slate-900">
+                      {patientRecord.bloodType}
                     </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-emerald-50/50 transition-colors duration-200 group">
-                  <div className="p-2 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
-                    <IdCard className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                      Policy Number
-                    </p>
-                    <p className="font-bold text-gray-900 text-lg">
-                      {medicalRecord.patient[0].insuranceInfo.policyNumber}
-                    </p>
-                  </div>
-                </div>
-                {medicalRecord.patient[0].insuranceInfo.expiryDate && (
-                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-teal-50/50 transition-colors duration-200 group">
-                    <div className="p-2 bg-teal-100 rounded-lg group-hover:bg-teal-200 transition-colors">
-                      <CalendarDays className="w-5 h-5 text-teal-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                        Expiry Date
-                      </p>
-                      <p className="font-bold text-gray-900 text-lg">
-                        {medicalRecord.patient[0].insuranceInfo.expiryDate}
-                      </p>
-                    </div>
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        )}
 
-        {/* Record Metadata */}
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 animate-fade-in">
-          <CardHeader className="bg-gradient-to-r from-gray-50 via-slate-50 to-zinc-50 border-b border-gray-100">
-            <CardTitle className="flex items-center gap-3 text-gray-700">
-              <div className="p-2 bg-gradient-to-br from-gray-500 to-slate-600 rounded-lg shadow-md">
-                <Clock className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold">Record Information</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50/50 transition-colors duration-200 group">
-                <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+              {/* Divider */}
+              <div className="h-px w-full bg-slate-100" />
+
+              {/* Bottom row: record meta */}
+              <div className="grid gap-4 md:grid-cols-3 text-sm">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Created At
                   </p>
-                  <p className="font-bold text-gray-900 text-sm">
-                    {new Date(
-                      medicalRecord.patient[0].createdAt
-                    ).toLocaleString()}
+                  <p className="mt-1 text-slate-900">
+                    {formatDateTime(patientRecord.createdAt)}
                   </p>
                 </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-indigo-50/50 transition-colors duration-200 group">
-                <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                  <Clock className="w-5 h-5 text-indigo-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                    Updated At
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Last Updated
                   </p>
-                  <p className="font-bold text-gray-900 text-sm">
-                    {new Date(
-                      medicalRecord.patient[0].updatedAt
-                    ).toLocaleString()}
+                  <p className="mt-1 text-slate-900">
+                    {formatDateTime(patientRecord.updatedAt)}
                   </p>
                 </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-yellow-50/50 transition-colors duration-200 group">
-                <div
-                  className={`p-2 rounded-lg group-hover:opacity-80 transition-colors ${
-                    medicalRecord.patient[0].isDeleted
-                      ? "bg-red-100"
-                      : "bg-green-100"
-                  }`}
-                >
-                  <AlertCircle
-                    className={`w-5 h-5 ${
-                      medicalRecord.patient[0].isDeleted
-                        ? "text-red-600"
-                        : "text-green-600"
-                    }`}
-                  />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Status
                   </p>
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                      medicalRecord.patient[0].isDeleted
-                        ? "bg-red-100 text-red-700 border border-red-200"
-                        : "bg-green-100 text-green-700 border border-green-200"
-                    }`}
-                  >
+                  <p className="mt-1 inline-flex items-center gap-2 text-sm font-semibold">
                     <span
-                      className={`w-2 h-2 rounded-full mr-2 ${
-                        medicalRecord.patient[0].isDeleted
-                          ? "bg-red-500"
-                          : "bg-green-500"
-                      } animate-pulse`}
-                    ></span>
-                    {medicalRecord.patient[0].isDeleted ? "Deleted" : "Active"}
-                  </span>
+                      className={`h-2 w-2 rounded-full ${
+                        patientRecord.isDeleted
+                          ? "bg-rose-500"
+                          : "bg-emerald-500"
+                      }`}
+                    />
+                    {patientRecord.isDeleted ? "Inactive" : "Active"}
+                  </p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[1.2fr,1.8fr]">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            {patientRecord.emergencyContact && (
+              <EmergencyContactCard
+                emergencyContact={patientRecord.emergencyContact}
+              />
+            )}
+            {patientRecord.insuranceInfo && (
+              <InsuranceInfoCard insuranceInfo={patientRecord.insuranceInfo} />
+            )}
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <TestResultsCard
+              testResults={testResults}
+              formatDateTime={formatDateTime}
+            />
+
+            <MedicalHistoryCard
+              medicalHistory={patientRecord.medicalHistory || {}}
+            />
+          </div>
+        </section>
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-

@@ -7,17 +7,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings, User, Menu } from "lucide-react";
+import { LogOut, User, Menu } from "lucide-react";
 import Notification from "@/components/common/Notification";
 import { Button } from "@/components/ui/button";
 import { useGetProfileQuery } from "@/services/baseApi";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import logo_HemoLab from "/logo_HemoLab.png";
 interface HeaderProps {
   onMenuClick?: () => void;
 }
 
-// Role color mapping
 const getRoleHeaderClass = (roleCode: string) => {
   const roleColorMap: Record<string, string> = {
     admin: "bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700",
@@ -49,31 +48,39 @@ const getRoleBadgeClass = (roleCode: string) => {
 export default function Header({ onMenuClick }: HeaderProps) {
   const { logout, user, isAuthenticated } = useAuth();
 
-  // Refetch profile to get latest avatar
   const { data: latestProfile, refetch } = useGetProfileQuery(undefined, {
     skip: !isAuthenticated,
     refetchOnMountOrArgChange: true,
   });
 
-  // Use latest profile data if available, otherwise use cached user
   const currentUser = latestProfile || user;
+
+  const [cachedRoleCode, setCachedRoleCode] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("lastRoleCode");
+  });
+
+  useEffect(() => {
+    if (currentUser?.data?.roleCode) {
+      setCachedRoleCode(currentUser.data.roleCode);
+      localStorage.setItem("lastRoleCode", currentUser.data.roleCode);
+    }
+  }, [currentUser?.data?.roleCode]);
 
   const fullName = currentUser?.data?.fullName || "Patient";
   const initial = (fullName.charAt(0) || "U").toUpperCase();
-  const roleCode = currentUser?.data?.roleCode || "patient";
-  const roleLabel = (
+  const roleCode = currentUser?.data?.roleCode || cachedRoleCode || "patient";
+  const roleLabel =
     currentUser?.data?.roleName ||
     currentUser?.data?.roleCode ||
-    "Patient"
-  ).toString();
+    cachedRoleCode ||
+    "Patient";
 
   const headerColorClass = getRoleHeaderClass(roleCode);
   const roleBadgeClass = getRoleBadgeClass(roleCode);
 
-  // Listen for avatar update events and refetch profile
   useEffect(() => {
     const handleAvatarUpdate = () => {
-      // Small delay to ensure backend has processed the update
       setTimeout(() => {
         refetch();
       }, 300);
@@ -90,9 +97,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
     <header className="sticky top-0 z-50">
       <div className={`${headerColorClass} text-white shadow-xl`}>
         <div className="w-full flex items-center justify-between h-16 md:h-20">
-          {/* Left Section with Menu Button */}
           <div className="flex items-center gap-2 sm:gap-3 pl-3 sm:pl-4">
-            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
@@ -102,14 +107,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
               <Menu className="h-6 w-6" />
             </Button>
 
-            {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-sm rounded-lg ring-1 ring-white/20 hover:bg-white/20 transition-all">
                 <img src={logo_HemoLab} alt="" />
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-base sm:text-lg font-semibold tracking-tight">
-                  HemoLab
+                  HemoLab System
                 </h1>
                 <p className="text-xs text-white/80 -mt-0.5">Management</p>
               </div>
@@ -118,12 +122,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
           <div className="flex-1" />
 
-          {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-4 pr-3 sm:pr-4">
-            {/* Notifications Component */}
             <Notification />
 
-            {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -137,7 +138,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         src={currentUser.data.avatar}
                         alt={fullName}
                         className="w-full h-full object-cover rounded-full"
-                        key={currentUser.data.avatar} // Force re-render on avatar change
+                        key={currentUser.data.avatar}
                       />
                     ) : (
                       initial
@@ -172,15 +173,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     className="w-full block text-sm font-medium text-gray-700"
                   >
                     Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer px-3 py-2 flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  <Link
-                    to="/app/settings"
-                    className="w-full block text-sm font-medium text-gray-700"
-                  >
-                    Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
