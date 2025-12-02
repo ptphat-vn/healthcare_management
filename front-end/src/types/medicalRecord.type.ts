@@ -1,3 +1,5 @@
+import type { TestResults } from "./testOrder.type";
+
 export interface MedicalRecord {
   _id?: string;
   id?: string;
@@ -28,6 +30,7 @@ export interface MedicalRecord {
   };
   testOrders?: string[];
   clinicalNotes?: any[];
+  testResults?: PatientTestOrderWithResults[];
   versionHistory?: any[];
   isDeleted?: boolean;
   deletedAt?: Date;
@@ -39,6 +42,14 @@ export interface MedicalRecord {
   lastTestDate?: string
   lastTestStatus?: string
 
+}
+
+export interface PatientTestOrderWithResults {
+  _id?: string;
+  testOrderId?: string;
+  testResults?: TestResults[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateMedicalRecordRequest {
