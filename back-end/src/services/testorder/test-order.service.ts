@@ -2,7 +2,10 @@ import { ObjectId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getTestOrdersCollection, TestOrderDocument, TestResult, Comment, CBCPanelTestName } from '~/models/test-order.model'
-import { getPatientMedicalRecordsCollection } from '~/models/patient-medical-record.model'
+import {
+  getPatientMedicalRecordsCollection,
+  type MedicalRecordTestResult
+} from '~/models/patient-medical-record.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
@@ -509,8 +512,6 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
     })
   }
 
-  await syncMedicalRecordTestResultsSnapshot(updated)
-
   return updated
 }
 
@@ -620,6 +621,38 @@ export async function recordReagentUsageFromTestResults(
       )
     }
   }
+}
+
+export async function syncMedicalRecordTestResultsSnapshot(
+  testOrder: Pick<
+    TestOrderDocument,
+    '_id' | 'medicalRecordId' | 'status' | 'testResults' | 'runDate' | 'requestedTests'
+  >
+) {
+  if (!testOrder?.medicalRecordId) {
+    return
+  }
+
+  const medicalRecords = getPatientMedicalRecordsCollection()
+  const snapshot: MedicalRecordTestResult = {
+    testOrderId: testOrder._id as ObjectId,
+    testOrderStatus: testOrder.status,
+    runDate: testOrder.runDate,
+    requestedTests: testOrder.requestedTests,
+    testResults: (testOrder.testResults || []) as TestResult[],
+    syncedAt: new Date()
+  }
+
+  const filter = { _id: testOrder.medicalRecordId } as any
+
+  await medicalRecords.updateOne(filter, { $pull: { testResults: { testOrderId: snapshot.testOrderId } } } as any)
+  await medicalRecords.updateOne(
+    filter,
+    {
+      $push: { testResults: snapshot },
+      $set: { updatedAt: new Date() }
+    } as any
+  )
 }
 
 export async function addComment(id: string, content: string, addedBy: string) {
@@ -749,8 +782,6 @@ export async function reviewTestOrderResults(id: string, reviewedBy: string, res
     // swallow logging errors
   }
 
-  await syncMedicalRecordTestResultsSnapshot(updated)
-
   return attachCommentAuthorNames(updated)
 }
 
@@ -871,58 +902,8 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     // swallow logging errors
   }
 
-  await syncMedicalRecordTestResultsSnapshot(updated)
-
   const responseOrder = await attachCommentAuthorNames(updated)
   return { testOrder: responseOrder, aiDiagnosis: aiSummary }
-}
-
-export async function syncMedicalRecordTestResultsSnapshot(
-  testOrder: Pick<
-    TestOrderDocument,
-    '_id' | 'medicalRecordId' | 'testResults' | 'status' | 'runDate' | 'requestedTests'
-  >
-) {
-  if (!testOrder?._id || !testOrder.medicalRecordId) return
-
-  const patientRecords = getPatientMedicalRecordsCollection()
-  const hasResults = Array.isArray(testOrder.testResults) && testOrder.testResults.length > 0
-  const now = new Date()
-
-  if (!hasResults) {
-    await patientRecords.updateOne(
-      { _id: testOrder.medicalRecordId } as any,
-      {
-        $pull: { testResults: { testOrderId: testOrder._id } },
-        $set: { updatedAt: now }
-      } as any
-    )
-    return
-  }
-
-  const entry = {
-    testOrderId: testOrder._id,
-    testOrderStatus: testOrder.status,
-    runDate: testOrder.runDate,
-    requestedTests: testOrder.requestedTests,
-    testResults: testOrder.testResults,
-    syncedAt: now
-  }
-
-  await patientRecords.updateOne(
-    { _id: testOrder.medicalRecordId } as any,
-    {
-      $pull: { testResults: { testOrderId: testOrder._id } }
-    } as any
-  )
-
-  await patientRecords.updateOne(
-    { _id: testOrder.medicalRecordId } as any,
-    {
-      $push: { testResults: entry },
-      $set: { updatedAt: now }
-    } as any
-  )
 }
 
 // Update comment

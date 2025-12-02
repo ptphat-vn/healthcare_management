@@ -1841,7 +1841,12 @@ paths:
       tags:
         - Test Results
       summary: Add manual test results
-      description: Add test results manually to a test order
+      description: |
+        Add test results manually to a test order.
+
+        When running on an instrument, the processed result set will always contain a `Blood Type` entry:
+        - If the patient's medical record already specifies `bloodType`, that exact value is returned.
+        - Otherwise the system randomly selects one of the supported blood groups (`A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`) and records it in the response for traceability.
       security:
         - bearerAuth: []
       parameters:
@@ -5149,6 +5154,14 @@ components:
           type: string
           format: email
           example: 'patient@email.com'
+        bloodType:
+          type: string
+          nullable: true
+          description: |
+            Blood type resolved when running tests.
+            - If the linked medical record has `bloodType`, that value is copied here.
+            - Otherwise the system randomly selects one of: A+, A-, B+, B-, AB+, AB-, O+, O-.
+          enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
         requestedTests:
           type: array
           items:
