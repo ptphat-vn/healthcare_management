@@ -22,7 +22,9 @@ export default function InsuranceInfoCard({
           <div className="p-1.5 sm:p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md">
             <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
-          <span className="text-lg sm:text-xl font-bold">Insurance Information</span>
+          <span className="text-lg sm:text-xl font-bold">
+            Insurance Information
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3 sm:p-4">
@@ -58,4 +60,3 @@ export default function InsuranceInfoCard({
     </Card>
   );
 }
-

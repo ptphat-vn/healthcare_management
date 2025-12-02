@@ -57,6 +57,12 @@ export const registerChatHandlers = (socket: Socket, io: Server) => {
 
         const saved = await chatService.saveMessage(payload)
 
+        // Serialize message: Convert ObjectId và Date thành string
+        const serializedMessage = chatService.serializeMessage(saved)
+
+        // Emit serialized message đến conversation room
+        io.to(payload.conversationId).emit('message', serializedMessage)
+
         let senderName: string | undefined = undefined
         let senderAvatar: string | undefined = undefined
         try {

@@ -26,6 +26,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [updateAvatar] = useUpdateAvatarMutation();
   console.log(isAvatarEdit);
+  console.log(user, " profile");
 
   // Role display mapping
   const getRoleDisplay = (roleCode?: string) => {
