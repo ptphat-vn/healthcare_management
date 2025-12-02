@@ -13,7 +13,7 @@ interface TestOrderFormProps {
     medicalRecordId: string,
     requestedTests: RequestedTestName[]
   ) => void;
-  onCancel: () => void;
+  onClose: () => void;
 }
 
 export function TestOrderAddForm({
@@ -21,7 +21,7 @@ export function TestOrderAddForm({
   initialRequestedTests = [],
   isLoading,
   onSubmit,
-  onCancel,
+  onClose,
 }: TestOrderFormProps) {
   const {
     data: medicalRecords,
@@ -129,22 +129,22 @@ export function TestOrderAddForm({
         </div>
       </section>
 
-      <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="inline-flex w-full sm:w-auto items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        >
-          Close
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="inline-flex w-full sm:w-auto items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        >
-          {isLoading ? "Creating..." : "Create Test Order"}
-        </button>
-      </div>
+      <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            Close
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            {isLoading ? "Creating..." : "Create Test Order"}
+          </button>
+        </div>
     </form>
   );
 }
