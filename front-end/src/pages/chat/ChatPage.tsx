@@ -70,7 +70,7 @@ export default function ChatPage() {
 
         if (userFromList) {
           setSelectedUserId(userIdFromQuery);
-          setSelectedUserName(userFromList.fullName || "Người dùng");
+          setSelectedUserName(userFromList.fullName || "User");
           setSelectedUserAvatar(userFromList.avatar);
           clearUserIdParam();
         } else if (conversation) {

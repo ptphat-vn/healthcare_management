@@ -35,7 +35,7 @@ export default function DeleteMedicalRecordModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-4 sm:p-6">
+      <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-4 sm:p-6 rounded-lg sm:rounded-lg">
         <DialogHeader>
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -80,11 +80,20 @@ export default function DeleteMedicalRecordModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 mt-4 sm:mt-6 flex-col sm:flex-row">
-          <Button type="button" variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
+        <DialogFooter className="gap-2 mt-4 sm:mt-6 flex-row sm:flex-row justify-end">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleCancel} 
+            className="w-auto sm:w-auto shadow-md hover:shadow-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
+          >
             Cancel
           </Button>
-          <Button type="button" variant="destructive" onClick={handleConfirm} className="w-full sm:w-auto">
+          <Button 
+            type="button"
+            onClick={handleConfirm} 
+            className="w-auto sm:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer"
+          >
             Delete Medical Record
           </Button>
         </DialogFooter>

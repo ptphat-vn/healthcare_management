@@ -40,19 +40,19 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
   const handleStartChat = () => {
     const userId = selectedUserIdInput.trim();
     if (!userId || userId === currentUserId) {
-      toast.error(userId ? "Không thể chat với chính mình" : `Vui lòng chọn ${targetLabel} để chat`);
+      toast.error(userId ? "Cannot chat with yourself" : `Please select ${targetLabel} to chat`);
       return;
     }
 
     const selectedUser = users?.find((u: User) => u._id === userId);
-    const userName = selectedUser?.fullName || (isPatient ? "Bác sĩ tư vấn" : `Bệnh nhân ${userId.substring(0, 8)}...`);
+    const userName = selectedUser?.fullName || (isPatient ? "Consultant Doctor" : `Patient ${userId.substring(0, 8)}...`);
     const partnerRoleCode = selectedUser?.roleCode || (isPatient ? "consultant" : "patient");
 
     save({ userId, userName, avatar: selectedUser?.avatar, roleCode: partnerRoleCode, lastMessageTime: new Date() });
     onSelectChat(userId, userName, selectedUser?.avatar);
     setSelectedUserIdInput("");
     setSearchTerm("");
-    toast.success(`Đã mở chat với ${userName}`);
+    toast.success(`Opened chat with ${userName}`);
   };
 
   const isDoctorRole = (code?: string) => code === "consultant" || code === "doctor";
@@ -75,9 +75,9 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
                   const u = users?.find((u: User) => u._id === value);
                   if (u) setSearchTerm(u.fullName || "");
                 }}
-                placeholder={`Tìm kiếm ${targetLabel}...`}
-                searchPlaceholder="Tìm theo tên, email..."
-                emptyMessage={isLoadingUsers ? "Đang tải..." : `Không tìm thấy ${targetLabel} nào`}
+                placeholder={`Search ${targetLabel}...`}
+                searchPlaceholder="Search by name, email..."
+                emptyMessage={isLoadingUsers ? "Loading..." : `No ${targetLabel} found`}
                 disabled={isLoadingUsers || (!isPatient && !isDoctor)}
               />
             </div>
@@ -85,15 +85,15 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
               <Send className="w-4 h-4" />
             </Button>
           </div>
-          <p className="text-xs text-gray-500">Chọn {targetLabel} từ danh sách để bắt đầu chat</p>
+          <p className="text-xs text-gray-500">Select {targetLabel} from the list to start chatting</p>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {conversations.length === 0 ? (
           <EmptyState
-            title="Chưa có cuộc trò chuyện nào"
-            description={`Chọn ${targetLabel} từ danh sách ở trên để bắt đầu chat`}
+            title="No conversations yet"
+            description={`Select ${targetLabel} from the list above to start chatting`}
             icon={<MessageCircle className="w-12 h-12 opacity-50" />}
             className="h-64"
           />
@@ -105,7 +105,7 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
             >
               <div className="flex items-center gap-2">
                 <Icon className={`w-4 h-4 ${iconColor}`} />
-                <span>Chat với {targetLabel} ({conversations.length})</span>
+                <span>Chat with {targetLabel} ({conversations.length})</span>
               </div>
               {expandedSection ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>

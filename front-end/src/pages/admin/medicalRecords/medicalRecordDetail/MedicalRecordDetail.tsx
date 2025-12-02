@@ -35,11 +35,10 @@ export default function MedicalRecordDetail() {
     error,
   } = useGetMedicalRecordByIdQuery(id || "");
   const medicalRecord: MedicalRecord | undefined = medicalRecordResponse?.data;
-  // Fetch test orders for this medical record - search by patient name
   const { data: testOrdersData, isLoading: isLoadingTestOrders, refetch: refetchTestOrders } = useGetAllTestOrderQuery(
-    medicalRecord?.fullName
+    medicalRecord?.email  
       ? {
-          search: medicalRecord.fullName,
+          search: medicalRecord.email,
           sortBy: "createdDate",
           sortOrder: -1,
           page: 1,
@@ -47,16 +46,29 @@ export default function MedicalRecordDetail() {
         }
       : undefined,
     {
-      skip: !medicalRecord?.fullName, 
+      skip: !medicalRecord?.email, 
     }
   );
+  
   React.useEffect(() => {
-    if (medicalRecord?.fullName) {
+    if (medicalRecord?.email) {  
       refetchTestOrders();
     }
-  }, [medicalRecord?.fullName, refetchTestOrders]);
+  }, [medicalRecord?.email, refetchTestOrders]);  
 
-  const testOrders: TestOrder[] = testOrdersData?.data?.testOrder || [];
+  const testOrders: TestOrder[] = React.useMemo(() => {
+    if (!testOrdersData?.data?.testOrder || !medicalRecord) {
+      return [];
+    }
+    return testOrdersData.data.testOrder.filter((order: TestOrder) => {
+      const emailMatch = order.email?.toLowerCase().trim() === medicalRecord.email?.toLowerCase().trim();
+      
+      const nameMatch = 
+        order.patientName?.toLowerCase().trim() === medicalRecord.fullName?.toLowerCase().trim();
+      
+      return emailMatch;
+    });
+  }, [testOrdersData?.data?.testOrder, medicalRecord]);
 
   if (isLoading)
     return (
@@ -447,8 +459,8 @@ export default function MedicalRecordDetail() {
                       Run Date
                     </TableHead>
                     <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">
-                      Bác sĩ thực hiện
-                   </TableHead>
+                     Doctor in charge
+                    </TableHead>
                     <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">
                       Status
                     </TableHead>

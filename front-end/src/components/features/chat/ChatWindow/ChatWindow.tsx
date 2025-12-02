@@ -45,7 +45,7 @@ export default function ChatWindow({
   const { update } = useConversations(currentUserId);
   const updateRef = useRef(update);
 
-  // Cập nhật ref khi update thay đổi
+  // Update ref when update changes
   useEffect(() => {
     updateRef.current = update;
   }, [update]);
@@ -54,7 +54,7 @@ export default function ChatWindow({
     ? `${[currentUserId, otherUserId].sort().join("_")}`
     : "";
 
-  // Helper function để normalize message ID
+  // Helper function to normalize message ID
   const normalizeMessageId = (msg: ChatMessage): string | undefined => {
     if (!msg._id) return undefined;
     if (typeof msg._id === "string") return msg._id;
@@ -68,7 +68,7 @@ export default function ChatWindow({
     return String(msg._id);
   };
 
-  // Memoize handleMessage để tránh re-render không cần thiết
+  // Memoize handleMessage to avoid unnecessary re-renders
   const handleMessage = useCallback((msg: ChatMessage) => {
     const normalizedMsg: ChatMessage = {
       ...msg,
@@ -130,7 +130,7 @@ export default function ChatWindow({
   }, [data]);
 
   useEffect(() => {
-    if (error) toast.error("Không thể tải cuộc trò chuyện");
+    if (error) toast.error("Unable to load conversation");
   }, [error]);
 
   useEffect(() => {
@@ -169,7 +169,7 @@ export default function ChatWindow({
       }
     } catch (e: unknown) {
       const error = e as { data?: { message?: string } };
-      toast.error(error?.data?.message || "Không thể gửi tin nhắn");
+      toast.error(error?.data?.message || "Unable to send message");
       setInputMessage(content);
     } finally {
       setIsSending(false);
@@ -177,7 +177,7 @@ export default function ChatWindow({
   };
 
   if (isLoading)
-    return <LoadingSpinner message="Đang tải cuộc trò chuyện..." />;
+    return <LoadingSpinner message="Loading conversation..." />;
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -198,18 +198,18 @@ export default function ChatWindow({
             {isConnected ? (
               <>
                 <Wifi className="w-3 h-3 text-green-500" />
-                <p className="text-sm text-green-600">Đã kết nối</p>
+                <p className="text-sm text-green-600">Connected</p>
               </>
             ) : (
               <>
                 <WifiOff className="w-3 h-3 text-gray-400" />
-                <p className="text-sm text-gray-500">Đang kết nối...</p>
+                <p className="text-sm text-gray-500">Connecting...</p>
               </>
             )}
           </div>
         </div>
 
-        {/* Video Call Button - Tích hợp component */}
+        {/* Video Call Button - Integrated component */}
         {currentUserId && (
           <VideoCallButton
             currentUserId={currentUserId}
@@ -220,14 +220,14 @@ export default function ChatWindow({
 
         {onClose && (
           <Button variant="ghost" size="sm" onClick={onClose}>
-            Đóng
+            Close
           </Button>
         )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <EmptyState title="Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!" />
+          <EmptyState title="No messages yet. Start the conversation!" />
         ) : (
           messages.map((m) => {
             const own = m.senderId === currentUserId;
@@ -270,7 +270,7 @@ export default function ChatWindow({
               !e.shiftKey &&
               (e.preventDefault(), handleSend())
             }
-            placeholder="Nhập tin nhắn..."
+            placeholder="Type a message..."
             disabled={isSending}
             className="flex-1"
             maxLength={5000}
@@ -289,7 +289,7 @@ export default function ChatWindow({
         </div>
         {!isConnected && (
           <p className="text-xs text-amber-600 mt-1">
-            Realtime tạm mất. Tin nhắn vẫn gửi qua máy chủ.
+            Realtime connection lost. Messages will still be sent via server.
           </p>
         )}
       </div>
