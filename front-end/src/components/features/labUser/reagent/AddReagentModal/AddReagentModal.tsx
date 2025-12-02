@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useCreateReagentMutation } from "@/services/reagentApi";
-import { Loader2 } from "lucide-react";
+import { Loader2, Minus, Plus } from "lucide-react";
 import type { CreateReagentRequest } from "@/types/reagent.type";
 
 interface AddReagentModalProps {
@@ -47,7 +47,7 @@ export default function AddReagentModal({
       unit: "ml",
     },
     ratio: "",
-    category: "",
+    categories: "",
     storageConditions: "",
     isActive: true,
   });
@@ -86,6 +86,17 @@ export default function AddReagentModal({
         [field]: field === "unit" ? value : Number(value),
       },
     }));
+  };
+
+  const adjustUsage = (field: "min" | "max", delta: 1 | -1) => {
+    const current = formData.usagePerRun?.[field] ?? 0;
+    const next = current + delta;
+
+    if (next < 0) {
+      return;
+    }
+
+    handleUsageChange(field, next);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,30 +140,31 @@ export default function AddReagentModal({
         description: "",
         usagePerRun: { min: 0, max: 0, unit: "ml" },
         ratio: "",
-        category: "",
+        categories: "",
         storageConditions: "",
         isActive: true,
       });
       onSuccess?.();
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Unable to add reagent");
+    } catch (error) {
+      const err = error as { data?: { message?: string } };
+      toast.error(err?.data?.message || "Unable to add reagent");
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl p-0 gap-0 max-h-[95vh]">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b">
+      <DialogContent className="w-full max-w-2xl lg:max-w-3xl p-0 gap-0 max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="px-4 sm:px-6 pt-6 pb-4 border-b">
           <DialogTitle className="text-2xl">Add New Reagent</DialogTitle>
           <DialogDescription>
             Fill in the information to add a reagent to the system
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-6 py-4">
-          <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+        <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-3">
             {/* Row 1: Reagent Name - Full width */}
-            <div className="col-span-3 space-y-1.5">
+            <div className="col-span-1 sm:col-span-2 lg:col-span-3 space-y-1.5">
               <Label className="text-sm font-semibold">
                 Reagent Name <span className="text-red-500">*</span>
               </Label>
@@ -193,7 +205,7 @@ export default function AddReagentModal({
                 className="h-9"
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
               <Label className="text-sm font-semibold">CAS Number</Label>
               <Input
                 name="casNumber"
@@ -207,13 +219,25 @@ export default function AddReagentModal({
             {/* Row 3: Category, Ratio, Storage Conditions */}
             <div className="space-y-1.5">
               <Label className="text-sm font-semibold">Category</Label>
-              <Input
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                placeholder="e.g. Chemical, Enzyme"
-                className="h-9"
-              />
+              <Select
+                value={formData.categories || ""}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, categories: value }))
+                }
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Hematology">Hematology</SelectItem>
+                  <SelectItem value="Biochemistry">Biochemistry</SelectItem>
+                  <SelectItem value="Immunology">Immunology</SelectItem>
+                  <SelectItem value="Molecular/PCR">Molecular/PCR</SelectItem>
+                  <SelectItem value="Microbiology">Microbiology</SelectItem>
+                  <SelectItem value="Coagulation">Coagulation</SelectItem>
+                  <SelectItem value="Enzyme">Enzyme</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-semibold">Dilution Ratio</Label>
@@ -225,7 +249,7 @@ export default function AddReagentModal({
                 className="h-9"
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
               <Label className="text-sm font-semibold">
                 Storage Conditions
               </Label>
@@ -239,29 +263,69 @@ export default function AddReagentModal({
             </div>
 
             {/* Row 4: Dosage and Status */}
-            <div className="col-span-2 space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-sm font-semibold">
                 Usage Per Run (Min-Max-Unit)
               </Label>
-              <div className="grid grid-cols-3 gap-2">
-                <Input
-                  type="number"
-                  placeholder="Min"
-                  min="0"
-                  step="1"
-                  value={formData.usagePerRun?.min}
-                  onChange={(e) => handleUsageChange("min", e.target.value)}
-                  className="h-9"
-                />
-                <Input
-                  type="number"
-                  placeholder="Max"
-                  min="0"
-                  step="1"
-                  value={formData.usagePerRun?.max}
-                  onChange={(e) => handleUsageChange("max", e.target.value)}
-                  className="h-9"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="flex items-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
+                    onClick={() => adjustUsage("min", -1)}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    type="number"
+                    placeholder="Min"
+                    min="0"
+                    step="1"
+                    value={formData.usagePerRun?.min}
+                    onChange={(e) => handleUsageChange("min", e.target.value)}
+                    className="h-8 rounded-none border-x-0 text-center"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
+                    onClick={() => adjustUsage("min", 1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
+                    onClick={() => adjustUsage("max", -1)}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    type="number"
+                    placeholder="Max"
+                    min="0"
+                    step="1"
+                    value={formData.usagePerRun?.max}
+                    onChange={(e) => handleUsageChange("max", e.target.value)}
+                    className="h-8 rounded-none border-x-0 text-center"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
+                    onClick={() => adjustUsage("max", 1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
                 <Select
                   value={formData.usagePerRun?.unit}
                   onValueChange={(v) => handleUsageChange("unit", v)}
@@ -307,7 +371,7 @@ export default function AddReagentModal({
             </div>
 
             {/* Row 5: Description - Full width */}
-            <div className="col-span-3 space-y-1.5">
+            <div className="col-span-1 sm:col-span-2 lg:col-span-3 space-y-1.5">
               <Label className="text-sm font-semibold">Description</Label>
               <textarea
                 name="description"
@@ -320,7 +384,7 @@ export default function AddReagentModal({
             </div>
           </div>
 
-          <DialogFooter className="mt-4 pt-4 border-t">
+          <DialogFooter className="mt-4 pt-4 border-t flex flex-col sm:flex-row sm:justify-end gap-2">
             <Button
               type="button"
               variant="outline"
