@@ -97,13 +97,13 @@ export default function DeleteUserModal({
             </div>
           </div>
 
-          <DialogFooter className="gap-2 flex-col sm:flex-row mt-4">
+          <DialogFooter className="mt-4 !flex !flex-row justify-end gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleCancel}
-              className="w-full sm:w-auto"
               disabled={isLoading}
+              className="!w-auto h-7 px-2.5 text-[11px] font-medium sm:h-9 sm:px-4 sm:text-sm"
             >
               Cancel
             </Button>
@@ -111,12 +111,13 @@ export default function DeleteUserModal({
               type="button"
               variant="destructive"
               onClick={handleConfirm}
-              className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
               disabled={isLoading}
+              className="!w-auto h-7 px-2.5 text-[11px] font-medium sm:h-9 sm:px-4 sm:text-sm bg-red-600 hover:bg-red-700"
             >
               {isLoading ? "Deleting..." : "Delete User"}
             </Button>
           </DialogFooter>
+
         </div>
       </DialogContent>
     </Dialog>

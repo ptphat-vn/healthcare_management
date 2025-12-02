@@ -63,7 +63,7 @@ export default function AddUserModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[96vw] sm:max-w-3xl p-0 overflow-hidden">
+      <DialogContent className="max-w-[96vw] sm:max-w-3xl p-0 overflow-hidden rounded-lg">
         <div className="flex flex-col max-h-[90vh]">
           <DialogHeader className="px-4 sm:px-6 pt-4 pb-2 border-b bg-white sticky top-0 z-10">
             <DialogTitle className="text-lg sm:text-2xl font-bold">

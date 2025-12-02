@@ -45,7 +45,7 @@ export default function AddReagentDialog({
   const [addReagentToInstrumentMutation, { isLoading }] =
     useAddReagentToInstrumentMutation();
   const [inventoryError, setInventoryError] = useState<string>("");
-const {user} = useAuth()
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     reagentId: "",
     lotNumber: "",
@@ -55,32 +55,32 @@ const {user} = useAuth()
 
   // Fetch inventory for selected reagent
   const { data: inventoryData, isLoading: isLoadingInventory, refetch: refetchInventory } =
-     useGetReagentInventoryFIFOQuery(
-      { 
+    useGetReagentInventoryFIFOQuery(
+      {
         reagentId: formData.reagentId,
         includeExpired: false, // Thêm param này
         page: 1,
-        limit: 1000 
+        limit: 1000
       },
-      { 
+      {
         skip: !formData.reagentId,
-        refetchOnMountOrArgChange: true 
+        refetchOnMountOrArgChange: true
       }
     );
   console.log(formData.reagentId, "reagentIddd");
 
   const inventory = inventoryData?.data?.inventory || [];
   console.log(inventoryData, "dataa");
-  
+
   console.log(inventory, "hehehe");
-  
+
   // Debug: Log inventory data
   console.log('=== INVENTORY DEBUG ===');
   console.log('Selected reagentId:', formData.reagentId);
   console.log('Inventory data:', inventoryData);
   console.log('Inventory array:', inventory);
   console.log('Number of lots:', inventory.length);
-  
+
   const totalAvailable = inventory.reduce(
     (sum, item) => sum + item.quantityAvailable,
     0
@@ -198,7 +198,7 @@ const {user} = useAuth()
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-lg">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Add Reagent to Instrument</DialogTitle>
@@ -220,7 +220,7 @@ const {user} = useAuth()
                     </p>
                     <p className="text-xs text-red-600 mt-1">
                       {inventoryError.includes("category") ||
-                      inventoryError.includes("common category")
+                        inventoryError.includes("common category")
                         ? "The instrument and reagent must have at least one matching category. Please select a compatible reagent."
                         : "Please add inventory for this reagent first or select a different reagent."}
                     </p>
@@ -251,7 +251,7 @@ const {user} = useAuth()
                 </SelectTrigger>
                 <SelectContent>
                   {reagentsData?.data?.reagents &&
-                  reagentsData.data.reagents.length > 0 ? (
+                    reagentsData.data.reagents.length > 0 ? (
                     reagentsData.data.reagents.map((reagent, index) => (
                       <SelectItem key={index} value={reagent._id}>
                         {reagent.name}
@@ -366,22 +366,25 @@ const {user} = useAuth()
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <DialogFooter
+            className="flex flex-row justify-end gap-2 sm:justify-end sm:flex-row"
+          >
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
               disabled={isLoading}
-              className="w-full sm:w-auto"
+              className="h-8 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm"
             >
               Cancel
             </Button>
+
             <Button
               type="submit"
               disabled={isLoading || !formData.reagentId}
               className={`${getRoleButtonClass(
                 user?.data.roleCode
-              )} w-full sm:w-auto`}
+              )} h-8 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm flex items-center`}
             >
               {isLoading ? (
                 <>
@@ -396,6 +399,7 @@ const {user} = useAuth()
               )}
             </Button>
           </DialogFooter>
+
         </form>
       </DialogContent>
     </Dialog>

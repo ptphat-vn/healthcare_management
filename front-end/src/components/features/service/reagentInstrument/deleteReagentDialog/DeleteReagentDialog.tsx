@@ -30,7 +30,7 @@ export default function DeleteReagentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-0 overflow-hidden">
+      <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-0 overflow-hidden rounded-lg">
         <div className="px-4 sm:px-6 pt-4 pb-2 border-b bg-white">
           <DialogHeader className="space-y-2">
             <div className="flex items-center gap-3">
@@ -62,26 +62,28 @@ export default function DeleteReagentDialog({
             </div>
           </div>
 
-          <DialogFooter className="gap-2 flex-col sm:flex-row mt-4">
+          <DialogFooter className="mt-4 flex flex-row justify-end gap-2 sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={handleCancel}
-              className="w-full sm:w-auto"
+              className="h-7 px-2.5 text-[11px] font-medium sm:h-9 sm:px-4 sm:text-sm"
               disabled={isDeleting}
             >
               Cancel
             </Button>
+
             <Button
               type="button"
               variant="destructive"
               onClick={onConfirm}
-              className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+              className="h-7 px-2.5 text-[11px] font-medium sm:h-9 sm:px-4 sm:text-sm"
               disabled={isDeleting}
             >
               {isDeleting ? "Deleting..." : "Delete Reagent"}
             </Button>
           </DialogFooter>
+
         </div>
       </DialogContent>
     </Dialog>

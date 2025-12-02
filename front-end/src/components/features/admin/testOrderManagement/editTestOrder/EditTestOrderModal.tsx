@@ -106,7 +106,7 @@ export default function EditTestOrderModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[96vw] sm:max-w-3xl p-0 overflow-hidden">
+      <DialogContent className="max-w-[96vw] sm:max-w-3xl p-0 overflow-hidden rounded-lg">
         <div className="flex flex-col max-h-[90vh]">
           <DialogHeader className="px-4 sm:px-6 pt-4 pb-2 border-b bg-white sticky top-0 z-10">
             <DialogTitle className="text-lg sm:text-2xl font-bold">
@@ -182,9 +182,9 @@ export default function EditTestOrderModal({
             placeholder="Enter address"
             error={errors.address?.message}
           />
-          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-4">
             <Button
-              className="w-full sm:w-auto"
+              className="h-8 px-3 text-xs sm:text-sm sm:h-9"
               type="button"
               variant="outline"
               onClick={handleCancel}
@@ -195,7 +195,7 @@ export default function EditTestOrderModal({
             <Button
               className={`${getRoleButtonClass(
                 user?.data.roleCode
-              )} w-full sm:w-auto`}
+              )} h-8 px-3 text-xs sm:text-sm sm:h-9`}
               type="submit"
               disabled={isLoading}
             >

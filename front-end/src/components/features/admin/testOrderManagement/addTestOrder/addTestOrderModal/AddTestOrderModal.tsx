@@ -60,7 +60,7 @@ export default function AddTestOrderModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-3xl p-0 gap-0 overflow-hidden max-h-[95vh]">
+      <DialogContent className="max-w-[95vw] sm:max-w-3xl p-0 gap-0 overflow-hidden max-h-[95vh] rounded-lg">
         <DialogHeader className="px-4 sm:px-6 pt-4 pb-2 border-b bg-white shrink-0">
           <DialogTitle className="text-lg sm:text-2xl font-bold">
             Add New Test Order

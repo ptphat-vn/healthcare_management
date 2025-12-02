@@ -139,20 +139,18 @@ export function NewUserForm({
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+        <div className="flex justify-end gap-2 pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full sm:w-auto"
+            className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
           >
             Close
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className={`${getRoleButtonClass(
-              user?.data.roleCode
-            )} w-full sm:w-auto`}
+            className={getRoleButtonClass(user?.data.roleCode)}
           >
             {isLoading ? "Creating..." : "Add User"}
           </button>
