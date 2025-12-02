@@ -49,23 +49,26 @@ export default function DeleteConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+      <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-0 overflow-hidden">
+        <div className="px-4 sm:px-6 pt-4 pb-2 border-b bg-white">
+          <DialogHeader className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900">
+                Delete Test Order
+              </DialogTitle>
             </div>
-            <DialogTitle className="text-xl font-semibold text-gray-900">
-              Delete Test Order
-            </DialogTitle>
-          </div>
-          <DialogDescription className="text-base text-gray-600 pt-2">
-            Are you sure you want to delete this test order? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
+            <DialogDescription className="text-sm sm:text-base text-gray-600">
+              Are you sure you want to delete this test order? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 my-4">
+        <div className="px-4 sm:px-6 py-4 space-y-4 overflow-y-auto max-h-[70vh]">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-500">
@@ -103,12 +106,13 @@ export default function DeleteConfirmDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 mt-6">
+        <DialogFooter className="gap-2 flex-col sm:flex-row mt-4">
           <Button
             type="button"
             variant="outline"
             onClick={handleCancel}
             disabled={isLoading}
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
@@ -117,11 +121,12 @@ export default function DeleteConfirmDialog({
             variant="destructive"
             onClick={handleConfirm}
             disabled={isLoading}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
           >
             {isLoading ? "Deleting..." : "Delete Test Order"}
           </Button>
         </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

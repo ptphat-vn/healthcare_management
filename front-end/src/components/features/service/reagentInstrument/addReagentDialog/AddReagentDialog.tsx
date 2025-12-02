@@ -198,7 +198,7 @@ const {user} = useAuth()
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Add Reagent to Instrument</DialogTitle>
@@ -366,19 +366,22 @@ const {user} = useAuth()
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
               disabled={isLoading}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className={getRoleButtonClass(user?.data.roleCode)}
               disabled={isLoading || !formData.reagentId}
+              className={`${getRoleButtonClass(
+                user?.data.roleCode
+              )} w-full sm:w-auto`}
             >
               {isLoading ? (
                 <>

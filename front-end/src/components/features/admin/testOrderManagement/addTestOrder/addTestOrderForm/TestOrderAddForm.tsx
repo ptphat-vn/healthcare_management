@@ -13,7 +13,7 @@ interface TestOrderFormProps {
     medicalRecordId: string,
     requestedTests: RequestedTestName[]
   ) => void;
-  onCancel: () => void;
+  onClose: () => void;
 }
 
 export function TestOrderAddForm({
@@ -21,7 +21,7 @@ export function TestOrderAddForm({
   initialRequestedTests = [],
   isLoading,
   onSubmit,
-  onCancel,
+  onClose,
 }: TestOrderFormProps) {
   const {
     data: medicalRecords,
@@ -48,17 +48,21 @@ export function TestOrderAddForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label className="font-semibold">Medical Record</label>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <section className="space-y-2">
+        <label className="text-sm font-semibold text-gray-700">
+          Medical Record <span className="text-red-500">*</span>
+        </label>
         {isMedicalRecordsLoading ? (
-          <div>Loading...</div>
+          <div className="text-sm text-gray-500">Loading medical records...</div>
         ) : medicalRecordsError ? (
-          <div>Error loading medical records</div>
+          <div className="text-sm text-red-500">
+            Error loading medical records
+          </div>
         ) : (
           <select
             name="medicalRecordId"
-            className="w-full p-2 border rounded"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={selectedMedicalRecord}
             onChange={(e) => setSelectedMedicalRecord(e.target.value)}
             required
@@ -66,69 +70,81 @@ export function TestOrderAddForm({
             <option value="">Select medical record</option>
             {medicalRecords?.data?.patient?.map((record: MedicalRecord) => (
               <option key={record._id} value={record._id}>
-                Name: {record.fullName} - ID: {record._id}
+                {record.fullName} ({record._id})
               </option>
             ))}
           </select>
         )}
-      </div>
-      <div className="mt-4">
-        <label className="font-semibold mb-2 block">Select Tests</label>
-        <div className="overflow-x-auto rounded border">
-          <table className="min-w-full border-collapse">
-            <thead>
-              <tr className="bg-muted">
-                <th className="p-2 border text-left w-12">#</th>
-                <th className="p-2 border text-left">Test Name</th>
-                <th className="p-2 border text-center w-24">Select</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requestedTests.map((test, idx) => (
-                <tr key={test}>
-                  <td className="p-2 border">{idx + 1}</td>
-                  <td className="p-2 border">{test}</td>
-                  <td className="p-2 border text-center">
-                    <Checkbox
-                      checked={selectedTests.includes(test)}
-                      onCheckedChange={(checked) => {
-                        if (checked === true) {
-                          setSelectedTests([...selectedTests, test]);
-                        } else if (checked === false) {
-                          setSelectedTests(
-                            selectedTests.filter((t) => t !== test)
-                          );
-                        }
-                      }}
-                      id={`test-checkbox-${idx}`}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      </section>
+
+      <section className="space-y-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <label className="text-sm font-semibold text-gray-700">
+            Select Tests
+          </label>
+          <span className="text-xs text-gray-500">
+            Choose one or more requested tests
+          </span>
         </div>
-        <small className="text-gray-500">
-          Tick to select one or more tests.
-        </small>
-      </div>
-      <div className="mt-4 flex justify-end">
-        <button
-          type="submit"
-          className="btn-admin px-4 py-2 rounded"
-          disabled={isLoading}
-        >
-          {isLoading ? "Saving..." : "Save"}
-        </button>
-        <button
-          type="button"
-          className="ml-2 px-4 py-2 bg-gray-300 rounded"
-          onClick={onCancel}
-          disabled={isLoading}
-        >
-          Cancel
-        </button>
-      </div>
+        <div className="rounded-md border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-[480px] w-full border-collapse text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-left text-gray-600">
+                  <th className="p-2 border border-gray-200 w-12">#</th>
+                  <th className="p-2 border border-gray-200">Test Name</th>
+                  <th className="p-2 border border-gray-200 text-center w-20">
+                    Select
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {requestedTests.map((test, idx) => (
+                  <tr
+                    key={test}
+                    className="odd:bg-white even:bg-gray-50 text-gray-800"
+                  >
+                    <td className="p-2 border border-gray-200">{idx + 1}</td>
+                    <td className="p-2 border border-gray-200">{test}</td>
+                    <td className="p-2 border border-gray-200 text-center">
+                      <Checkbox
+                        checked={selectedTests.includes(test)}
+                        onCheckedChange={(checked) => {
+                          if (checked === true) {
+                            setSelectedTests((prev) => [...prev, test]);
+                          } else if (checked === false) {
+                            setSelectedTests((prev) =>
+                              prev.filter((t) => t !== test)
+                            );
+                          }
+                        }}
+                        id={`test-checkbox-${idx}`}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            Close
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            {isLoading ? "Creating..." : "Create Test Order"}
+          </button>
+        </div>
     </form>
   );
 }
