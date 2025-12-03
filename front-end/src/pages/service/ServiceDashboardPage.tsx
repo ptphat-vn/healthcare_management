@@ -19,105 +19,232 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useGetAllInstrumentsQuery } from "@/services/instrumentApi";
+import {
+  useGetAllReagentsQuery,
+  useGetReagentInventoryFIFOQuery,
+} from "@/services/reagentApi";
+import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
+import { useMemo } from "react";
+import { formatDate } from "@/utils/formatDate";
 
 export default function ServiceDashboard() {
-  // Mock data
-  const stats = [
-    {
-      title: "Total Instruments",
-      value: "24",
-      icon: <Wrench className="w-6 h-6" />,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-      change: "+2 this month",
-    },
-    {
-      title: "Active Instruments",
-      value: "20",
-      icon: <CheckCircle2 className="w-6 h-6" />,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      change: "83% operational",
-    },
-    {
-      title: "Maintenance Due",
-      value: "4",
-      icon: <AlertTriangle className="w-6 h-6" />,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
-      change: "Need attention",
-    },
-    {
-      title: "Total Reagents",
-      value: "156",
-      icon: <FlaskConical className="w-6 h-6" />,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      change: "+12 this week",
-    },
-  ];
+  // API Queries
+  const {
+    data: instrumentsData,
+    isLoading: isLoadingInstruments,
+    isError: isErrorInstruments,
+  } = useGetAllInstrumentsQuery({ limit: 1000 });
 
-  const recentMaintenances = [
-    {
-      id: 1,
-      instrument: "Hematology Analyzer XN-1000",
-      type: "Preventive Maintenance",
-      date: "2025-11-10",
-      status: "Completed",
-      technician: "John Smith",
-    },
-    {
-      id: 2,
-      instrument: "Chemistry Analyzer AU5800",
-      type: "Calibration",
-      date: "2025-11-09",
-      status: "Completed",
-      technician: "Sarah Johnson",
-    },
-    {
-      id: 3,
-      instrument: "PCR Machine QuantStudio",
-      type: "Repair",
-      date: "2025-11-08",
-      status: "In Progress",
-      technician: "Mike Davis",
-    },
-    {
-      id: 4,
-      instrument: "Centrifuge Z326K",
-      type: "Inspection",
-      date: "2025-11-11",
-      status: "Scheduled",
-      technician: "Emily Wilson",
-    },
-  ];
+  const {
+    data: reagentsData,
+    isLoading: isLoadingReagents,
+    isError: isErrorReagents,
+  } = useGetAllReagentsQuery({ limit: 1000 });
 
-  const lowStockReagents = [
-    {
-      id: 1,
-      name: "Hemoglobin Reagent Kit",
-      currentStock: 12,
-      minStock: 20,
-      unit: "kits",
-      expiryDate: "2025-12-15",
-    },
-    {
-      id: 2,
-      name: "Glucose Oxidase Solution",
-      currentStock: 8,
-      minStock: 15,
-      unit: "bottles",
-      expiryDate: "2025-11-30",
-    },
-    {
-      id: 3,
-      name: "PCR Master Mix",
-      currentStock: 5,
-      minStock: 10,
-      unit: "tubes",
-      expiryDate: "2026-01-20",
-    },
-  ];
+  const {
+    data: inventoryData,
+    isLoading: isLoadingInventory,
+    isError: isErrorInventory,
+  } = useGetReagentInventoryFIFOQuery({
+    page: 1,
+    limit: 1000,
+  });
+
+  // Calculate stats from API data
+  const stats = useMemo(() => {
+    const instruments = instrumentsData?.data?.instruments || [];
+    const reagents = reagentsData?.data?.reagents || [];
+    const totalInstruments = instruments.length;
+    const activeInstruments = instruments.filter(
+      (inst) => inst.status === "Active" || inst.isActive
+    ).length;
+    const maintenanceInstruments = instruments.filter(
+      (inst) => inst.status === "Maintenance"
+    ).length;
+
+    // Calculate change for instruments (this month)
+    const thisMonth = new Date().getMonth();
+    const thisYear = new Date().getFullYear();
+    const instrumentsThisMonth = instruments.filter((inst) => {
+      if (!inst.createdAt) return false;
+      const createdDate = new Date(inst.createdAt);
+      return (
+        createdDate.getMonth() === thisMonth &&
+        createdDate.getFullYear() === thisYear
+      );
+    }).length;
+
+    // Calculate change for reagents (this week)
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const reagentsThisWeek = reagents.filter((reagent) => {
+      if (!reagent.createdAt) return false;
+      return new Date(reagent.createdAt) >= oneWeekAgo;
+    }).length;
+
+    return [
+      {
+        title: "Total Instruments",
+        value: totalInstruments.toString(),
+        icon: <Wrench className="w-6 h-6" />,
+        color: "text-blue-600",
+        bgColor: "bg-blue-50",
+        change:
+          instrumentsThisMonth > 0
+            ? `+${instrumentsThisMonth} this month`
+            : "No new instruments",
+      },
+      {
+        title: "Active Instruments",
+        value: activeInstruments.toString(),
+        icon: <CheckCircle2 className="w-6 h-6" />,
+        color: "text-green-600",
+        bgColor: "bg-green-50",
+        change:
+          totalInstruments > 0
+            ? `${Math.round(
+                (activeInstruments / totalInstruments) * 100
+              )}% operational`
+            : "No instruments",
+      },
+      {
+        title: "Maintenance Due",
+        value: maintenanceInstruments.toString(),
+        icon: <AlertTriangle className="w-6 h-6" />,
+        color: "text-orange-600",
+        bgColor: "bg-orange-50",
+        change:
+          maintenanceInstruments > 0 ? "Need attention" : "All operational",
+      },
+      {
+        title: "Total Reagents",
+        value: reagents.length.toString(),
+        icon: <FlaskConical className="w-6 h-6" />,
+        color: "text-purple-600",
+        bgColor: "bg-purple-50",
+        change:
+          reagentsThisWeek > 0
+            ? `+${reagentsThisWeek} this week`
+            : "No new reagents",
+      },
+    ];
+  }, [instrumentsData, reagentsData]);
+
+  // Get recent maintenance activities
+  const recentMaintenances = useMemo(() => {
+    const instruments = instrumentsData?.data?.instruments || [];
+    return instruments
+      .filter((inst) => {
+        // Include instruments in maintenance or with recent maintenance dates
+        return (
+          inst.status === "Maintenance" ||
+          inst.lastMaintenanceDate ||
+          inst.nextMaintenanceDate
+        );
+      })
+      .sort((a, b) => {
+        // Sort by lastMaintenanceDate or updatedAt
+        const dateA = a.lastMaintenanceDate
+          ? new Date(a.lastMaintenanceDate).getTime()
+          : a.updatedAt
+          ? new Date(a.updatedAt).getTime()
+          : 0;
+        const dateB = b.lastMaintenanceDate
+          ? new Date(b.lastMaintenanceDate).getTime()
+          : b.updatedAt
+          ? new Date(b.updatedAt).getTime()
+          : 0;
+        return dateB - dateA;
+      })
+      .slice(0, 4)
+      .map((inst) => ({
+        id: inst._id,
+        instrument: inst.name,
+        type:
+          inst.status === "Maintenance"
+            ? "Maintenance"
+            : inst.nextMaintenanceDate
+            ? "Scheduled"
+            : "Inspection",
+        date: inst.lastMaintenanceDate
+          ? formatDate(inst.lastMaintenanceDate)
+          : inst.updatedAt
+          ? formatDate(inst.updatedAt)
+          : "N/A",
+        status:
+          inst.status === "Maintenance"
+            ? "In Progress"
+            : inst.nextMaintenanceDate
+            ? "Scheduled"
+            : "Completed",
+        technician: inst.responsiblePerson || inst.responsiblePersonId || "N/A",
+      }));
+  }, [instrumentsData]);
+
+  // Get low stock reagents
+  const lowStockReagents = useMemo(() => {
+    const inventory = inventoryData?.data?.inventory || [];
+    const reagents = reagentsData?.data?.reagents || [];
+
+    // Find reagents with low stock (quantityAvailable < threshold)
+    // We'll use a simple threshold of 20 units or less
+    const lowStockItems = inventory
+      .filter((item) => {
+        // Find the reagent to get min stock info
+        const reagent = reagents.find((r) => r._id === item.reagentId);
+        // If we have usagePerRun, we can estimate min stock
+        const minStock = reagent?.usagePerRun?.max
+          ? reagent.usagePerRun.max * 2
+          : 20; // Default threshold
+        return item.quantityAvailable < minStock && item.quantityAvailable > 0;
+      })
+      .sort((a, b) => a.quantityAvailable - b.quantityAvailable)
+      .slice(0, 3)
+      .map((item) => {
+        const reagent = reagents.find((r) => r._id === item.reagentId);
+        const minStock = reagent?.usagePerRun?.max
+          ? reagent.usagePerRun.max * 2
+          : 20;
+        return {
+          id: item.reagentId,
+          name: item.reagentName,
+          currentStock: item.quantityAvailable,
+          minStock: minStock,
+          unit: item.unitOfMeasure || "units",
+          expiryDate: formatDate(item.expirationDate),
+        };
+      });
+
+    return lowStockItems;
+  }, [inventoryData, reagentsData]);
+
+  // Loading state
+  const isLoading =
+    isLoadingInstruments || isLoadingReagents || isLoadingInventory;
+
+  // Error state
+  const isError = isErrorInstruments || isErrorReagents || isErrorInventory;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white rounded-2xl">
+        <LoadingSpinner message="Loading dashboard data..." />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-4 sm:space-y-6 bg-white min-h-screen rounded-2xl p-4 sm:p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600 font-medium">
+            Error loading dashboard data. Please try again later.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -143,12 +270,6 @@ export default function ServiceDashboard() {
           <p className="text-sm sm:text-base text-gray-500 mt-1">
             Manage instruments and reagents inventory
           </p>
-        </div>
-        <div className="flex gap-2 sm:gap-3">
-          <Button className="btn-service flex items-center gap-2">
-            <Wrench className="w-4 h-4" />
-            <span>Schedule Maintenance</span>
-          </Button>
         </div>
       </div>
 
@@ -273,7 +394,7 @@ export default function ServiceDashboard() {
                         </span>
                       </div>
                     </div>
-                    <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                    <AlertTriangle className="w-5 h-5 text-orange-600 shrink-0" />
                   </div>
                   <div className="flex items-center gap-1 text-xs text-gray-600 mt-2">
                     <Calendar className="w-3 h-3" />

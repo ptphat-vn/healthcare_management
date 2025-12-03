@@ -56,6 +56,7 @@ export const fakeTestOrder: TestOrder = {
   createdBy: "507f1f77bcf86cd799439012",
   runDate: "2024-01-15T14:30:00Z",
   runBy: "507f1f77bcf86cd799439013",
+  requestedTests: [],
   testResults: [
     {
       _id: "60d5f9b2b60a3c6f1c9e8b7a",
@@ -66,6 +67,13 @@ export const fakeTestOrder: TestOrder = {
       status: "normal",
       flag: "",
       aiDiagnosisSummary: ["Diabetes Mellitus"],
+      hl7MessageId: "",
+      rawHl7Data: "",
+      processedData: {
+        originalFlag: "",
+        processingTimestamp: "",
+        configApplied: "",
+      },
       createdAt: "2024-01-15T14:30:00Z",
       updatedAt: "2024-01-15T15:30:00Z",
       reviewedBy: "507f1f77bcf86cd799439016",

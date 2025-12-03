@@ -295,7 +295,9 @@ export default function InstrumentDetailPage() {
                   <span className="font-medium">Created At</span>
                 </div>
                 <p className="text-gray-900">
-                  {formatDate(instrument.createdAt)}
+                  {instrument.createdAt
+                    ? formatDate(instrument.createdAt)
+                    : "N/A"}
                 </p>
               </div>
 
@@ -306,7 +308,9 @@ export default function InstrumentDetailPage() {
                   <span className="font-medium">Last Updated</span>
                 </div>
                 <p className="text-gray-900">
-                  {formatDate(instrument.updatedAt)}
+                  {instrument.updatedAt
+                    ? formatDate(instrument.updatedAt)
+                    : "N/A"}
                 </p>
               </div>
 

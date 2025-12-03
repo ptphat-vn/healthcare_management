@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useGetRecentConversationsQuery } from "@/services/chatApi";
 
 export interface Conversation {

@@ -24,13 +24,13 @@ const formatDate = (dateString: string) => {
 export default function OrderInfoSection({ order }: OrderInfoSectionProps) {
   return (
     <Card className="border-green-100 shadow-sm">
-      <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
+      <CardHeader className="bg-linear-to-r from-green-50 to-emerald-50">
         <CardTitle className="flex items-center gap-2 text-green-700">
           <FileText className="w-6 h-6" />
           Order Information
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="space-y-4">
           {/* Status */}
           <div>
@@ -94,14 +94,6 @@ export default function OrderInfoSection({ order }: OrderInfoSectionProps) {
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Order ID */}
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <p className="text-xs text-gray-600 mb-1">Order ID</p>
-            <p className="font-mono text-sm text-gray-900 break-all">
-              {order._id}
-            </p>
           </div>
         </div>
       </CardContent>

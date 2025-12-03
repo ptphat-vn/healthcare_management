@@ -81,11 +81,11 @@ export default function InstrumentTable({
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+              <TableRow className="bg-linear-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
                 <TableHead className="font-semibold text-gray-700 w-16">
                   No
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[200px]">
+                <TableHead className="font-semibold text-gray-700 min-w-[200px] sticky left-0 z-20 bg-blue-50 hover:from-blue-100 hover:to-indigo-100">
                   Instrument Name
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 min-w-[140px]">
@@ -132,7 +132,7 @@ export default function InstrumentTable({
                         index +
                         1}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900">
+                    <TableCell className="font-medium text-gray-900 sticky left-0 z-20 bg-background">
                       <div
                         className="max-w-[200px] truncate"
                         title={instrument.name}

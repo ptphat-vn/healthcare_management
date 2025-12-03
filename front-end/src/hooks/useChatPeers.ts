@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export function useChatPeers(searchTerm?: string) {
   const { user } = useAuth();
-  const roleCode = user?.data?.roleCode;
+  const roleCode = user?.data?.roleCode as string | undefined;
   const isPatient = roleCode === "patient";
   const isDoctor =
     roleCode === "doctor" ||

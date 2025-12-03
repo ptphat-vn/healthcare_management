@@ -39,12 +39,6 @@ const SORT_OPTIONS = [
   { value: "updatedAt", label: "Last Updated" },
 ];
 
-const STATUS_OPTIONS = [
-  { value: "", label: "All Status" },
-  { value: "true", label: "Active" },
-  { value: "false", label: "Inactive" },
-];
-
 export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -54,7 +48,7 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
     "name" | "catalogNumber" | "manufacturer" | "updatedAt"
   >("updatedAt");
   const [sortOrder, setSortOrder] = useState<1 | -1>(-1);
-  const [isActive, setIsActive] = useState<string>("");
+  const [isActive] = useState<string>("");
 
   // Modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -156,12 +150,13 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
           onSearchChange={setSearchTerm}
           sortOptions={SORT_OPTIONS}
           sortByValue={sortBy}
-          onSortByChange={setSortBy}
+          onSortByChange={(value) =>
+            setSortBy(
+              value as "name" | "catalogNumber" | "manufacturer" | "updatedAt"
+            )
+          }
           sortOrder={sortOrder}
-          onSortOrderChange={setSortOrder}
-          statusOptions={STATUS_OPTIONS}
-          statusValue={isActive}
-          onStatusChange={setIsActive}
+          onSortOrderChange={(value) => setSortOrder(value)}
         />
       </div>
 
@@ -170,7 +165,9 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50">
               <TableHead className="w-16">No.</TableHead>
-              <TableHead>Reagent Name</TableHead>
+              <TableHead className="sticky left-0 z-20 bg-blue-50 hover:from-blue-100 hover:to-indigo-100">
+                Reagent Name
+              </TableHead>
               <TableHead>Catalog No.</TableHead>
               <TableHead>Manufacturer</TableHead>
               <TableHead>Unit</TableHead>
@@ -189,7 +186,7 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
                     <TableCell className="font-medium text-gray-600">
                       {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900">
+                    <TableCell className="font-medium text-gray-900 sticky left-0 z-20 bg-background">
                       {reagent.name}
                     </TableCell>
                     <TableCell className="text-gray-600">

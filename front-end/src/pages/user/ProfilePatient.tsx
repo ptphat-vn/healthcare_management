@@ -15,7 +15,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { formatDate } from "@/utils/formatDate";
-import { EditAdminForm } from "@/components/features/admin/profileManagement/EditAdminFrom/EditAdminForm";
+import { EditPatientForm } from "@/components/features/user/profile/EditPatientForm";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useUpdateAvatarMutation } from "@/services/userApi";
@@ -42,8 +42,6 @@ export default function ProfilePatient() {
       setAvatarPreview(user.avatar);
     }
   }, [user?._id, user?.avatar]);
-
-  console.log(user, "userrr");
 
   // Calculate age from date of birth
   const calculateAge = (dob: string) => {
@@ -145,7 +143,7 @@ export default function ProfilePatient() {
                       onError={() => setAvatarError(true)}
                     />
                   ) : (
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold">
+                    <div className="w-full h-full rounded-full bg-linear-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold">
                       {getInitials(user.fullName)}
                     </div>
                   )}
@@ -188,7 +186,7 @@ export default function ProfilePatient() {
                       <p className="text-xs sm:text-sm font-semibold text-gray-500">
                         Email
                       </p>
-                      <p className="text-sm sm:text-base text-gray-900 break-words">
+                      <p className="text-sm sm:text-base text-gray-900 wrap-break-word">
                         {user.email}
                       </p>
                     </div>
@@ -204,7 +202,7 @@ export default function ProfilePatient() {
                       <p className="text-xs sm:text-sm font-semibold text-gray-500">
                         Phone number
                       </p>
-                      <p className="text-sm sm:text-base text-gray-900 break-words">
+                      <p className="text-sm sm:text-base text-gray-900 wrap-break-word">
                         {user.phoneNumber}
                       </p>
                     </div>
@@ -220,7 +218,7 @@ export default function ProfilePatient() {
                       <p className="text-xs sm:text-sm font-semibold text-gray-500">
                         Identify Number
                       </p>
-                      <p className="text-sm sm:text-base text-gray-900 break-words">
+                      <p className="text-sm sm:text-base text-gray-900 wrap-break-word">
                         {user.identifyNumber}
                       </p>
                     </div>
@@ -268,7 +266,7 @@ export default function ProfilePatient() {
                       <p className="text-xs sm:text-sm font-semibold text-gray-500">
                         Address
                       </p>
-                      <p className="text-sm sm:text-base text-gray-900 break-words">
+                      <p className="text-sm sm:text-base text-gray-900 wrap-break-word">
                         {user.address || "N/A"}
                       </p>
                     </div>
@@ -297,7 +295,7 @@ export default function ProfilePatient() {
 
       {/* Edit Form Modal */}
       {isEditOpen && user && (
-        <EditAdminForm
+        <EditPatientForm
           defaultValues={user}
           onClose={() => setIsEditOpen(false)}
           isLoading={isUpdating}

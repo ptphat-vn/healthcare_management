@@ -91,10 +91,13 @@ const reagent: Reagent = {
   description: "Initial desc",
   usagePerRun: { min: 1, max: 5, unit: "ml" },
   ratio: "1:10",
-  categories: "Chemical",
+  categories: ["Chemical"],
   storageCondition: "2-8°C",
   isActive: true,
-} as Reagent;
+  createdAt: "2024-01-01T00:00:00Z",
+  updatedAt: "2024-01-01T00:00:00Z",
+  createdBy: "user-1",
+};
 
 describe("EditReagentModal", () => {
   const onOpenChange = vi.fn();
@@ -150,7 +153,9 @@ describe("EditReagentModal", () => {
     await waitFor(() => {
       expect(mockUpdateReagent).toHaveBeenCalled();
       expect(mockUnwrap).toHaveBeenCalled();
-      expect(mockToast.success).toHaveBeenCalledWith("Reagent updated successfully");
+      expect(mockToast.success).toHaveBeenCalledWith(
+        "Reagent updated successfully"
+      );
       expect(onOpenChange).toHaveBeenCalledWith(false);
       expect(onSuccess).toHaveBeenCalled();
     });
@@ -164,7 +169,9 @@ describe("EditReagentModal", () => {
     await user.click(screen.getByRole("button", { name: /update reagent/i }));
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith("Please fill in all required fields");
+      expect(mockToast.error).toHaveBeenCalledWith(
+        "Please fill in all required fields"
+      );
       expect(mockUpdateReagent).not.toHaveBeenCalled();
     });
   });
@@ -192,14 +199,18 @@ describe("EditReagentModal", () => {
     await user.click(screen.getByRole("button", { name: /update reagent/i }));
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith("Min dosage cannot be greater than Max");
+      expect(mockToast.error).toHaveBeenCalledWith(
+        "Min dosage cannot be greater than Max"
+      );
       expect(mockUpdateReagent).not.toHaveBeenCalled();
     });
   });
 
   it("should show error when API fails", async () => {
     const user = userEvent.setup();
-    const mockUnwrap = vi.fn().mockRejectedValue({ data: { message: "Server error" } });
+    const mockUnwrap = vi
+      .fn()
+      .mockRejectedValue({ data: { message: "Server error" } });
     mockUpdateReagent.mockReturnValue({ unwrap: mockUnwrap });
 
     renderModal();
@@ -211,4 +222,3 @@ describe("EditReagentModal", () => {
     });
   });
 });
-

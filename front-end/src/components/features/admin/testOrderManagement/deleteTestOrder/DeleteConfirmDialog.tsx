@@ -61,8 +61,8 @@ export default function DeleteConfirmDialog({
               </DialogTitle>
             </div>
             <DialogDescription className="text-sm sm:text-base text-gray-600">
-              Are you sure you want to delete this test order? This action cannot
-              be undone.
+              Are you sure you want to delete this test order? This action
+              cannot be undone.
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -79,15 +79,23 @@ export default function DeleteConfirmDialog({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-500">Email:</span>
+                <span className="text-sm font-medium text-gray-500">
+                  Email:
+                </span>
                 <span className="text-sm text-gray-900">{order.email}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-500">Phone:</span>
-                <span className="text-sm text-gray-900">{order.phoneNumber}</span>
+                <span className="text-sm font-medium text-gray-500">
+                  Phone:
+                </span>
+                <span className="text-sm text-gray-900">
+                  {order.phoneNumber}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-500">Status:</span>
+                <span className="text-sm font-medium text-gray-500">
+                  Status:
+                </span>
                 <span className="text-sm font-semibold text-gray-900">
                   {order.status}
                 </span>
@@ -97,7 +105,7 @@ export default function DeleteConfirmDialog({
 
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
             <div className="flex items-start">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 shrink-0 mt-0.5" />
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">Warning:</p>
                 <p className="mt-1">

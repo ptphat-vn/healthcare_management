@@ -81,10 +81,6 @@ export default function TestOrderDetailPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               Test Order Details
             </h1>
-            <p className="text-gray-600">
-              Order ID:{" "}
-              <span className="font-mono font-semibold">{order._id}</span>
-            </p>
           </div>
         </div>
 

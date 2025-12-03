@@ -15,13 +15,8 @@ export interface Reagent {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  createdBy:
-    | string
-    | {
-        _id: string;
-        fullName: string;
-        email: string;
-      };
+  createdBy?: string;
+  createdByName?: string;
   categories?: string[];
   storageCondition?: string;
   safetyInstructions?: string;
@@ -132,6 +127,7 @@ export interface VendorSupplyHisSearch {
   reagentId?: string;
   vendorId?: string;
   vendorName?: string;
+  status?: string;
   startDate?: string;
   endDate?: string;
   page?: number;

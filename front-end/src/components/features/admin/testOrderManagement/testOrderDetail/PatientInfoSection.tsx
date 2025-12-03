@@ -14,9 +14,9 @@ export default function PatientInfoSection({ order }: PatientInfoSectionProps) {
           Patient Information
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500 mb-1">Patient Name</p>
               <p className="font-semibold text-gray-900">{order.patientName}</p>
@@ -29,7 +29,7 @@ export default function PatientInfoSection({ order }: PatientInfoSectionProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500 mb-1">Age</p>
               <p className="font-semibold text-gray-900">{order.age} years</p>
@@ -42,7 +42,7 @@ export default function PatientInfoSection({ order }: PatientInfoSectionProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500 mb-1">Phone</p>
               <p className="font-semibold text-gray-900">{order.phoneNumber}</p>
