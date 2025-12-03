@@ -47,12 +47,12 @@ export function useAuth() {
         localStorage.setItem(key, value);
       });
 
-      // Điều hướng về trang đăng nhập và fallback nếu router chưa kịp xử lý
-      navigate("/auth/login", { replace: true });
+      // Điều hướng về root, RootRedirect sẽ đưa về login khi chưa auth
+      navigate("/", { replace: true });
       if (typeof window !== "undefined") {
         setTimeout(() => {
-          if (window.location.pathname !== "/auth/login") {
-            window.location.replace("/auth/login");
+          if (window.location.pathname !== "/") {
+            window.location.replace("/");
           }
         }, 10);
       }
