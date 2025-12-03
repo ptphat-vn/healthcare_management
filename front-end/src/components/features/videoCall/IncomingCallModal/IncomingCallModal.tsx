@@ -106,10 +106,10 @@ export default function IncomingCallModal({
               </div>
             </div>
             <h2 className="text-xl sm:text-3xl font-bold text-gray-800 mb-2 sm:mb-3">
-              📞 Cuộc gọi video đến
+              📞 Incoming Video Call 📞
             </h2>
             <p className="text-sm sm:text-lg text-gray-600 mb-6 sm:mb-8">
-              Từ: <span className="font-semibold">{callerName}</span>
+              From: <span className="font-semibold">{callerName}</span>
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center">
               <button
@@ -117,14 +117,14 @@ export default function IncomingCallModal({
                 className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 sm:gap-3"
               >
                 <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
-                Trả lời
+                Accept
               </button>
               <button
                 onClick={handleReject}
                 className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 sm:gap-3"
               >
                 <PhoneOff className="w-5 h-5 sm:w-6 sm:h-6" />
-                Từ chối
+                Reject
               </button>
             </div>
           </div>
@@ -163,7 +163,7 @@ export default function IncomingCallModal({
                 className="w-full h-full object-cover"
               />
               <div className="absolute bottom-1 sm:bottom-3 left-1 sm:left-3 text-xs sm:text-sm text-white bg-black/60 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full backdrop-blur-sm">
-                Bạn
+                You
               </div>
             </div>
 
@@ -174,8 +174,8 @@ export default function IncomingCallModal({
                 className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full font-bold text-sm sm:text-lg shadow-2xl hover:shadow-red-500/50 transform hover:scale-110 transition-all duration-200 flex items-center gap-2 sm:gap-3"
               >
                 <PhoneOff className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline">Kết thúc cuộc gọi</span>
-                <span className="sm:hidden">Kết thúc</span>
+                <span className="hidden sm:inline">Call End</span>
+                <span className="sm:hidden">End</span>
               </button>
             </div>
           </div>

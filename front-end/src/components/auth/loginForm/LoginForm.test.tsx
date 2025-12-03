@@ -98,12 +98,8 @@ describe("LoginForm", () => {
 
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
-    expect(
-      await screen.findByText("Email không được bỏ trống")
-    ).toBeInTheDocument();
-    expect(
-      await screen.findByText("Password không được bỏ trống")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Email is required")).toBeInTheDocument();
+    expect(await screen.findByText("Password is required")).toBeInTheDocument();
   });
 
   it("shows validation error for invalid email format", async () => {
@@ -114,7 +110,7 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText(/password/i), "password123");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
-    expect(await screen.findByText("Email không hợp lệ")).toBeInTheDocument();
+    expect(await screen.findByText("Invalid email format")).toBeInTheDocument();
   });
 
   it("shows validation error for short password", async () => {
@@ -126,7 +122,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
     expect(
-      await screen.findByText("Password tối thiểu phải có 6 kí tự")
+      await screen.findByText("Password must be at least 6 characters")
     ).toBeInTheDocument();
   });
 
@@ -151,7 +147,7 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText(/password/i), "password123");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
-    expect(await screen.findByText("Email không hợp lệ")).toBeInTheDocument();
+    expect(await screen.findByText("Invalid email format")).toBeInTheDocument();
   });
 
   it("shows validation error for email without domain", async () => {
@@ -162,7 +158,7 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText(/password/i), "password123");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
-    expect(await screen.findByText("Email không hợp lệ")).toBeInTheDocument();
+    expect(await screen.findByText("Invalid email format")).toBeInTheDocument();
   });
 
   it("shows validation error for email without @", async () => {
@@ -173,7 +169,7 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText(/password/i), "password123");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
-    expect(await screen.findByText("Email không hợp lệ")).toBeInTheDocument();
+    expect(await screen.findByText("Invalid email format")).toBeInTheDocument();
   });
 
   it("shows validation error for exactly 5 character password", async () => {
@@ -185,7 +181,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
     expect(
-      await screen.findByText("Password tối thiểu phải có 6 kí tự")
+      await screen.findByText("Password must be at least 6 characters")
     ).toBeInTheDocument();
   });
 
@@ -197,9 +193,9 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText(/password/i), "123456");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
-    // Không có lỗi validation nếu đúng 6 ký tự
+    // No validation error for exactly 6 characters
     expect(
-      screen.queryByText("Password tối thiểu phải có 6 kí tự")
+      screen.queryByText("Password must be at least 6 characters")
     ).not.toBeInTheDocument();
   });
 
@@ -211,9 +207,9 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText(/password/i), "123");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
-    expect(await screen.findByText("Email không hợp lệ")).toBeInTheDocument();
+    expect(await screen.findByText("Invalid email format")).toBeInTheDocument();
     expect(
-      await screen.findByText("Password tối thiểu phải có 6 kí tự")
+      await screen.findByText("Password must be at least 6 characters")
     ).toBeInTheDocument();
   });
 
@@ -223,16 +219,12 @@ describe("LoginForm", () => {
 
     // Submit empty form
     await user.click(screen.getByRole("button", { name: /sign in/i }));
-    expect(
-      await screen.findByText("Email không được bỏ trống")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Email is required")).toBeInTheDocument();
 
     // Type valid email
     await user.type(screen.getByLabelText(/email/i), "test@example.com");
     await user.type(screen.getByLabelText(/password/i), "password123");
 
-    expect(
-      screen.queryByText("Email không được bỏ trống")
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Email is required")).not.toBeInTheDocument();
   });
 });

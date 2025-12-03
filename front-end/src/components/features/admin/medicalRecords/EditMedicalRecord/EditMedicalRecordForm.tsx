@@ -14,12 +14,10 @@ import {
   type UpdateMedicalRecordRequest,
 } from "@/types/medicalRecord.type";
 import Input from "@/components/ui/input/Input";
-import { useAuth } from "@/hooks/useAuth";
-import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface EditMedicalRecordFormProps {
   onSubmit: (data: UpdateMedicalRecordRequest) => void;
-  onClose: () => void;
+  onClose?: () => void;
   isLoading?: boolean;
   defaultValues: MedicalRecord;
   hideButtons?: boolean;
@@ -28,13 +26,11 @@ interface EditMedicalRecordFormProps {
 
 export function EditMedicalRecordForm({
   onSubmit,
-  onClose,
-  isLoading = false,
+
   defaultValues,
-  hideButtons = false,
+
   formId,
 }: EditMedicalRecordFormProps) {
-  const { user } = useAuth();
   const {
     register,
     handleSubmit,
@@ -68,6 +64,8 @@ export function EditMedicalRecordForm({
     if (defaultValues) {
       const formData = transformBackendToFormData(defaultValues);
       const { patientId, ...rest } = formData;
+      console.log(patientId);
+
       reset(rest as UpdateMedicalRecordFormData);
     }
   }, [defaultValues, reset]);
@@ -80,9 +78,9 @@ export function EditMedicalRecordForm({
 
   return (
     <div className="flex flex-col gap-1">
-      <form 
+      <form
         id={formId}
-        className="space-y-2" 
+        className="space-y-2"
         onSubmit={handleSubmit(onFormSubmit)}
       >
         <div className="space-y-3">
@@ -90,7 +88,6 @@ export function EditMedicalRecordForm({
             Patient's Information
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols ">
-       
             <Input
               {...register("fullName")}
               label="Full Name"

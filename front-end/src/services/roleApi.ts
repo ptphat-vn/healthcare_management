@@ -46,7 +46,7 @@ export const roleApi = baseApi.injectEndpoints({
       invalidatesTags: ["Roles"],
     }),
     deleteRole: builder.mutation<APIResponse<Roles>, { roleId: string }>({
-      query: (roleId) => ({
+      query: ({ roleId }) => ({
         url: `/roles/${roleId}`,
         method: "DELETE",
       }),

@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import {
   Table,
   TableHeader,
@@ -33,13 +32,15 @@ import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
-import { useMemo } from "react";
 import { formatDate } from "@/utils/formatDate";
-
 interface ApiError {
   data?: {
     message?: string;
   };
+}
+
+interface MedicalRecordListProps {
+  roleCode?: string;
 }
 
 // Thêm các hàm helper giống như TestOrderList (thêm sau các imports, trước component)
@@ -65,9 +66,10 @@ const formatStatusText = (status: string) => {
   return statusMap[status] || status;
 };
 
-export default function MedicalRecordList() {
+export default function MedicalRecordList({
+  roleCode,
+}: MedicalRecordListProps = {}) {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(
     null
   );
@@ -98,7 +100,6 @@ export default function MedicalRecordList() {
   const [deleteMedicalRecord] = useDeleteMedicalRecordMutation();
 
   const records = recordsData?.data?.patient || [];
-
   // Fetch all test orders to get last test date and status
   const { data: testOrdersData } = useGetAllTestOrderQuery({
     sortBy: "createdDate",
@@ -109,19 +110,20 @@ export default function MedicalRecordList() {
   // Create a map of medicalRecordId to last test order (most recent)
   const lastTestByMedicalRecord = useMemo(() => {
     const map = new Map<string, { createdDate: string; status: string }>();
-    
+
     if (testOrdersData?.data?.testOrder) {
       testOrdersData.data.testOrder.forEach((testOrder: any) => {
         // Get medicalRecordId from test order (may be in different formats)
-        const medicalRecordId = 
-          testOrder.medicalRecordId || 
-          testOrder.medicalRecordId?._id || 
+        const medicalRecordId =
+          testOrder.medicalRecordId ||
+          testOrder.medicalRecordId?._id ||
           testOrder.medicalRecordId?.toString();
-        
+
         if (medicalRecordId) {
-          const recordId = typeof medicalRecordId === 'object' 
-            ? medicalRecordId._id || medicalRecordId.toString() 
-            : medicalRecordId.toString();
+          const recordId =
+            typeof medicalRecordId === "object"
+              ? medicalRecordId._id || medicalRecordId.toString()
+              : medicalRecordId.toString();
 
           if (!map.has(recordId)) {
             map.set(recordId, {
@@ -132,17 +134,17 @@ export default function MedicalRecordList() {
         }
       });
     }
-    
+
     return map;
   }, [testOrdersData]);
 
   const enrichedRecords = useMemo(() => {
     return records.map((record) => {
       const medicalRecordId = record._id || record.id;
-      const lastTest = medicalRecordId 
+      const lastTest = medicalRecordId
         ? lastTestByMedicalRecord.get(medicalRecordId.toString())
         : null;
-      
+
       return {
         ...record,
         lastTestDate: record.lastTestDate || lastTest?.createdDate,
@@ -151,12 +153,11 @@ export default function MedicalRecordList() {
     });
   }, [records, lastTestByMedicalRecord]);
 
-
   const handleView = (record: MedicalRecord) => {
-    const roleCode = user?.data?.roleCode;
-    if (roleCode === "admin") {
+    const normalizedRole = roleCode || "admin";
+    if (normalizedRole === "admin") {
       navigate(`/admin/medical-records/${record._id || record.id}`);
-    } else if (roleCode === "lab_user") {
+    } else if (normalizedRole === "lab_user") {
       navigate(`/lab_user/medical-records/${record._id || record.id}`);
     } else {
       navigate(`/lab_manager/medical-records/${record._id || record.id}`);
@@ -253,14 +254,14 @@ export default function MedicalRecordList() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+              <TableRow className="bg-linear-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
                 <TableHead className="font-semibold text-gray-700 w-16 px-3">
                   No
                 </TableHead>
                 {/* <TableHead className="font-semibold text-gray-700 w-32 px-4">
                   Patient ID
                 </TableHead> */}
-                <TableHead className="font-semibold text-gray-700 w-48 px-4">
+                <TableHead className="font-semibold text-gray-700 w-48 px-4 sticky left-0 z-20 bg-blue-50 hover:from-blue-100 hover:to-indigo-100">
                   Full Name
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 w-20 px-3">
@@ -368,7 +369,7 @@ export default function MedicalRecordList() {
                     {/* <TableCell className="font-medium text-gray-900 px-4">
                       {record.patientId}
                     </TableCell> */}
-                    <TableCell className="font-medium text-gray-900 px-4">
+                    <TableCell className="font-medium text-gray-900 px-4 sticky left-0 z-20 bg-background hover:bg-blue-50/50">
                       {record.fullName}
                     </TableCell>
                     <TableCell className="text-gray-600 px-4">

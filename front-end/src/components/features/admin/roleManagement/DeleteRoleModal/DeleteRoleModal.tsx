@@ -103,13 +103,14 @@ export default function DeleteRoleModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 mt-4 sm:mt-6 px-1">
+        <DialogFooter className="flex flex-row items-center justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t mt-auto px-1">
           <Button
             type="button"
             variant="outline"
             onClick={handleCancel}
-            className="w-full sm:w-auto cursor-pointer text-xs sm:text-sm"
+            className="cursor-pointer text-xs sm:text-sm"
             disabled={isLoading}
+            size="sm"
           >
             Cancel
           </Button>
@@ -117,8 +118,9 @@ export default function DeleteRoleModal({
             type="button"
             variant="destructive"
             onClick={handleConfirm}
-            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 cursor-pointer text-xs sm:text-sm"
+            className="bg-red-600 hover:bg-red-700 cursor-pointer text-xs sm:text-sm"
             disabled={isLoading}
+            size="sm"
           >
             {isLoading ? "Deleting..." : "Delete Role"}
           </Button>

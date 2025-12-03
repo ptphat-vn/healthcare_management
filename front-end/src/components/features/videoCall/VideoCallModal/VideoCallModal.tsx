@@ -104,11 +104,11 @@ export default function VideoCallModal({
         <div className="absolute bottom-3 sm:bottom-6 left-1/2 transform -translate-x-1/2">
           <button
             onClick={handleHangup}
-            className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full font-bold text-sm sm:text-lg shadow-2xl hover:shadow-red-500/50 transform hover:scale-110 transition-all duration-200 flex items-center gap-2 sm:gap-3"
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-linear-to-r from-red-500 to-rose-600 text-white rounded-full font-bold text-sm sm:text-lg shadow-2xl hover:shadow-red-500/50 transform hover:scale-110 transition-all duration-200 flex items-center gap-2 sm:gap-3"
           >
             <PhoneOff className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Kết thúc cuộc gọi</span>
-            <span className="sm:hidden">Kết thúc</span>
+            <span className="hidden sm:inline">Call End</span>
+            <span className="sm:hidden">End</span>
           </button>
         </div>
       </div>

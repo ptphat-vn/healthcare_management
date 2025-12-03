@@ -62,7 +62,7 @@ describe("VideoCallModal", () => {
       <VideoCallModal call={call} onHangup={onHangup} recipientName="Bob" />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Kết thúc/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Call End/i }));
 
     expect(call.hangup).toHaveBeenCalled();
     expect(onHangup).toHaveBeenCalled();

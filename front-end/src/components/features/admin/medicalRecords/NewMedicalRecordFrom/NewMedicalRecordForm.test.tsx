@@ -100,8 +100,12 @@ describe('NewMedicalRecordForm', () => {
     render(<NewMedicalRecordForm onSubmit={mockOnSubmit} onClose={mockOnClose} />)
 
     await userEvent.click(screen.getByTestId('combobox'))
-    const bloodTypeSelect = document.querySelector('select[name="bloodType"]') as HTMLSelectElement
+
+    const bloodTypeSelect = document.querySelector('select[aria-hidden="true"]') as HTMLSelectElement
     await userEvent.selectOptions(bloodTypeSelect, 'A+')
+    await userEvent.type(screen.getByPlaceholderText(/emergency contact name/i), 'Jane Doe')
+    await userEvent.type(screen.getByPlaceholderText(/emergency phone/i), '0123456789')
+    await userEvent.type(screen.getByPlaceholderText(/relationship/i), 'Friend')
     await userEvent.click(screen.getByRole('button', { name: /create medical record/i }))
 
     await waitFor(() => {

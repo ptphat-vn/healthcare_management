@@ -72,9 +72,14 @@ vi.mock("sonner", () => ({
   },
 }));
 
-vi.mock("lucide-react", () => ({
-  Loader2: () => <span data-testid="loader" />,
-}));
+vi.mock("lucide-react", () => {
+  const Icon = () => <span data-testid="icon" />;
+  return {
+    Loader2: () => <span data-testid="loader" />,
+    Minus: Icon,
+    Plus: Icon,
+  };
+});
 
 import { useUpdateReagentMutation } from "@/services/reagentApi";
 import { toast } from "sonner";

@@ -13,6 +13,12 @@ vi.mock("@/services/medicalRecordApi", () => ({
   useGetMedicalRecordsQuery: () => mockUseGetMedicalRecordsQuery(),
 }));
 
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({
+    user: { data: { roleCode: "ADMIN" } },
+  }),
+}));
+
 vi.mock("@/components/ui/checkbox", () => ({
   Checkbox: ({
     checked,
@@ -52,15 +58,15 @@ describe("Form thêm đơn xét nghiệm", () => {
     overrideProps: Partial<ComponentProps<typeof TestOrderAddForm>> = {},
   ) => {
     const onSubmit = vi.fn();
-    const onCancel = vi.fn();
+    const onClose = vi.fn();
     render(
       <TestOrderAddForm
         onSubmit={onSubmit}
-        onCancel={onCancel}
+        onClose={onClose}
         {...overrideProps}
       />,
     );
-    return { onSubmit, onCancel };
+    return { onSubmit, onClose };
   };
 
   beforeEach(() => {
@@ -103,13 +109,17 @@ describe("Form thêm đơn xét nghiệm", () => {
 
     const { onSubmit } = renderForm();
 
-    const select = screen.getByRole("combobox");
+    const select = document.querySelector(
+      'select[aria-hidden="true"]'
+    ) as HTMLSelectElement;
     await user.selectOptions(select, "rec-2");
 
     const checkbox = screen.getByTestId("test-checkbox-0");
     await user.click(checkbox);
 
-    await user.click(screen.getByRole("button", { name: /Save/i }));
+    await user.click(
+      screen.getByRole("button", { name: /Create Test Order/i }),
+    );
 
     expect(onSubmit).toHaveBeenCalledWith("rec-2", ["CBC"]);
   });
@@ -122,11 +132,11 @@ describe("Form thêm đơn xét nghiệm", () => {
       error: undefined,
     });
 
-    const { onCancel } = renderForm();
+    const { onClose } = renderForm();
 
-    await user.click(screen.getByRole("button", { name: /Cancel/i }));
+    await user.click(screen.getByRole("button", { name: /Close/i }));
 
-    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it("khóa nút và hiển thị Saving khi đang submit", () => {
@@ -138,8 +148,8 @@ describe("Form thêm đơn xét nghiệm", () => {
 
     renderForm({ isLoading: true });
 
-    const saveButton = screen.getByRole("button", { name: /Saving.../i });
-    const cancelButton = screen.getByRole("button", { name: /Cancel/i });
+    const saveButton = screen.getByRole("button", { name: /Creating.../i });
+    const cancelButton = screen.getByRole("button", { name: /Close/i });
     expect(saveButton).toBeDisabled();
     expect(cancelButton).toBeDisabled();
   });

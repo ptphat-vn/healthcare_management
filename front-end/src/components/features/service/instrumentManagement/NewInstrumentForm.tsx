@@ -7,6 +7,13 @@ import {
 } from "@/schemas/instrumentSchema";
 import Input from "@/components/ui/input/Input";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
@@ -98,17 +105,23 @@ export function NewInstrumentForm({
               Status
               <span className="text-red-500">*</span>
             </label>
-            <select
-              {...register("status")}
-              className={`flex h-10 w-full rounded-sm border ${
-                errors.status?.message ? "border-red-500" : "border-input"
-              } bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Out of Service">Out of Service</option>
-            </select>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Maintenance">Maintenance</SelectItem>
+                    <SelectItem value="Out of Service">Out of Service</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
             {errors.status?.message && (
               <p className="text-xs text-red-500">{errors.status.message}</p>
             )}

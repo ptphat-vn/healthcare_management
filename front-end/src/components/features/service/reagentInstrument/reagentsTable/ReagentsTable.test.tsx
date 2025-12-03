@@ -202,7 +202,7 @@ describe("ReagentsTable", () => {
     const { onDelete } = renderTable();
 
     await user.click(
-      screen.getAllByRole("button", { name: /Remove/ })[0],
+      screen.getAllByRole("button", { name: /Delete/ })[0],
     );
 
     expect(latestDialogProps).not.toBeNull();
@@ -217,7 +217,7 @@ describe("ReagentsTable", () => {
   it("khóa hành động xóa khi trạng thái đang xóa", () => {
     renderTable({ isDeleting: true });
 
-    const removeButtons = screen.getAllByRole("button", { name: /Remove/ });
+    const removeButtons = screen.getAllByRole("button", { name: /Delete/ });
     removeButtons.forEach((btn) => expect(btn).toBeDisabled());
   });
 });

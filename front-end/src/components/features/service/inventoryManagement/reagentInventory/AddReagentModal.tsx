@@ -154,7 +154,6 @@ export default function AddReagentModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-console.log(formData.reagentId);
 
     // Validation
     if (!formData.reagentId) {
@@ -248,21 +247,21 @@ console.log(formData.reagentId);
 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+      <DialogContent className="w-[95vw] sm:w-full sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col rounded-lg">
+        <DialogHeader className="px-1 sm:px-0 pb-3 sm:pb-4 border-b">
+          <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent wrap-break-word">
             Add Vendor Supply
           </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
+          <DialogDescription className="text-xs sm:text-sm text-gray-600 mt-1 wrap-break-word">
             Enter vendor supply details to add reagent batch to inventory
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+          <div className="grid gap-3 sm:gap-4 py-3 sm:py-4 px-1 sm:px-0">
             {/* Reagent Selection */}
-            <div className="grid gap-2">
-              <Label htmlFor="reagentId" className="text-xs sm:text-sm">
+            <div className="grid gap-1.5 sm:gap-2">
+              <Label htmlFor="reagentId" className="text-xs sm:text-sm font-medium">
                 Reagent <span className="text-red-500">*</span>
               </Label>
               <Select
@@ -270,7 +269,7 @@ console.log(formData.reagentId);
                 onValueChange={handleReagentChange}
                 disabled={isSubmitting}
               >
-                <SelectTrigger className="text-xs sm:text-sm">
+                <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                   <SelectValue placeholder="Select reagent" />
                 </SelectTrigger>
                 <SelectContent>
@@ -288,9 +287,9 @@ console.log(formData.reagentId);
             </div>
 
             {/* Vendor Information */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="vendorName" className="text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid gap-1.5 sm:gap-2">
+                <Label htmlFor="vendorName" className="text-xs sm:text-sm font-medium">
                   Vendor Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -301,12 +300,12 @@ console.log(formData.reagentId);
                   placeholder="Enter vendor name"
                   disabled={isSubmitting}
                   required
-                  className="text-xs sm:text-sm"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="vendorId" className="text-xs sm:text-sm">
+              <div className="grid gap-1.5 sm:gap-2">
+                <Label htmlFor="vendorId" className="text-xs sm:text-sm font-medium">
                   Vendor ID (Optional)
                 </Label>
                 <Input
@@ -316,17 +315,17 @@ console.log(formData.reagentId);
                   onChange={handleInputChange}
                   placeholder="Vendor ID"
                   disabled={isSubmitting}
-                  className="text-xs sm:text-sm"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
             </div>
 
             {/* Purchase Order & Dates */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="grid gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid gap-1.5 sm:gap-2">
                 <Label
                   htmlFor="purchaseOrderNumber"
-                  className="text-xs sm:text-sm"
+                  className="text-xs sm:text-sm font-medium"
                 >
                   PO Number <span className="text-red-500">*</span>
                 </Label>
@@ -338,12 +337,12 @@ console.log(formData.reagentId);
                   placeholder="PO-XXX"
                   disabled={isSubmitting}
                   required
-                  className="text-xs sm:text-sm"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="orderDate" className="text-xs sm:text-sm">
+              <div className="grid gap-1.5 sm:gap-2">
+                <Label htmlFor="orderDate" className="text-xs sm:text-sm font-medium">
                   Order Date <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -354,12 +353,12 @@ console.log(formData.reagentId);
                   onChange={handleInputChange}
                   disabled={isSubmitting}
                   required
-                  className="text-xs sm:text-sm"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="receiptDate" className="text-xs sm:text-sm">
+              <div className="grid gap-1.5 sm:gap-2">
+                <Label htmlFor="receiptDate" className="text-xs sm:text-sm font-medium">
                   Receipt Date <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -370,15 +369,15 @@ console.log(formData.reagentId);
                   onChange={handleInputChange}
                   disabled={isSubmitting}
                   required
-                  className="text-xs sm:text-sm"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
             </div>
 
             {/* Lot Number & Expiration */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="lotNumber" className="text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid gap-1.5 sm:gap-2">
+                <Label htmlFor="lotNumber" className="text-xs sm:text-sm font-medium">
                   Lot Number <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -389,12 +388,12 @@ console.log(formData.reagentId);
                   placeholder="LOT-2024-XXX"
                   disabled={isSubmitting}
                   required
-                  className="text-xs sm:text-sm"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="expirationDate" className="text-xs sm:text-sm">
+              <div className="grid gap-1.5 sm:gap-2">
+                <Label htmlFor="expirationDate" className="text-xs sm:text-sm font-medium">
                   Expiration Date <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -405,17 +404,17 @@ console.log(formData.reagentId);
                   onChange={handleInputChange}
                   disabled={isSubmitting}
                   required
-                  className="text-xs sm:text-sm"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
             </div>
 
             {/* Quantity & Unit */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid gap-1.5 sm:gap-2">
                 <Label
                   htmlFor="quantityReceived"
-                  className="text-xs sm:text-sm"
+                  className="text-xs sm:text-sm font-medium"
                 >
                   Quantity Received <span className="text-red-500">*</span>
                 </Label>
@@ -430,12 +429,12 @@ console.log(formData.reagentId);
                   placeholder="Enter quantity"
                   disabled={isSubmitting}
                   required
-                  className="text-xs sm:text-sm"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="unitOfMeasure" className="text-xs sm:text-sm">
+              <div className="grid gap-1.5 sm:gap-2">
+                <Label htmlFor="unitOfMeasure" className="text-xs sm:text-sm font-medium">
                   Unit of Measure <span className="text-red-500">*</span>
                 </Label>
                 <Select
@@ -443,7 +442,7 @@ console.log(formData.reagentId);
                   onValueChange={handleUnitChange}
                   disabled={isSubmitting}
                 >
-                  <SelectTrigger className="text-xs sm:text-sm">
+                  <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -463,11 +462,11 @@ console.log(formData.reagentId);
             </div>
 
             {/* Storage & Received By */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid gap-1.5 sm:gap-2">
                 <Label
                   htmlFor="initialStorageLocation"
-                  className="text-xs sm:text-sm"
+                  className="text-xs sm:text-sm font-medium"
                 >
                   Storage Location (Optional)
                 </Label>
@@ -478,12 +477,12 @@ console.log(formData.reagentId);
                   onChange={handleInputChange}
                   placeholder="e.g., Shelf A1"
                   disabled={isSubmitting}
-                  className="text-xs sm:text-sm"
+                  className="h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="receivedBy" className="text-xs sm:text-sm">
+              <div className="grid gap-1.5 sm:gap-2">
+                <Label htmlFor="receivedBy" className="text-xs sm:text-sm font-medium">
                   Received By <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -493,15 +492,15 @@ console.log(formData.reagentId);
                   placeholder="Receiver name"
                   disabled={true}
                   readOnly
-                  className="text-xs sm:text-sm bg-gray-50"
+                  className="h-9 sm:h-10 text-xs sm:text-sm bg-gray-50"
                   title={`User ID: ${currentUser?.data?._id || "N/A"}`}
                 />
               </div>
             </div>
 
             {/* Status */}
-            <div className="grid gap-2">
-              <Label htmlFor="status" className="text-xs sm:text-sm">
+            <div className="grid gap-1.5 sm:gap-2">
+              <Label htmlFor="status" className="text-xs sm:text-sm font-medium">
                 Status <span className="text-red-500">*</span>
               </Label>
               <Select
@@ -509,7 +508,7 @@ console.log(formData.reagentId);
                 onValueChange={handleStatusChange}
                 disabled={isSubmitting}
               >
-                <SelectTrigger className="text-xs sm:text-sm">
+                <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -523,29 +522,31 @@ console.log(formData.reagentId);
             </div>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="flex flex-row items-center justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t mt-auto px-1">
             <Button
               type="button"
               variant="outline"
               onClick={handleModalClose}
               disabled={isSubmitting}
-              className="text-xs sm:text-sm"
+              className="cursor-pointer text-xs sm:text-sm"
+              size="sm"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="btn-service text-xs sm:text-sm"
+              className="btn-service text-xs sm:text-sm cursor-pointer"
               disabled={isSubmitting}
+              size="sm"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                   Adding...
                 </>
               ) : (
                 <>
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Add Supply
                 </>
               )}

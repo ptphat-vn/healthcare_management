@@ -6,11 +6,7 @@ import type { TestOrder } from "@/types/testOrder.type";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  ArrowLeft,
-  User,
-  FileText,
-} from "lucide-react";
+import { ArrowLeft, User, FileText } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -35,8 +31,12 @@ export default function MedicalRecordDetail() {
     error,
   } = useGetMedicalRecordByIdQuery(id || "");
   const medicalRecord: MedicalRecord | undefined = medicalRecordResponse?.data;
-  const { data: testOrdersData, isLoading: isLoadingTestOrders, refetch: refetchTestOrders } = useGetAllTestOrderQuery(
-    medicalRecord?.email  
+  const {
+    data: testOrdersData,
+    isLoading: isLoadingTestOrders,
+    refetch: refetchTestOrders,
+  } = useGetAllTestOrderQuery(
+    medicalRecord?.email
       ? {
           search: medicalRecord.email,
           sortBy: "createdDate",
@@ -46,26 +46,30 @@ export default function MedicalRecordDetail() {
         }
       : undefined,
     {
-      skip: !medicalRecord?.email, 
+      skip: !medicalRecord?.email,
     }
   );
-  
+
   React.useEffect(() => {
-    if (medicalRecord?.email) {  
+    if (medicalRecord?.email) {
       refetchTestOrders();
     }
-  }, [medicalRecord?.email, refetchTestOrders]);  
+  }, [medicalRecord?.email, refetchTestOrders]);
 
   const testOrders: TestOrder[] = React.useMemo(() => {
     if (!testOrdersData?.data?.testOrder || !medicalRecord) {
       return [];
     }
     return testOrdersData.data.testOrder.filter((order: TestOrder) => {
-      const emailMatch = order.email?.toLowerCase().trim() === medicalRecord.email?.toLowerCase().trim();
-      
-      const nameMatch = 
-        order.patientName?.toLowerCase().trim() === medicalRecord.fullName?.toLowerCase().trim();
-      
+      const emailMatch =
+        order.email?.toLowerCase().trim() ===
+        medicalRecord.email?.toLowerCase().trim();
+
+      const nameMatch =
+        order.patientName?.toLowerCase().trim() ===
+        medicalRecord.fullName?.toLowerCase().trim();
+      console.log(nameMatch);
+
       return emailMatch;
     });
   }, [testOrdersData?.data?.testOrder, medicalRecord]);
@@ -138,7 +142,9 @@ export default function MedicalRecordDetail() {
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Medical Record Details</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+                  Medical Record Details
+                </h1>
                 <p className="text-blue-100 text-sm sm:text-base md:text-lg">
                   View and manage medical record information
                 </p>
@@ -149,7 +155,9 @@ export default function MedicalRecordDetail() {
                 <span className="text-xs sm:text-sm font-medium opacity-90">
                   Patient Name
                 </span>
-                <p className="text-lg sm:text-xl font-bold">{medicalRecord.fullName}</p>
+                <p className="text-lg sm:text-xl font-bold">
+                  {medicalRecord.fullName}
+                </p>
               </div>
             </div>
           </div>
@@ -188,20 +196,26 @@ export default function MedicalRecordDetail() {
             <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-4 sm:mb-6">
                 <User className="h-5 w-5 sm:h-6 sm:w-6" />
-                <h2 className="text-lg sm:text-xl font-bold">Patient Information</h2>
+                <h2 className="text-lg sm:text-xl font-bold">
+                  Patient Information
+                </h2>
               </div>
 
               <div className="space-y-3">
                 {/* Hàng 1: Full Name + Gender */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Full Name</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                      Full Name
+                    </p>
                     <p className="font-semibold text-sm sm:text-base text-gray-900">
                       {medicalRecord.fullName}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Gender</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                      Gender
+                    </p>
                     <p className="font-semibold text-sm sm:text-base text-gray-900 capitalize">
                       {medicalRecord.gender}
                     </p>
@@ -211,10 +225,14 @@ export default function MedicalRecordDetail() {
                 {/* Hàng 2: Date of Birth + Age */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Date of Birth</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                      Date of Birth
+                    </p>
                     <p className="font-semibold text-sm sm:text-base text-gray-900">
                       {medicalRecord.dateOfBirth
-                        ? new Date(medicalRecord.dateOfBirth).toLocaleDateString()
+                        ? new Date(
+                            medicalRecord.dateOfBirth
+                          ).toLocaleDateString()
                         : "—"}
                     </p>
                   </div>
@@ -232,13 +250,17 @@ export default function MedicalRecordDetail() {
                 {/* Hàng 3: Blood Type + Phone */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Blood Type</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                      Blood Type
+                    </p>
                     <p className="font-semibold text-sm sm:text-base text-gray-900">
                       {medicalRecord.bloodType || "—"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Phone</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                      Phone
+                    </p>
                     <p className="font-semibold text-sm sm:text-base text-gray-900">
                       {medicalRecord.phoneNumber}
                     </p>
@@ -248,7 +270,9 @@ export default function MedicalRecordDetail() {
                 {/* Hàng 4: Email */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Email</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                      Email
+                    </p>
                     <p className="font-semibold text-sm sm:text-base text-blue-600 underline">
                       {medicalRecord.email || "—"}
                     </p>
@@ -257,7 +281,9 @@ export default function MedicalRecordDetail() {
 
                 {/* Address giữ full width */}
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-500 mb-1">Address</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                    Address
+                  </p>
                   <p className="font-semibold text-sm sm:text-base text-gray-900">
                     {medicalRecord.address}
                   </p>
@@ -281,13 +307,17 @@ export default function MedicalRecordDetail() {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div>
-                      <p className="text-xs sm:text-sm text-gray-500 mb-1">Created At</p>
+                      <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                        Created At
+                      </p>
                       <p className="font-semibold text-sm sm:text-base text-gray-900">
                         {new Date(medicalRecord.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm text-gray-500 mb-1">Updated At</p>
+                      <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                        Updated At
+                      </p>
                       <p className="font-semibold text-sm sm:text-base text-gray-900">
                         {new Date(medicalRecord.updatedAt).toLocaleDateString()}
                       </p>
@@ -301,7 +331,9 @@ export default function MedicalRecordDetail() {
             <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-4 sm:mb-6">
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
-                <h2 className="text-lg sm:text-xl font-bold">Medical Information</h2>
+                <h2 className="text-lg sm:text-xl font-bold">
+                  Medical Information
+                </h2>
               </div>
 
               <div className="space-y-3">
@@ -315,19 +347,24 @@ export default function MedicalRecordDetail() {
                               Allergies
                             </p>
                             <p className="font-semibold text-sm sm:text-base text-gray-900">
-                              {medicalRecord.medicalHistory.allergies.join(", ")}
+                              {medicalRecord.medicalHistory.allergies.join(
+                                ", "
+                              )}
                             </p>
                           </div>
                         )}
 
                       {medicalRecord.medicalHistory.chronicConditions &&
-                        medicalRecord.medicalHistory.chronicConditions.length > 0 && (
+                        medicalRecord.medicalHistory.chronicConditions.length >
+                          0 && (
                           <div>
                             <p className="text-xs sm:text-sm text-gray-500 mb-1">
                               Chronic Conditions
                             </p>
                             <p className="font-semibold text-sm sm:text-base text-gray-900">
-                              {medicalRecord.medicalHistory.chronicConditions.join(", ")}
+                              {medicalRecord.medicalHistory.chronicConditions.join(
+                                ", "
+                              )}
                             </p>
                           </div>
                         )}
@@ -341,19 +378,24 @@ export default function MedicalRecordDetail() {
                               Current Medications
                             </p>
                             <p className="font-semibold text-sm sm:text-base text-gray-900">
-                              {medicalRecord.medicalHistory.medications.join(", ")}
+                              {medicalRecord.medicalHistory.medications.join(
+                                ", "
+                              )}
                             </p>
                           </div>
                         )}
 
                       {medicalRecord.medicalHistory.previousSurgeries &&
-                        medicalRecord.medicalHistory.previousSurgeries.length > 0 && (
+                        medicalRecord.medicalHistory.previousSurgeries.length >
+                          0 && (
                           <div>
                             <p className="text-xs sm:text-sm text-gray-500 mb-1">
                               Previous Surgeries
                             </p>
                             <p className="font-semibold text-sm sm:text-base text-gray-900">
-                              {medicalRecord.medicalHistory.previousSurgeries.join(", ")}
+                              {medicalRecord.medicalHistory.previousSurgeries.join(
+                                ", "
+                              )}
                             </p>
                           </div>
                         )}
@@ -367,13 +409,17 @@ export default function MedicalRecordDetail() {
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <p className="text-xs sm:text-sm text-gray-500 mb-1">Name</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                          Name
+                        </p>
                         <p className="font-semibold text-sm sm:text-base text-gray-900">
                           {medicalRecord.emergencyContact.name}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs sm:text-sm text-gray-500 mb-1">Phone</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                          Phone
+                        </p>
                         <p className="font-semibold text-sm sm:text-base text-gray-900">
                           {medicalRecord.emergencyContact.phoneNumber}
                         </p>
@@ -397,7 +443,9 @@ export default function MedicalRecordDetail() {
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <p className="text-xs sm:text-sm text-gray-500 mb-1">Provider</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                          Provider
+                        </p>
                         <p className="font-semibold text-sm sm:text-base text-gray-900">
                           {medicalRecord.insuranceInfo.provider}
                         </p>
@@ -459,7 +507,7 @@ export default function MedicalRecordDetail() {
                       Run Date
                     </TableHead>
                     <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">
-                     Doctor in charge
+                      Doctor in charge
                     </TableHead>
                     <TableHead className="font-semibold text-gray-900 text-xs sm:text-sm">
                       Status
@@ -484,11 +532,13 @@ export default function MedicalRecordDetail() {
                           : "—"}
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm">
-                      {order.runByUser?.fullName || order.runBy || "—"}
+                        {order.runByUser?.fullName || order.runBy || "—"}
                       </TableCell>
                       <TableCell>
                         <span
-                          className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}
+                          className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            order.status
+                          )}`}
                         >
                           {order.status}
                         </span>

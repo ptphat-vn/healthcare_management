@@ -54,7 +54,7 @@ export default function VideoCallButton({
     <>
       <button
         type="button"
-        title={!isConnected ? "Đang kết nối..." : "Gọi video"}
+        title={!isConnected ? "Connecting..." : "Call Video"}
         onClick={handleVideoCall}
         disabled={!isConnected}
         className="group relative p-2 rounded-full hover:bg-blue-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"

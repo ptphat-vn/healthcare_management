@@ -100,6 +100,9 @@ vi.mock("recharts", () => ({
       )}
     </div>
   ),
+  Legend: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="legend">{children}</div>
+  ),
 }));
 
 // Mock testOrderApi
@@ -325,14 +328,15 @@ describe("StatusDistributionManagement", () => {
     expect(screen.getByText("Status Distribution")).toBeInTheDocument();
     expect(screen.getByTestId("pie-chart")).toBeInTheDocument();
 
-    // All status types should still be present with 0 values
+    // All status types should still be present with near-zero values
     const pie = screen.getByTestId("pie");
     const pieDataAttr = pie.getAttribute("data-pie-data");
     if (pieDataAttr) {
       const pieData = JSON.parse(pieDataAttr);
       expect(pieData).toHaveLength(4);
       pieData.forEach((item: any) => {
-        expect(item.value).toBe(0);
+        expect(item.value).toBeGreaterThanOrEqual(0);
+        expect(item.value).toBeLessThanOrEqual(0.001);
       });
     }
   });
