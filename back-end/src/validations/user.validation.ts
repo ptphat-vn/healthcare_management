@@ -73,18 +73,25 @@ const isNotFutureDate = (s: string): boolean => {
 }
 
 const registerSchema = z.object({
-  fullName: z.string().min(1, 'Họ tên không được để trống'),
-  email: z.string().email('Email không đúng định dạng'),
-  phoneNumber: z.string().regex(/^[0-9]{10,11}$/, 'Số điện thoại phải có 10-11 chữ số'),
-  identifyNumber: z.string().regex(/^[0-9]{9,12}$/, 'Số CMND/CCCD phải có 9-12 chữ số'),
-  gender: z.enum(['male', 'female'], { message: 'Giới tính phải là nam hoặc nữ' }),
+  fullName: z.string().min(1, 'Full name is required'),
+  email: z.string().email('Email format is invalid'),
+  phoneNumber: z
+    .string()
+    .regex(/^[0-9]{10,11}$/, 'Phone number must contain 10-11 digits'),
+  identifyNumber: z
+    .string()
+    .regex(/^[0-9]{9,12}$/, 'ID number must contain 9-12 digits'),
+  gender: z.enum(['male', 'female'], { message: 'Gender must be male or female' }),
   address: z.string().min(1).optional(),
   dateOfBirth: z
     .string()
-    .refine(isValidDate, 'Ngày sinh phải là ngày hợp lệ với định dạng MM/DD/YYYY hoặc YYYY-MM-DD')
-    .refine(isReasonableYear, 'Năm sinh phải từ 1900 đến năm hiện tại')
-    .refine(isNotFutureDate, 'Ngày sinh không được ở tương lai'),
-  password: z.string().min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
+    .refine(
+      isValidDate,
+      'Date of birth must be valid in MM/DD/YYYY or YYYY-MM-DD format'
+    )
+    .refine(isReasonableYear, 'Year of birth must be between 1900 and the current year')
+    .refine(isNotFutureDate, 'Date of birth cannot be in the future'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
 export const updateUserSchema = z.object({
@@ -92,10 +99,12 @@ export const updateUserSchema = z.object({
   dateOfBirth: z
     .string()
     .refine(isValidDate, {
-      message: 'Ngày sinh phải là ngày hợp lệ với định dạng MM/DD/YYYY hoặc YYYY-MM-DD',
+      message: 'Date of birth must be valid in MM/DD/YYYY or YYYY-MM-DD format',
     })
-    .refine(isReasonableYear, { message: 'Năm sinh phải từ 1900 đến năm hiện tại' })
-    .refine(isNotFutureDate, { message: 'Ngày sinh không được ở tương lai' })
+    .refine(isReasonableYear, {
+      message: 'Year of birth must be between 1900 and the current year',
+    })
+    .refine(isNotFutureDate, { message: 'Date of birth cannot be in the future' })
     .optional(),
   gender: z.enum(['male', 'female']).optional(),
   address: z.string().min(1).optional(),

@@ -33,7 +33,7 @@ export const createReagentSchema = z.object({
     }, {
       message: 'CAS Number must be in format: number-number-number (e.g., 7732-18-5)'
     }),
-  description: z.string().min(1, 'Description is required'),
+  description: z.string().min(1).optional(),
   usagePerRun: usagePerRunSchema,
   ratio: z.string().optional(),
   categories: z.array(z.string()).refine(
