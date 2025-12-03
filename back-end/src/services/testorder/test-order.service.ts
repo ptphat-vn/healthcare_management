@@ -633,10 +633,16 @@ export async function recordReagentUsageFromTestResults(
     try {
       await recordReagentUsage(payload)
     } catch (error) {
-      console.error(
-        `Failed to record reagent usage for reagent ${entry.reagentId} (test order ${testOrder._id}):`,
-        error
-      )
+      if (error instanceof HttpError && error.status === 404) {
+        console.warn(
+          `Skipping reagent usage record: Reagent ${entry.reagentId} (${entry.reagentName}) not found in database. Test order ${testOrder._id} will continue processing.`
+        )
+      } else {
+        console.error(
+          `Failed to record reagent usage for reagent ${entry.reagentId} (${entry.reagentName}) in test order ${testOrder._id}:`,
+          error
+        )
+      }
     }
   }
 }

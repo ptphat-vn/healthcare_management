@@ -5,6 +5,8 @@ import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
 import { generateUniqueCasNumber } from '~/utils/cas-lookup.util'
+import { getInstrumentReagentAssignmentCollection } from '~/models/instrument-reagent-assignment.model'
+import { getReagentInventoryFIFO } from '~/services/reagentinventory/reagent-inventory.service'
 
 export interface CreateReagentPayload {
   name: string
@@ -425,6 +427,83 @@ export const deleteReagent = async (id: string, deletedBy: string): Promise<With
     throw new HttpError(404, 'Reagent not found')
   }
 
+  // Check if reagent is assigned to any active instruments
+  const assignments = getInstrumentReagentAssignmentCollection()
+  const activeAssignments = await assignments
+    .find({
+      reagentId: objectId,
+      isActive: true
+    } as any)
+    .toArray()
+
+  // Check inventory
+  const inventoryResult = await getReagentInventoryFIFO({
+    reagentId: id,
+    includeExpired: false
+  })
+  const hasInventory = inventoryResult.inventory.length > 0 && 
+    inventoryResult.inventory.some(item => item.quantityAvailable > 0)
+
+  // If reagent is assigned to instruments and still has inventory, prevent deletion
+  if (activeAssignments.length > 0 && hasInventory) {
+    const instrumentNames = activeAssignments
+      .map(a => a.instrumentName || 'Unknown instrument')
+      .filter((name, index, arr) => arr.indexOf(name) === index)
+      .join(', ')
+    
+    throw new HttpError(
+      409,
+      `Cannot delete reagent: It is currently assigned to active instrument(s) (${instrumentNames}) and still has inventory available. Please remove the reagent from instruments first or wait until inventory is depleted.`
+    )
+  }
+
+  // If reagent is assigned but inventory is depleted, automatically remove from instruments
+  if (activeAssignments.length > 0 && !hasInventory) {
+    const deletedByObjectId = new ObjectId(deletedBy)
+    const now = new Date()
+    const user = await getUsersCollection().findOne({ _id: deletedByObjectId } as any)
+    const removedByName = user?.fullName || user?.email || deletedByObjectId.toString()
+
+    // Deactivate all active assignments
+    await assignments.updateMany(
+      {
+        reagentId: objectId,
+        isActive: true
+      } as any,
+      {
+        $set: {
+          isActive: false,
+          removedAt: now,
+          removedBy: deletedByObjectId,
+          removedByName,
+          updatedAt: now
+        }
+      }
+    )
+
+    // Log event for each removed assignment
+    try {
+      const eventLogs = getEventLogsCollection()
+      const roleCol = getRolesCollection()
+      const actorRoleDoc = user?.roleId ? await roleCol.findOne({ _id: user.roleId } as any) : null
+      
+      for (const assignment of activeAssignments) {
+        await eventLogs.insertOne({
+          operator: {
+            id: user?._id || 'system',
+            name: user?.fullName || 'system',
+            role: actorRoleDoc?.code || 'system'
+          },
+          action: 'REMOVE_REAGENT_FROM_INSTRUMENT',
+          details: `Automatically removed reagent ${existing.name} from instrument ${assignment.instrumentName || 'Unknown'} due to reagent deletion (inventory depleted)`,
+          timestamp: now
+        } as any)
+      }
+    } catch {
+      // swallow logging errors
+    }
+  }
+
   const result = await reagents.findOneAndDelete({ _id: objectId } as any)
   const deleted: any = (result as any)?.value ?? result
   if (!deleted) {
@@ -439,6 +518,11 @@ export const deleteReagent = async (id: string, deletedBy: string): Promise<With
     const actor = await users.findOne({ _id: deletedByObjectId } as any)
     const roleCol = getRolesCollection()
     const actorRoleDoc = actor?.roleId ? await roleCol.findOne({ _id: actor.roleId } as any) : null
+    
+    const assignmentDetails = activeAssignments.length > 0 && !hasInventory
+      ? ` (automatically removed from ${activeAssignments.length} instrument(s) due to depleted inventory)`
+      : ''
+    
     await eventLogs.insertOne({
       operator: {
         id: actor?._id || 'system',
@@ -446,7 +530,7 @@ export const deleteReagent = async (id: string, deletedBy: string): Promise<With
         role: actorRoleDoc?.code || 'system'
       },
       action: 'DELETE_REAGENT',
-      details: `Deleted reagent: ${deleted.name}`,
+      details: `Deleted reagent: ${deleted.name}${assignmentDetails}`,
       timestamp: new Date()
     } as any)
   } catch {
