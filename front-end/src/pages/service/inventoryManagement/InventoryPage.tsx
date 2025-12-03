@@ -33,7 +33,7 @@ export default function InventoryPage({
             <TabsList className="grid grid-cols-1 sm:grid-cols-3 w-full sm:max-w-3xl h-auto sm:h-11 mb-6 gap-2 sm:gap-0 p-1 bg-gray-100">
               <TabsTrigger
                 value="inventory"
-                className="flex items-center justify-center gap-2 h-10 sm:h-auto text-sm sm:text-base data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all rounded-md"
+                className="flex items-center justify-center gap-2 h-10 sm:h-auto text-sm sm:text-base data-[state=active]:bg-linear-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all rounded-md"
               >
                 <Package className="w-4 h-4" />
                 <span>Reagent Inventory</span>
@@ -41,7 +41,7 @@ export default function InventoryPage({
 
               <TabsTrigger
                 value="history-vendor-supply"
-                className="flex items-center justify-center gap-2 h-10 sm:h-auto text-sm sm:text-base data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all rounded-md"
+                className="flex items-center justify-center gap-2 h-10 sm:h-auto text-sm sm:text-base data-[state=active]:bg-linear-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all rounded-md"
               >
                 <TruckIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Vendor Supply History</span>
@@ -50,7 +50,7 @@ export default function InventoryPage({
 
               <TabsTrigger
                 value="history"
-                className="flex items-center justify-center gap-2 h-10 sm:h-auto text-sm sm:text-base data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all rounded-md"
+                className="flex items-center justify-center gap-2 h-10 sm:h-auto text-sm sm:text-base data-[state=active]:bg-linear-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all rounded-md"
               >
                 <History className="w-4 h-4" />
                 <span className="hidden sm:inline">Usage Reagent History</span>

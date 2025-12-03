@@ -105,7 +105,7 @@ export default function DeleteConfirmDialog({
 
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
             <div className="flex items-start">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 shrink-0 mt-0.5" />
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">Warning:</p>
                 <p className="mt-1">

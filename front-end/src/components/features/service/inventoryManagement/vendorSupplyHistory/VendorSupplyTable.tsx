@@ -62,11 +62,11 @@ export default function VendorSupplyTable({ data }: VendorSupplyTableProps) {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gradient-to-r from-orange-50 to-amber-50">
+            <TableRow className="bg-linear-to-r from-orange-50 to-amber-50">
               <TableHead className="font-semibold text-xs sm:text-sm whitespace-nowrap">
                 Receipt Date
               </TableHead>
-              <TableHead className="font-semibold text-xs sm:text-sm whitespace-nowrap">
+              <TableHead className="font-semibold text-xs sm:text-sm whitespace-nowrap sticky left-0 z-20 bg-orange-50 hover:from-orange-100 hover:to-amber-100">
                 Reagent Name
               </TableHead>
               <TableHead className="font-semibold text-xs sm:text-sm whitespace-nowrap">
@@ -119,7 +119,7 @@ export default function VendorSupplyTable({ data }: VendorSupplyTableProps) {
                   <TableCell className="font-medium text-xs sm:text-sm">
                     {formatDate(item.receiptDate)}
                   </TableCell>
-                  <TableCell className="font-medium text-xs sm:text-sm">
+                  <TableCell className="font-medium text-xs sm:text-sm sticky left-0 z-20 bg-background">
                     <div>
                       <div className="font-semibold">{item.reagentName}</div>
                       <div className="text-gray-500 text-xs">

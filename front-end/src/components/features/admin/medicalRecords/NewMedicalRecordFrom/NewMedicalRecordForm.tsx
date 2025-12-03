@@ -83,6 +83,7 @@ export function NewMedicalRecordForm({
   return (
     <div className="flex flex-col gap-1">
       <form
+        id={formId}
         className="space-y-2 sm:space-y-3"
         onSubmit={handleSubmit(onFormSubmit)}
       >

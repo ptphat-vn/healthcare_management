@@ -122,7 +122,9 @@ export default function UsageReagentHistory() {
 
   // Handle filter change
   const handleActionFilterChange = (value: string) => {
-    setActionFilter(value as any);
+    setActionFilter(
+      value as "Used" | "Consumed" | "Wasted" | "Expired" | "Returned"
+    );
     setCurrentPage(1);
   };
 
@@ -143,7 +145,7 @@ export default function UsageReagentHistory() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {(error as any)?.data?.message ||
+            {(error as { data?: { message?: string } })?.data?.message ||
               "Failed to load usage history. Please try again."}
           </AlertDescription>
         </Alert>

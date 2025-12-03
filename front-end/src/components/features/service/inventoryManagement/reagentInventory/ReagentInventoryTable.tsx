@@ -79,8 +79,8 @@ export default function ReagentInventoryTable({
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gradient-to-r from-orange-50 to-amber-50">
-              <TableHead className="font-semibold text-xs sm:text-sm whitespace-nowrap">
+            <TableRow className="bg-linear-to-r from-orange-50 to-amber-50">
+              <TableHead className="font-semibold text-xs sm:text-sm whitespace-nowrap sticky left-0 z-20 bg-orange-50 hover:from-orange-100 hover:to-amber-100">
                 Reagent Name
               </TableHead>
               <TableHead className="font-semibold text-xs sm:text-sm whitespace-nowrap">
@@ -130,7 +130,7 @@ export default function ReagentInventoryTable({
                   key={item.vendorSupplyId}
                   className="hover:bg-orange-50/50 transition-colors"
                 >
-                  <TableCell className="font-medium text-xs sm:text-sm">
+                  <TableCell className="font-medium text-xs sm:text-sm sticky left-0 z-20 bg-background">
                     {item.reagentName}
                   </TableCell>
                   <TableCell className="text-gray-600 text-xs sm:text-sm">

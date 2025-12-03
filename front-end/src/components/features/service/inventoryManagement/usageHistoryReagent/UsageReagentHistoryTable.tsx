@@ -26,7 +26,9 @@ export default function UsageReagentHistoryTable({
         <TableHeader>
           <TableRow className="bg-gradient-to-r from-orange-50 to-amber-50">
             <TableHead className="font-semibold">Date & Time</TableHead>
-            <TableHead className="font-semibold">Reagent Name</TableHead>
+            <TableHead className="font-semibold sticky left-0 z-20 bg-orange-50 hover:from-orange-100 hover:to-amber-100">
+              Reagent Name
+            </TableHead>
             <TableHead className="font-semibold">Quantity</TableHead>
             <TableHead className="font-semibold">Action</TableHead>
             <TableHead className="font-semibold">Lot Number</TableHead>
@@ -55,7 +57,7 @@ export default function UsageReagentHistoryTable({
                 <TableCell className="font-medium">
                   {formatDateTime(item.performedAt)}
                 </TableCell>
-                <TableCell className="font-medium">
+                <TableCell className="font-medium sticky left-0 z-20 bg-background">
                   {item.reagentName}
                 </TableCell>
                 <TableCell>

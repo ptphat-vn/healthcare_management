@@ -15,13 +15,8 @@ export interface Reagent {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  createdBy:
-    | string
-    | {
-        _id: string;
-        fullName: string;
-        email: string;
-      };
+  createdBy?: string;
+  createdByName?: string;
   categories?: string[];
   storageCondition?: string;
   safetyInstructions?: string;

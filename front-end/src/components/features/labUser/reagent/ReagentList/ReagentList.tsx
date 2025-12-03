@@ -165,7 +165,9 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50">
               <TableHead className="w-16">No.</TableHead>
-              <TableHead>Reagent Name</TableHead>
+              <TableHead className="sticky left-0 z-20 bg-blue-50 hover:from-blue-100 hover:to-indigo-100">
+                Reagent Name
+              </TableHead>
               <TableHead>Catalog No.</TableHead>
               <TableHead>Manufacturer</TableHead>
               <TableHead>Unit</TableHead>
@@ -184,7 +186,7 @@ export default function ReagentList({ onReagentDeleted }: ReagentListProps) {
                     <TableCell className="font-medium text-gray-600">
                       {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900">
+                    <TableCell className="font-medium text-gray-900 sticky left-0 z-20 bg-background">
                       {reagent.name}
                     </TableCell>
                     <TableCell className="text-gray-600">
