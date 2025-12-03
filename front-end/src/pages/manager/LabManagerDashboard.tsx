@@ -6,7 +6,6 @@ import TrendChartManagement from "@/components/features/manager/dashboardMangeme
 import StatusDistributionManagement from "@/components/features/manager/dashboardMangement/StatusDistributionManagement/StatusDistributionManagement";
 import ActivitiesCardManagement from "@/components/features/manager/dashboardMangement/ActivitiesCardManagement/ActivitiesCardManagement";
 import StatusCardManagement from "@/components/features/manager/dashboardMangement/StatusCardManagement/StatusCardManagement";
-import SystemAlertsManagement from "@/components/features/manager/dashboardMangement/SystemAlertsManagement/SystemAlertsManagement";
 import { useGetProfileQuery } from "@/services/baseApi";
 
 dayjs.extend(relativeTime);
@@ -55,9 +54,6 @@ const LabManagerDashboard = () => {
           <ActivitiesCardManagement />
           <StatusCardManagement />
         </div>
-
-        {/* System Alerts */}
-        <SystemAlertsManagement />
       </div>
     </div>
   );
