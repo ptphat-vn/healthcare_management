@@ -24,10 +24,10 @@ const CBC_TESTS: readonly CBCPanelTestName[] = [
 const createTestOrderSchema = z.object({
   medicalRecordId: z
     .string()
-    .regex(/^[0-9a-fA-F]{24}$/, 'ID hồ sơ bệnh án không hợp lệ'),
+    .regex(/^[0-9a-fA-F]{24}$/, 'Medical record ID is invalid'),
   requestedTests: z
     .array(z.enum(CBC_TESTS as [CBCPanelTestName, ...CBCPanelTestName[]]))
-    .min(1, 'Phải chọn ít nhất một loại xét nghiệm')
+    .min(1, 'At least one test type must be selected')
 })
 
 const updateTestOrderSchema = z.object({
@@ -40,19 +40,19 @@ const updateTestOrderSchema = z.object({
 })
 
 const testResultSchema = z.object({
-  testName: z.string().min(1, 'Tên xét nghiệm không được để trống'),
-  result: z.string().min(1, 'Kết quả không được để trống'),
+  testName: z.string().min(1, 'Test name is required'),
+  result: z.string().min(1, 'Result is required'),
   unit: z.string().optional(),
   normalRange: z.string().optional(),
-  status: z.enum(['normal', 'abnormal', 'critical'], { message: 'Trạng thái kết quả không hợp lệ' })
+  status: z.enum(['normal', 'abnormal', 'critical'], { message: 'Result status is invalid' })
 })
 
 const addTestResultSchema = z.object({
-  testResults: z.array(testResultSchema).min(1, 'Phải có ít nhất một kết quả xét nghiệm')
+  testResults: z.array(testResultSchema).min(1, 'At least one test result is required')
 })
 
 const addCommentSchema = z.object({
-  content: z.string().min(1, 'Nội dung bình luận không được để trống')
+  content: z.string().min(1, 'Comment content is required')
 })
 
 const searchTestOrdersSchema = z.object({
@@ -120,7 +120,7 @@ export const validateAddComment = (req: Request, res: Response, next: NextFuncti
 
 // Run with instrument validation
 const runWithInstrumentSchema = z.object({
-  instrumentId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'ID thiết bị không hợp lệ')
+  instrumentId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Instrument ID is invalid')
 })
 
 export const validateRunWithInstrument = (req: Request, res: Response, next: NextFunction) => {
@@ -137,13 +137,13 @@ export const validateRunWithInstrument = (req: Request, res: Response, next: Nex
 }
 
 const updateCommentSchema = z.object({
-  content: z.string().min(1, 'Nội dung bình luận không được để trống')
+  content: z.string().min(1, 'Comment content is required')
 })
 
 const reviewTestOrderSchema = z.object({
   resultUpdates: z.array(z.object({
-    testResultId: z.string().min(1, 'Test result ID không được để trống'),
-    newResult: z.string().min(1, 'Kết quả mới không được để trống')
+    testResultId: z.string().min(1, 'Test result ID is required'),
+    newResult: z.string().min(1, 'New result is required')
   })).optional()
 })
 

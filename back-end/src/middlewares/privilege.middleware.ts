@@ -15,7 +15,7 @@ export const privilegeMiddleware = (requiredPrivileges: string[]) => {
     
     if (!hasAllPrivileges) {
       return res.status(403).json({ 
-        message: 'Bạn không có quyền thực hiện hành động này',
+        message: 'You do not have permission to perform this action',
         required: requiredPrivileges,
         current: userPrivileges
       })
