@@ -92,12 +92,10 @@ const customBaseQuery: BaseQueryFn<
           result = await baseQuery(agrs, api, extraOptions);
         } else {
           api.dispatch(logout());
-          window.location.reload();
         }
       }
     } else {
       api.dispatch(logout());
-      window.location.reload();
     }
   }
 
