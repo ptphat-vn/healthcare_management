@@ -22,6 +22,8 @@ interface EditMedicalRecordFormProps {
   onClose: () => void;
   isLoading?: boolean;
   defaultValues: MedicalRecord;
+  hideButtons?: boolean;
+  formId?: string;
 }
 
 export function EditMedicalRecordForm({
@@ -29,6 +31,8 @@ export function EditMedicalRecordForm({
   onClose,
   isLoading = false,
   defaultValues,
+  hideButtons = false,
+  formId,
 }: EditMedicalRecordFormProps) {
   const { user } = useAuth();
   const {
@@ -76,7 +80,11 @@ export function EditMedicalRecordForm({
 
   return (
     <div className="flex flex-col gap-1">
-      <form className="space-y-2" onSubmit={handleSubmit(onFormSubmit)}>
+      <form 
+        id={formId}
+        className="space-y-2" 
+        onSubmit={handleSubmit(onFormSubmit)}
+      >
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">
             Patient's Information
@@ -322,22 +330,6 @@ export function EditMedicalRecordForm({
             label="Expiry Date"
             error={errors.insuranceExpiryDate?.message}
           />
-        </div>
-        <div className="flex justify-end space-x-2 pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={getRoleButtonClass(user?.data.roleCode)}
-          >
-            {isLoading ? "Updating..." : "Update Medical Record"}
-          </button>
         </div>
       </form>
     </div>

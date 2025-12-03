@@ -36,6 +36,21 @@ export interface ListTestOrdersParams {
   authUserRole?: string
 }
 
+// Helper function to determine status based on AI review comments
+// Status is 'ai_reviewed' if there are active AI review comments, otherwise 'completed'
+function determineStatusFromAIComments(comments: Comment[] | undefined): 'ai_reviewed' | 'completed' {
+  if (!comments || comments.length === 0) {
+    return 'completed'
+  }
+  
+  // Check if there are any active (not deleted) AI review comments
+  const hasAIReviewComment = comments.some((c: any) => {
+    return !c.isDeleted && c.content?.startsWith('[AI Diagnosis]')
+  })
+  
+  return hasAIReviewComment ? 'ai_reviewed' : 'completed'
+}
+
 export async function createTestOrder(data: CreateTestOrderData, createdBy: string) {
   const testOrders = getTestOrdersCollection()
   const users = getUsersCollection()
@@ -471,12 +486,15 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
     createdAt: now
   }))
 
+  // Determine status based on AI review comments
+  const newStatus = determineStatusFromAIComments(existing.comments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $set: { 
         testResults: resultsWithTimestamp,
-        status: 'completed',
+        status: newStatus,
         runDate: now,
         runBy: new ObjectId(addedBy),
         updatedAt: now
@@ -615,10 +633,16 @@ export async function recordReagentUsageFromTestResults(
     try {
       await recordReagentUsage(payload)
     } catch (error) {
-      console.error(
-        `Failed to record reagent usage for reagent ${entry.reagentId} (test order ${testOrder._id}):`,
-        error
-      )
+      if (error instanceof HttpError && error.status === 404) {
+        console.warn(
+          `Skipping reagent usage record: Reagent ${entry.reagentId} (${entry.reagentName}) not found in database. Test order ${testOrder._id} will continue processing.`
+        )
+      } else {
+        console.error(
+          `Failed to record reagent usage for reagent ${entry.reagentId} (${entry.reagentName}) in test order ${testOrder._id}:`,
+          error
+        )
+      }
     }
   }
 }
@@ -666,6 +690,11 @@ export async function addComment(id: string, content: string, addedBy: string) {
   const testOrders = getTestOrdersCollection()
   const eventLogs = getEventLogsCollection()
 
+  const testOrder = await testOrders.findOne({ _id: testOrderObjectId })
+  if (!testOrder) {
+    throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
+  }
+
   const now = new Date()
   const commentId = new ObjectId()
   const comment: Comment = {
@@ -675,11 +704,20 @@ export async function addComment(id: string, content: string, addedBy: string) {
     createdAt: now
   }
 
+  // Get updated comments list (including new comment)
+  const updatedComments = [...(testOrder.comments || []), comment]
+  
+  // Determine status based on AI review comments
+  const newStatus = determineStatusFromAIComments(updatedComments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $push: { comments: comment },
-      $set: { updatedAt: now }
+      $set: { 
+        status: newStatus,
+        updatedAt: now 
+      }
     },
     { returnDocument: 'after' }
   )
@@ -749,11 +787,14 @@ export async function reviewTestOrderResults(id: string, reviewedBy: string, res
     })
   }
 
+  // Determine status based on AI review comments
+  const newStatus = determineStatusFromAIComments(testOrder.comments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $set: { 
-        status: 'reviewed',
+        status: newStatus,
         testResults: updatedTestResults,
         updatedAt: now
       } 
@@ -802,8 +843,10 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
   }
 
-  if (testOrder.status !== 'completed') {
-    throw new HttpError(400, 'Test order must be completed before AI review')
+  // Allow AI review if status is completed, reviewed, or ai_reviewed (to allow re-reviewing)
+  const allowedStatuses: Array<'completed' | 'reviewed' | 'ai_reviewed'> = ['completed', 'reviewed', 'ai_reviewed']
+  if (!allowedStatuses.includes(testOrder.status as any)) {
+    throw new HttpError(400, 'Test order must be completed, reviewed, or ai_reviewed before AI review')
   }
 
   const now = new Date()
@@ -868,11 +911,19 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     createdAt: now
   } : null
 
+  // Get updated comments list (including new AI review comment if exists)
+  const updatedComments = commentPayload 
+    ? [...(testOrder.comments || []), commentPayload]
+    : (testOrder.comments || [])
+
+  // Determine status based on AI review comments
+  const newStatus = determineStatusFromAIComments(updatedComments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $set: { 
-        status: 'ai_reviewed',
+        status: newStatus,
         testResults: updatedTestResults,
         updatedAt: now
       },
@@ -1011,6 +1062,7 @@ export async function deleteComment(testOrderId: string, commentId: string, dele
   }
 
   const now = new Date()
+  
   const updatedComments = testOrder.comments?.map((c: any) => {
     if (String(c._id) === commentId) {
       return {
@@ -1023,11 +1075,15 @@ export async function deleteComment(testOrderId: string, commentId: string, dele
     return c
   })
 
+  // Determine status based on AI review comments after deletion
+  const newStatus = determineStatusFromAIComments(updatedComments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $set: { 
         comments: updatedComments,
+        status: newStatus,
         updatedAt: now
       } 
     },

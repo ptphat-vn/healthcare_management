@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +25,10 @@ import { Loader2, Minus, Plus } from "lucide-react";
 import type { Reagent, CreateReagentRequest } from "@/types/reagent.type";
 import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  updateReagentSchema,
+  type UpdateReagentFormData,
+} from "@/schemas/reagentSchema";
 
 interface EditReagentModalProps {
   open: boolean;
@@ -39,32 +45,56 @@ export default function EditReagentModal({
 }: EditReagentModalProps) {
   const [updateReagent, { isLoading }] = useUpdateReagentMutation();
   const { user } = useAuth();
-  const [formData, setFormData] = useState<CreateReagentRequest>({
-    name: "",
-    catalogNumber: "",
-    manufacturer: "",
-    casNumber: "",
-    description: "",
-    usagePerRun: {
-      min: 0,
-      max: 0,
-      unit: "ml",
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm<UpdateReagentFormData>({
+    resolver: zodResolver(updateReagentSchema),
+    defaultValues: {
+      name: "",
+      catalogNumber: "",
+      manufacturer: "",
+      casNumber: "",
+      description: "",
+      usagePerRun: {
+        min: 0,
+        max: 0,
+        unit: "ml",
+      },
+      ratio: "",
+      categories: "",
+      storageConditions: "",
+      isActive: true,
     },
-    ratio: "",
-    categories: "",
-    storageConditions: "",
-    isActive: true,
   });
+
+  const usagePerRun = watch("usagePerRun");
 
   useEffect(() => {
     if (reagent) {
-      setFormData({
+      const usagePerRun = reagent.usagePerRun || { min: 0, max: 0, unit: "ml" };
+      reset({
         name: reagent.name || "",
         catalogNumber: reagent.catalogNumber || "",
         manufacturer: reagent.manufacturer || "",
         casNumber: reagent.casNumber || "",
         description: reagent.description || "",
-        usagePerRun: reagent.usagePerRun || { min: 0, max: 0, unit: "ml" },
+        usagePerRun: {
+          min: usagePerRun.min || 0,
+          max: usagePerRun.max || 0,
+          unit:
+            usagePerRun.unit === "ml" ||
+            usagePerRun.unit === "μl" ||
+            usagePerRun.unit === "L"
+              ? usagePerRun.unit
+              : "ml",
+        },
         ratio: reagent.ratio || "",
         categories:
           Array.isArray(reagent.categories) && reagent.categories.length > 0
@@ -72,86 +102,38 @@ export default function EditReagentModal({
             : typeof reagent.categories === "string"
             ? reagent.categories
             : "",
-        storageConditions: reagent.storageCondition || "",
+        storageConditions: reagent.storageCondition?.toString() || "",
         isActive: reagent.isActive ?? true,
       });
     }
-  }, [reagent]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleUsageChange = (
-    field: "min" | "max" | "unit",
-    value: string | number
-  ) => {
-    if (field !== "unit") {
-      const numValue = Number(value);
-
-      if (numValue < 0) {
-        toast.error("Dosage cannot be negative");
-        return;
-      }
-
-      if (!Number.isInteger(numValue) && value !== "") {
-        toast.error("Dosage must be an integer (1, 2, 3...)");
-        return;
-      }
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      usagePerRun: {
-        ...prev.usagePerRun!,
-        [field]: field === "unit" ? value : Number(value),
-      },
-    }));
-  };
+  }, [reagent, reset]);
 
   const adjustUsage = (field: "min" | "max", delta: 1 | -1) => {
-    const current = formData.usagePerRun?.[field] ?? 0;
+    const current = usagePerRun?.[field] ?? 0;
     const next = current + delta;
 
-    if (next < 0) return;
-
-    handleUsageChange(field, next);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reagent) return;
-
-    if (!formData.name || !formData.catalogNumber || !formData.manufacturer) {
-      toast.error("Please fill in all required fields");
+    if (next < 0) {
       return;
     }
 
-    if (formData.usagePerRun) {
-      if (formData.usagePerRun.min < 0 || formData.usagePerRun.max < 0) {
-        toast.error("Dosage cannot be negative");
-        return;
-      }
+    setValue(
+      "usagePerRun",
+      {
+        min: usagePerRun?.min ?? 0,
+        max: usagePerRun?.max ?? 0,
+        unit: usagePerRun?.unit ?? "ml",
+        [field]: next,
+      },
+      { shouldValidate: true }
+    );
+  };
 
-      if (
-        !Number.isInteger(formData.usagePerRun.min) ||
-        !Number.isInteger(formData.usagePerRun.max)
-      ) {
-        toast.error("Dosage must be an integer (1, 2, 3...)");
-        return;
-      }
-
-      if (formData.usagePerRun.min > formData.usagePerRun.max) {
-        toast.error("Min dosage cannot be greater than Max");
-        return;
-      }
-    }
+  const onSubmit = async (data: UpdateReagentFormData) => {
+    if (!reagent) return;
 
     try {
       // Transform data to match backend schema
-      const { storageConditions, categories, ...restFormData } = formData;
+      const { storageConditions, categories, ...restFormData } = data;
       const payload: {
         name?: string;
         catalogNumber?: string;
@@ -199,7 +181,7 @@ export default function EditReagentModal({
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col flex-1 overflow-hidden"
         >
           <div className="px-3 sm:px-5 py-2.5 sm:py-3 flex-1 overflow-y-auto overflow-x-hidden min-w-0">
@@ -210,13 +192,13 @@ export default function EditReagentModal({
                   Reagent Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
+                  {...register("name")}
                   placeholder="Enter reagent name"
                   className="h-8 text-sm w-full min-w-0"
                 />
+                {errors.name && (
+                  <p className="text-xs text-red-500">{errors.name.message}</p>
+                )}
               </div>
 
               {/* Row 2: Catalog Number, Manufacturer, CAS Number */}
@@ -225,200 +207,270 @@ export default function EditReagentModal({
                   Catalog Number <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  name="catalogNumber"
-                  value={formData.catalogNumber}
-                  onChange={handleChange}
-                  required
+                  {...register("catalogNumber")}
                   placeholder="e.g.  DL-100"
                   className="h-8 text-sm w-full min-w-0"
                 />
+                {errors.catalogNumber && (
+                  <p className="text-xs text-red-500">
+                    {errors.catalogNumber.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-1 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
                   Manufacturer <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  name="manufacturer"
-                  value={formData.manufacturer}
-                  onChange={handleChange}
-                  required
+                  {...register("manufacturer")}
                   placeholder="e.g.  Acme Diagnostics"
                   className="h-8 text-sm w-full min-w-0"
                 />
+                {errors.manufacturer && (
+                  <p className="text-xs text-red-500">
+                    {errors.manufacturer.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-1 sm:col-span-2 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
                   CAS Number
                 </Label>
                 <Input
-                  name="casNumber"
-                  value={formData.casNumber}
-                  onChange={handleChange}
+                  {...register("casNumber")}
                   placeholder="e.g.  7732-18-5"
                   className="h-8 text-sm w-full min-w-0"
                 />
+                {errors.casNumber && (
+                  <p className="text-xs text-red-500">
+                    {errors.casNumber.message}
+                  </p>
+                )}
               </div>
 
               {/* Row 3: Category, Ratio, Storage Conditions */}
               <div className="space-y-1 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
-                  Category
+                  Category <span className="text-red-500">*</span>
                 </Label>
-                <Select
-                  value={formData.categories || ""}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, categories: value }))
-                  }
-                >
-                  <SelectTrigger className="h-8 text-sm w-full min-w-0">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Hematology">Hematology</SelectItem>
-                    <SelectItem value="Biochemistry">Biochemistry</SelectItem>
-                    <SelectItem value="Immunology">Immunology</SelectItem>
-                    <SelectItem value="Molecular/PCR">Molecular/PCR</SelectItem>
-                    <SelectItem value="Microbiology">Microbiology</SelectItem>
-                    <SelectItem value="Coagulation">Coagulation</SelectItem>
-                    <SelectItem value="Enzyme">Enzyme</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="categories"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="h-8 text-sm w-full min-w-0">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Hematology">Hematology</SelectItem>
+                        <SelectItem value="Biochemistry">
+                          Biochemistry
+                        </SelectItem>
+                        <SelectItem value="Immunology">Immunology</SelectItem>
+                        <SelectItem value="Molecular/PCR">
+                          Molecular/PCR
+                        </SelectItem>
+                        <SelectItem value="Microbiology">
+                          Microbiology
+                        </SelectItem>
+                        <SelectItem value="Coagulation">Coagulation</SelectItem>
+                        <SelectItem value="Enzyme">Enzyme</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.categories && (
+                  <p className="text-xs text-red-500">
+                    {errors.categories.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-1 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
-                  Dilution Ratio
+                  Dilution Ratio <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  name="ratio"
-                  value={formData.ratio}
-                  onChange={handleChange}
+                  {...register("ratio")}
                   placeholder="e.g. 1:10 to 1:20"
                   className="h-8 text-sm w-full min-w-0"
                 />
+                {errors.ratio && (
+                  <p className="text-xs text-red-500">{errors.ratio.message}</p>
+                )}
               </div>
               <div className="space-y-1 sm:col-span-2 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
-                  Storage Conditions
+                  Storage Conditions <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  name="storageConditions"
-                  value={formData.storageConditions}
-                  onChange={handleChange}
+                  {...register("storageConditions")}
                   placeholder="e.g.  2-8°C"
                   className="h-8 text-sm w-full min-w-0"
                 />
+                {errors.storageConditions && (
+                  <p className="text-xs text-red-500">
+                    {errors.storageConditions.message}
+                  </p>
+                )}
               </div>
 
               {/* Row 4: Dosage and Status */}
               <div className="space-y-1 sm:col-span-2 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
-                  Usage Per Run (Min-Max-Unit)
+                  Usage Per Run (Min-Max-Unit){" "}
+                  <span className="text-red-500">*</span>
                 </Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                  <div className="flex items-center">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
-                      onClick={() => adjustUsage("min", -1)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <Input
-                      type="number"
-                      placeholder="Min"
-                      min="0"
-                      step="1"
-                      value={formData.usagePerRun?.min}
-                      onChange={(e) => handleUsageChange("min", e.target.value)}
-                      className="h-8 rounded-none border-x-0 text-center text-sm w-full min-w-0"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
-                      onClick={() => adjustUsage("min", 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
-                      onClick={() => adjustUsage("max", -1)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <Input
-                      type="number"
-                      placeholder="Max"
-                      min="0"
-                      step="1"
-                      value={formData.usagePerRun?.max}
-                      onChange={(e) => handleUsageChange("max", e.target.value)}
-                      className="h-8 rounded-none border-x-0 text-center text-sm w-full min-w-0"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
-                      onClick={() => adjustUsage("max", 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <Select
-                    value={formData.usagePerRun?.unit}
-                    onValueChange={(v) => handleUsageChange("unit", v)}
-                  >
-                    <SelectTrigger className="h-8 text-sm w-full min-w-0">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ml">ml</SelectItem>
-                      <SelectItem value="μl">μl</SelectItem>
-                      <SelectItem value="L">L</SelectItem> 
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Controller
+                  name="usagePerRun"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                      <div className="flex items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
+                          onClick={() => adjustUsage("min", -1)}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <Input
+                          type="number"
+                          placeholder="Min"
+                          min="0"
+                          step="1"
+                          value={field.value?.min ?? 0}
+                          onChange={(e) => {
+                            const val =
+                              e.target.value === ""
+                                ? 0
+                                : Number(e.target.value);
+                            field.onChange({
+                              ...field.value!,
+                              min: val,
+                            });
+                          }}
+                          className="h-8 rounded-none border-x-0 text-center text-sm w-full min-w-0"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
+                          onClick={() => adjustUsage("min", 1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="flex items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
+                          onClick={() => adjustUsage("max", -1)}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <Input
+                          type="number"
+                          placeholder="Max"
+                          min="0"
+                          step="1"
+                          value={field.value?.max ?? 0}
+                          onChange={(e) => {
+                            const val =
+                              e.target.value === ""
+                                ? 0
+                                : Number(e.target.value);
+                            field.onChange({
+                              ...field.value!,
+                              max: val,
+                            });
+                          }}
+                          className="h-8 rounded-none border-x-0 text-center text-sm w-full min-w-0"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
+                          onClick={() => adjustUsage("max", 1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Select
+                        value={field.value?.unit || "ml"}
+                        onValueChange={(v) =>
+                          field.onChange({
+                            ...field.value!,
+                            unit: v as "ml" | "μl" | "L",
+                          })
+                        }
+                      >
+                        <SelectTrigger className="h-8 text-sm w-full min-w-0">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ml">ml</SelectItem>
+                          <SelectItem value="μl">μl</SelectItem>
+                          <SelectItem value="L">L</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                />
+                {errors.usagePerRun && (
+                  <p className="text-xs text-red-500">
+                    {errors.usagePerRun.min?.message ||
+                      errors.usagePerRun.max?.message ||
+                      errors.usagePerRun.unit?.message ||
+                      errors.usagePerRun.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-1 min-w-0">
                 <Label className="text-xs sm:text-sm font-semibold">
                   Status
                 </Label>
-                <Select
-                  value={formData.isActive ? "active" : "inactive"}
-                  onValueChange={(v) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      isActive: v === "active",
-                    }))
-                  }
-                >
-                  <SelectTrigger className="h-8 text-sm w-full min-w-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                        <span>Active</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="inactive">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-gray-400"></div>
-                        <span>Inactive</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="isActive"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ? "active" : "inactive"}
+                      onValueChange={(v) => field.onChange(v === "active")}
+                    >
+                      <SelectTrigger className="h-8 text-sm w-full min-w-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                            <span>Active</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="inactive">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-gray-400"></div>
+                            <span>Inactive</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.isActive && (
+                  <p className="text-xs text-red-500">
+                    {errors.isActive.message}
+                  </p>
+                )}
               </div>
 
               {/* Row 5: Description - Full width */}
@@ -427,13 +479,16 @@ export default function EditReagentModal({
                   Description
                 </Label>
                 <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
+                  {...register("description")}
                   rows={2}
                   placeholder="Detailed description of usage and application..."
                   className="w-full px-2.5 py-1.5 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
+                {errors.description && (
+                  <p className="text-xs text-red-500">
+                    {errors.description.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>

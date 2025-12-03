@@ -326,6 +326,19 @@ export async function addTestResultsFromHL7UsingInstrument(testOrderId: string, 
   const bloodTypeFromRecord = medicalRecord?.bloodType
   const resolvedBloodType = bloodTypeFromRecord || getRandomBloodType()
 
+  // If medical record doesn't have bloodType, update it with the resolved bloodType (from random)
+  if (!bloodTypeFromRecord && resolvedBloodType) {
+    await medicalRecordsCol.updateOne(
+      { _id: testOrder.medicalRecordId } as any,
+      { 
+        $set: { 
+          bloodType: resolvedBloodType,
+          updatedAt: new Date()
+        } 
+      } as any
+    )
+  }
+
   // Attach instrument and reagent metadata into each processed result
   const processedWithMeta = processedResults.map(r => ({
     ...r,

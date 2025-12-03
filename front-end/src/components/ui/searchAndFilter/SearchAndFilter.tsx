@@ -16,6 +16,7 @@ interface SearchAndFilterProps {
 
   status?: number | "";
   onStatusChange?: (value: number | "") => void;
+  statusOptions?: { value: string; label: string }[];
 
   // Gender filter for medical records
   gender?: number | "";
@@ -27,6 +28,12 @@ interface SearchAndFilterProps {
 
   sortOrder?: 1 | -1 | "";
   onSortOrderChange?: (value: 1 | -1) => void;
+
+  // Optional custom filter (e.g., active state)
+  customFilter?: number | "";
+  onCustomFilterChange?: (value: number | "") => void;
+  customFilterPlaceholder?: string;
+  customFilterOptions?: { value: string; label: string }[];
 
   filterPlaceholder?: string;
   searchPlaceholder?: string;

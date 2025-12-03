@@ -33,8 +33,9 @@ export default function DeleteInstrumentModal({
       toast.success(`Instrument "${instrument.name}" has been deleted`);
       onDelete(instrument._id);
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to delete instrument");
+    } catch (error) {
+      const err = error as { data?: { message?: string } };
+      toast.error(err.data?.message || "Failed to delete instrument");
     }
   };
 
@@ -42,32 +43,42 @@ export default function DeleteInstrumentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-6 h-6 text-red-600" />
-            <DialogTitle>Confirm Delete Instrument</DialogTitle>
+          <div className="flex items-start gap-2.5 sm:items-center">
+            <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 mt-0.5 sm:mt-0" />
+            <DialogTitle className="text-base sm:text-lg">
+              Confirm Delete Instrument
+            </DialogTitle>
           </div>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             Are you sure you want to delete this instrument? This action cannot
             be undone.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg space-y-2">
           <div>
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-xs sm:text-sm font-medium text-gray-700">
               Instrument Name:{" "}
             </span>
-            <span className="text-sm text-gray-900">{instrument.name}</span>
+            <span className="text-xs sm:text-sm text-gray-900 wrap-break-word">
+              {instrument.name}
+            </span>
           </div>
           <div>
             <span className="text-sm font-medium text-gray-700">
               Serial Number:{" "}
             </span>
-            <span className="text-sm text-gray-900">{instrument.serialNumber}</span>
+            <span className="text-sm text-gray-900">
+              {instrument.serialNumber}
+            </span>
           </div>
           <div>
-            <span className="text-sm font-medium text-gray-700">Model: </span>
-            <span className="text-sm text-gray-900">{instrument.model}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700">
+              Model:{" "}
+            </span>
+            <span className="text-xs sm:text-sm text-gray-900 wrap-break-word">
+              {instrument.model}
+            </span>
           </div>
         </div>
 

@@ -108,30 +108,30 @@ export default function MedicalRecordPatientPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <section className="grid gap-6 lg:grid-cols-[2.2fr,1fr]">
-          <Card className="border border-slate-200 bg-white shadow-sm">
-            <CardContent className="flex flex-col gap-8 p-8">
+    <div className="min-h-screen bg-slate-50 py-6 sm:py-8 px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden w-full">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 sm:gap-8 min-w-0">
+        <section className="grid w-full max-w-full gap-4 sm:gap-6 lg:grid-cols-[2.2fr,1fr] min-w-0">
+          <Card className="border border-slate-200 bg-white shadow-sm overflow-hidden w-full max-w-full">
+            <CardContent className="flex flex-col gap-6 sm:gap-8 p-4 sm:p-6 md:p-8 min-w-0 w-full max-w-full">
               <MedicalRecordHeader patientRecord={patientRecord} age={age} />
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-sm text-slate-900">
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-2 w-full">
+                <div className="rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50/80 p-3 sm:p-4 text-sm text-slate-900 min-w-0 overflow-hidden">
                   <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
                     Contact
                   </p>
-                  <p className="mt-2 font-semibold text-slate-900">
+                  <p className="mt-2 font-semibold text-slate-900 wrap-break-words overflow-wrap-anywhere">
                     {patientRecord.phoneNumber}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 wrap-break-words overflow-wrap-anywhere">
                     {patientRecord.email}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-sm text-slate-900">
+                <div className="rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50/80 p-3 sm:p-4 text-sm text-slate-900 min-w-0 overflow-hidden">
                   <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
                     Address
                   </p>
-                  <p className="mt-2 font-semibold text-slate-900">
+                  <p className="mt-2 font-semibold text-slate-900 wrap-break-words overflow-wrap-anywhere">
                     {patientRecord.address}
                   </p>
                   <p className="text-xs text-slate-500">
@@ -140,27 +140,27 @@ export default function MedicalRecordPatientPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-2 min-w-0 w-full">
                 {patientRecord.identifyNumber && (
-                  <div>
+                  <div className="min-w-0 overflow-hidden">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Identity Number
                     </p>
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm font-semibold text-slate-900 wrap-break-words">
                       {patientRecord.identifyNumber}
                     </p>
                   </div>
                 )}
-                <div>
+                <div className="min-w-0 overflow-hidden">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Date of Birth
                   </p>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-slate-900 wrap-break-words">
                     {formatDate(patientRecord.dateOfBirth)}{" "}
                     {age !== undefined && `(${age} yrs)`}
                   </p>
                 </div>
-                <div>
+                <div className="min-w-0 overflow-hidden">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Gender
                   </p>
@@ -169,7 +169,7 @@ export default function MedicalRecordPatientPage() {
                   </p>
                 </div>
                 {patientRecord.bloodType && (
-                  <div>
+                  <div className="min-w-0 overflow-hidden">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Blood Type
                     </p>
@@ -184,30 +184,30 @@ export default function MedicalRecordPatientPage() {
               <div className="h-px w-full bg-slate-100" />
 
               {/* Bottom row: record meta */}
-              <div className="grid gap-4 md:grid-cols-3 text-sm">
-                <div>
+              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 md:grid-cols-3 text-sm min-w-0 w-full">
+                <div className="min-w-0 overflow-hidden">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Created At
                   </p>
-                  <p className="mt-1 text-slate-900">
+                  <p className="mt-1 text-slate-900 wrap-break-words">
                     {formatDateTime(patientRecord.createdAt)}
                   </p>
                 </div>
-                <div>
+                <div className="min-w-0 overflow-hidden">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Last Updated
                   </p>
-                  <p className="mt-1 text-slate-900">
+                  <p className="mt-1 text-slate-900 wrap-break-words">
                     {formatDateTime(patientRecord.updatedAt)}
                   </p>
                 </div>
-                <div>
+                <div className="min-w-0 overflow-hidden">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Status
                   </p>
-                  <p className="mt-1 inline-flex items-center gap-2 text-sm font-semibold">
+                  <p className="mt-1 flex flex-wrap items-center gap-2 text-sm font-semibold">
                     <span
-                      className={`h-2 w-2 rounded-full ${
+                      className={`h-2 w-2 rounded-full shrink-0 ${
                         patientRecord.isDeleted
                           ? "bg-rose-500"
                           : "bg-emerald-500"
@@ -221,7 +221,7 @@ export default function MedicalRecordPatientPage() {
           </Card>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.2fr,1.8fr]">
+        <section className="grid gap-4 sm:gap-6 lg:grid-cols-[1.2fr,1.8fr] min-w-0">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             {patientRecord.emergencyContact && (
               <EmergencyContactCard

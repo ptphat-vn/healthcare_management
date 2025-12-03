@@ -93,9 +93,11 @@ vi.mock("recharts", () => ({
   Cell: ({ fill }: { fill?: string }) => (
     <div data-testid="cell" data-fill={fill} />
   ),
-  Tooltip: ({ content }: { content?: React.ComponentType<any> }) => (
+  Tooltip: ({ content }: { content?: React.ReactNode }) => (
     <div data-testid="tooltip">
-      {content && <div data-testid="custom-tooltip">{content}</div>}
+      {content && (
+        <div data-testid="custom-tooltip">{content as React.ReactNode}</div>
+      )}
     </div>
   ),
 }));
@@ -274,7 +276,7 @@ describe("StatusDistributionManagement", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllTestOrderQuery>);
 
-    const { container } = render(<StatusDistributionManagement />);
+    render(<StatusDistributionManagement />);
 
     // Get the pie data attribute
     const pie = screen.getByTestId("pie");
@@ -407,7 +409,7 @@ describe("StatusDistributionManagement", () => {
       error: undefined,
     } as unknown as ReturnType<typeof useGetAllTestOrderQuery>);
 
-    const { container } = render(<StatusDistributionManagement />);
+    render(<StatusDistributionManagement />);
 
     const pie = screen.getByTestId("pie");
     const pieDataAttr = pie.getAttribute("data-pie-data");

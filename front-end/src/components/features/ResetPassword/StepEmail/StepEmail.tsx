@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import Input from "@/components/ui/input/Input";
+import { Link } from "react-router-dom";
 
 export default function StepEmail({
   identifier,
@@ -26,17 +27,6 @@ export default function StepEmail({
       }}
       className="space-y-4 w-full"
     >
-      {/* <div className="w-full">
-        <Input
-          id="email-input"
-          type="email"
-          label="Email"
-          placeholder="example123@gmail.com"
-          value={identifier}
-          onChange={(e) => setIdentifier(e.target.value)}
-          className="h-10 sm:h-11 text-sm sm:text-base w-full"
-        />
-      </div> */}
       <Input
           id="email-input"
           type="email"
@@ -47,19 +37,19 @@ export default function StepEmail({
         />
 
       <div className="flex items-center justify-between">
+        <Link
+          to="/auth/login"
+          onClick={onBack}
+          className="text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700"
+        >
+          ← Back to Sign in
+        </Link>
         <button
           type="submit"
           disabled={loading}
           className="cursor-pointer btn-primary"
         >
           {loading ? "Đang gửi..." : "Send Code"}
-        </button>
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-sm text-blue-600 hover:text-blue-500"
-        >
-          ← Back to Sign in
         </button>
       </div>
     </motion.form>

@@ -144,7 +144,7 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
       {/* Error Alert - Tách riêng ở trên */}
       {error && !isLoading && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Inbox className="h-5 w-5 text-red-600" />
           </div>
           <div className="flex-1">
@@ -199,11 +199,11 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+              <TableRow className="bg-linear-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
                 <TableHead className="font-semibold text-gray-700 w-16">
                   No
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[150px]">
+                <TableHead className="font-semibold text-gray-700 min-w-[150px] sticky left-0 z-20 bg-blue-50 hover:from-blue-100 hover:to-indigo-100">
                   Patient Name
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 min-w-[150px]">
@@ -280,7 +280,7 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
                     <TableCell className="text-start font-medium text-gray-600">
                       {(currentPage - 1) * itemsPerPage + idx + 1}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900">
+                    <TableCell className="font-medium text-gray-900 sticky left-0 z-20 bg-background">
                       {order.patientName}
                     </TableCell>
                     <TableCell className="text-gray-600">
@@ -422,7 +422,7 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
             setIsDeleteDialogOpen(open);
             if (!open) setDeletingOrder(null);
           }}
-          order={deletingOrder}
+          order={deletingOrder as any}
           onSuccess={() => {
             if (onOrderDeleted) {
               onOrderDeleted();

@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProfilePage from "./ProfilePage";
-import type { Roles } from "@/types/roles.type";
 
 // Mock baseApi hooks
 vi.mock("@/services/baseApi", () => ({
@@ -127,18 +126,16 @@ import {
   useUpdateProfileMutation,
 } from "@/services/baseApi";
 import { useUpdateAvatarMutation } from "@/services/userApi";
-import { toast } from "sonner";
 import { formatDate } from "@/utils/formatDate";
 import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 const mockUseGetProfileQuery = vi.mocked(useGetProfileQuery);
 const mockUseUpdateProfileMutation = vi.mocked(
-  useUpdateProfileMutation as unknown as vi.Mock
+  useUpdateProfileMutation as unknown as Mock
 );
 const mockUseUpdateAvatarMutation = vi.mocked(
-  useUpdateAvatarMutation as unknown as vi.Mock
+  useUpdateAvatarMutation as unknown as Mock
 );
-const mockToast = vi.mocked(toast);
 const mockFormatDate = vi.mocked(formatDate);
 const mockGetRoleButtonClass = vi.mocked(getRoleButtonClass);
 

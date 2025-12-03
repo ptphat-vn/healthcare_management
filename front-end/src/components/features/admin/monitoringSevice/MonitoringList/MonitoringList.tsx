@@ -67,14 +67,14 @@ export default function MonitoringList() {
       <div className="rounded-md border bg-white shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+            <TableRow className="bg-linear-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
               <TableHead className="font-semibold text-gray-700 w-16">
                 No
               </TableHead>
               <TableHead className="font-semibold text-gray-700 min-w-[100px]">
                 Time
               </TableHead>
-              <TableHead className="font-semibold text-gray-700 min-w-[200px]">
+              <TableHead className="font-semibold text-gray-700 min-w-[200px] sticky left-0 z-20 bg-blue-50 hover:from-blue-100 hover:to-indigo-100">
                 Action
               </TableHead>
               <TableHead className="font-semibold text-gray-700 min-w-[300px]">
@@ -144,8 +144,8 @@ export default function MonitoringList() {
                       {dayjs(log.timestamp).format("h:mm:ss A")}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded bg-gray-100 text-xs font-medium">
+                  <TableCell className="sticky left-0 z-20 bg-background">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded bg-gray-100 text-xs font-medium ">
                       {formatPrivilege(log.action)}
                     </span>
                   </TableCell>

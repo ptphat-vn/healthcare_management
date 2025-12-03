@@ -19,7 +19,13 @@ import {
 import { useGetAllRoleQuery } from "@/services/roleApi";
 import type { Roles } from "@/types/roles.type";
 import formatPrivilege from "@/utils/formatPrivilege";
-import { Edit, Inbox, MoreHorizontal, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Edit,
+  Inbox,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import DeleteRoleModal from "../DeleteRoleModal/DeleteRoleModal";
 import AddRoleModal from "../AddRoleModal/AddRoleModal";
@@ -99,17 +105,7 @@ export default function RoleList() {
     return (
       <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
         <div className="flex items-center">
-          <svg
-            className="w-5 h-5 text-red-600 mr-2"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <AlertTriangle className="w-4 h-4 text-red-500" />
           <div>
             <p className="font-semibold text-red-800">Error loading data</p>
             <p className="text-sm text-red-600">{errMsg}</p>
@@ -146,11 +142,11 @@ export default function RoleList() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+              <TableRow className="bg-linear-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
                 <TableHead className="font-semibold text-gray-700 w-16">
                   No
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 min-w-[150px]">
+                <TableHead className="font-semibold text-gray-700 min-w-[150px] sticky left-0 z-20 bg-blue-50 hover:from-blue-100 hover:to-indigo-100">
                   Role Name
                 </TableHead>
                 <TableHead className="font-semibold text-gray-700 min-w-[120px]">
@@ -189,7 +185,7 @@ export default function RoleList() {
                     <TableCell className="text-start font-medium text-gray-600">
                       {(currentPage - 1) * 8 + index + 1}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900">
+                    <TableCell className="font-medium text-gray-900 sticky left-0 z-20 bg-background">
                       {role.name}
                     </TableCell>
                     <TableCell className="text-gray-600">

@@ -10,6 +10,8 @@ import {
 import { toast } from "sonner";
 import DeleteCommentDialog from "./comments/DeleteCommentDialog";
 import CommentItem from "./comments/CommentItem";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface Comment {
   _id: string;
@@ -19,6 +21,7 @@ interface Comment {
   updatedAt: string;
   modifiedBy?: string;
   isDeleted: boolean;
+  aiReviewedBy?: string;
 }
 
 interface CommentsSectionProps {
@@ -34,7 +37,8 @@ export default function CommentsSection({
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
-
+  const { user } = useAuth();
+  const role = user?.data?.roleCode;
   const [createComment, { isLoading: isCreating }] =
     useCreateCommentTestOrderMutation();
   const [updateComment, { isLoading: isUpdating }] =
@@ -119,17 +123,31 @@ export default function CommentsSection({
   };
 
   const isLoading = isCreating || isUpdating || isDeleting;
+  const visibleComments = comments.filter((c) => !c.isDeleted);
+
+  const aiDiagnosisPrefix = /^\[AI Diagnosis\]\s*/i;
+  const getCommentMeta = (comment: Comment) => {
+    const isAiDiagnosis = aiDiagnosisPrefix.test(comment.content.trim());
+    const displayAuthor = isAiDiagnosis
+      ? comment.aiReviewedBy || comment.createdBy
+      : comment.createdBy;
+    const displayContent = isAiDiagnosis
+      ? comment.content.replace(aiDiagnosisPrefix, "").trim()
+      : comment.content;
+
+    return { isAiDiagnosis, displayAuthor, displayContent };
+  };
 
   return (
     <div className="space-y-6">
       <Card className="border-orange-100 shadow-sm">
-        <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
+        <CardHeader className="bg-linear-to-r from-orange-50 to-amber-50">
           <CardTitle className="flex items-center gap-2 text-orange-700">
             <MessageSquare className="w-6 h-6" />
-            Comments ({comments.filter((c) => !c.isDeleted).length})
+            Comments ({visibleComments.length})
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           {/* Add Comment */}
           <div className="mb-6 pb-6 border-b">
             <textarea
@@ -151,6 +169,9 @@ export default function CommentsSection({
               <Button
                 onClick={handleAddComment}
                 disabled={isLoading || !newComment.trim()}
+                className={`bg-blue-600 hover:bg-blue-700 text-white ${getRoleButtonClass(
+                  role
+                )} `}
               >
                 {isCreating ? "Adding..." : "Add Comment"}
               </Button>
@@ -158,16 +179,18 @@ export default function CommentsSection({
           </div>
 
           {/* Comments List */}
-          {comments.filter((c) => !c.isDeleted).length === 0 ? (
+          {visibleComments.length === 0 ? (
             <div className="text-center py-8">
               <MessageSquare className="h-12 w-12 mx-auto mb-3 text-gray-300" />
               <p className="text-gray-500">No comments yet</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {comments
-                .filter((c) => !c.isDeleted)
-                .map((comment) => (
+              {visibleComments.map((comment) => {
+                const { isAiDiagnosis, displayAuthor, displayContent } =
+                  getCommentMeta(comment);
+
+                return (
                   <CommentItem
                     key={comment._id}
                     comment={comment}
@@ -177,8 +200,12 @@ export default function CommentsSection({
                     onUpdate={handleUpdateComment}
                     onCancelEdit={handleCancelEdit}
                     editingCommentId={editingCommentId}
+                    isAiDiagnosis={isAiDiagnosis}
+                    displayAuthor={displayAuthor}
+                    displayContent={displayContent}
                   />
-                ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

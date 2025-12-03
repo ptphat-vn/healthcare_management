@@ -1,5 +1,4 @@
-
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -12,29 +11,38 @@ import Input from "@/components/ui/input/Input";
 import { useGetAllUserQuery } from "@/services/userApi";
 import { type User } from "@/types/user.type";
 import { Combobox } from "@/components/ui/combobox";
-import {Select,SelectContent, SelectItem,SelectTrigger, SelectValue,
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 interface NewMedicalRecordFormProps {
   onSubmit: (data: CreateMedicalRecordRequest) => void;
   onClose: () => void;
   isLoading?: boolean;
+  hideButtons?: boolean;
+  formId?: string;
 }
 
 export function NewMedicalRecordForm({
   onSubmit,
   onClose,
   isLoading = false,
+  hideButtons = false,
+  formId,
 }: NewMedicalRecordFormProps) {
   // Fetch all users
   const { data: usersData, isLoading: isLoadingUsers } = useGetAllUserQuery({
-    limit: 1000, 
-    status: 1, 
+    limit: 1000,
+    status: 1,
   });
-  
+
   const patientOptions = useMemo(() => {
     if (!usersData?.data?.user) return [];
-    
+
     return usersData.data.user
       .filter((user: User) => user.roleCode === "patient" && user.patientId)
       .map((user: User) => ({
@@ -74,11 +82,15 @@ export function NewMedicalRecordForm({
 
   return (
     <div className="flex flex-col gap-1">
-      <form className="space-y-2 sm:space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
+      <form
+        id={formId}
+        className="space-y-2 sm:space-y-3"
+        onSubmit={handleSubmit(onFormSubmit)}
+      >
         <div className="space-y-3">
           <div className="flex flex-col space-y-1">
             <label className="text-sm font-medium text-gray-700">
-            Select Patient <span className="text-red-500">*</span>
+              Select Patient <span className="text-red-500">*</span>
             </label>
             <Controller
               name="userId"
@@ -89,10 +101,14 @@ export function NewMedicalRecordForm({
                   options={patientOptions}
                   value={field.value}
                   onValueChange={field.onChange}
-                  placeholder={isLoadingUsers ? "Loading patients..." : "Select a patient"}
+                  placeholder={
+                    isLoadingUsers ? "Loading patients..." : "Select a patient"
+                  }
                   searchPlaceholder="Search by name, email, or patient ID..."
-                  emptyMessage={isLoadingUsers ? "Loading..." : "No patients found"}
-                  disabled={isLoadingUsers} 
+                  emptyMessage={
+                    isLoadingUsers ? "Loading..." : "No patients found"
+                  }
+                  disabled={isLoadingUsers}
                 />
               )}
             />
@@ -119,7 +135,7 @@ export function NewMedicalRecordForm({
                     value={field.value || undefined}
                     onValueChange={field.onChange}
                   >
-                    <SelectTrigger 
+                    <SelectTrigger
                       className={`w-full h-8 text-sm ${
                         errors.bloodType?.message ? "border-red-500" : ""
                       }`}
@@ -141,7 +157,9 @@ export function NewMedicalRecordForm({
                 )}
               />
               {errors.bloodType?.message && (
-                <p className="text-sm text-red-500">{errors.bloodType.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.bloodType.message}
+                </p>
               )}
             </div>
           </div>
@@ -160,12 +178,16 @@ export function NewMedicalRecordForm({
                 {...register("allergies")}
                 placeholder="Enter allergies (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.allergies?.message ? "border-red-500" : "border-gray-300"
+                  errors.allergies?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.allergies?.message && (
-                <p className="text-sm text-red-500">{errors.allergies.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.allergies.message}
+                </p>
               )}
             </div>
             <div className="flex flex-col space-y-1">
@@ -176,12 +198,16 @@ export function NewMedicalRecordForm({
                 {...register("chronicConditions")}
                 placeholder="Enter chronic conditions (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.chronicConditions?.message ? "border-red-500" : "border-gray-300"
+                  errors.chronicConditions?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.chronicConditions?.message && (
-                <p className="text-sm text-red-500">{errors.chronicConditions.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.chronicConditions.message}
+                </p>
               )}
             </div>
           </div>
@@ -194,12 +220,16 @@ export function NewMedicalRecordForm({
                 {...register("medications")}
                 placeholder="Enter current medications (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.medications?.message ? "border-red-500" : "border-gray-300"
+                  errors.medications?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.medications?.message && (
-                <p className="text-sm text-red-500">{errors.medications.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.medications.message}
+                </p>
               )}
             </div>
             <div className="flex flex-col space-y-1">
@@ -210,12 +240,16 @@ export function NewMedicalRecordForm({
                 {...register("previousSurgeries")}
                 placeholder="Enter previous surgeries (comma separated)"
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
-                  errors.previousSurgeries?.message ? "border-red-500" : "border-gray-300"
+                  errors.previousSurgeries?.message
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 rows={2}
               />
               {errors.previousSurgeries?.message && (
-                <p className="text-sm text-red-500">{errors.previousSurgeries.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.previousSurgeries.message}
+                </p>
               )}
             </div>
           </div>
@@ -275,22 +309,24 @@ export function NewMedicalRecordForm({
             error={errors.insuranceExpiryDate?.message}
           />
         </div>
-        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 sm:space-x-2 pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full sm:w-auto"
-          >
-            Close
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full sm:w-auto"
-          >
-            {isLoading ? "Creating..." : "Create Medical Record"}
-          </button>
-        </div>
+        {!hideButtons && (
+          <div className="flex flex-row justify-end gap-2 sm:gap-2 sm:space-x-2 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2"
+            >
+              Close
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="cursor-pointer inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+            >
+              {isLoading ? "Creating..." : "Create Medical Record"}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

@@ -47,6 +47,7 @@ export interface TestResults {
   updatedAt: string;
   reviewedBy: string;
   aiReviewedAt: string;
+  aiDiagnosisSummary?: string[];
 }
 
 export interface Comment {

@@ -94,7 +94,14 @@ export default function AddRoleModal({
       setIsLoading(true);
 
       if (isEditMode && role) {
-        const result = await updateRole({ id: role._id, ...data }).unwrap();
+        if (!role._id) {
+          throw new Error("Role id is missing");
+        }
+        const result = await updateRole({
+          id: role._id,
+          ...data,
+          description: data.description || "",
+        }).unwrap();
         toast.success(result?.message || "Role updated successfully!");
       } else {
         const result = await createRole(data as any).unwrap();
@@ -119,17 +126,17 @@ export default function AddRoleModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="space-y-2 pb-4 border-b">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Shield className="w-5 h-5 text-blue-600" />
+      <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-lg">
+        <DialogHeader className="space-y-2 pb-3 sm:pb-4 border-b px-1">
+          <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg shrink-0">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             </div>
-            <div>
-              <DialogTitle className="text-2xl font-bold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 wrap-break-word">
                 {isEditMode ? "Edit Role" : "Create New Role"}
               </DialogTitle>
-              <DialogDescription className="text-sm text-gray-500">
+              <DialogDescription className="text-xs sm:text-sm text-gray-500 mt-1 wrap-break-word">
                 {isEditMode
                   ? "Update role information and privileges"
                   : "Define a new role with specific privileges and permissions"}
@@ -140,23 +147,23 @@ export default function AddRoleModal({
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto space-y-6 py-4"
+          className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 py-3 sm:py-4 px-1 min-w-0"
         >
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wide">
               Role Information
             </h3>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                <Label htmlFor="name" className="text-xs sm:text-sm font-medium">
                   Role Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="name"
                   {...register("name")}
                   placeholder="e.g., Laboratory Manager"
-                  className={errors.name ? "border-red-500" : ""}
+                  className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.name ? "border-red-500" : ""}`}
                   disabled={isLoading}
                 />
                 {errors.name && (
@@ -164,15 +171,15 @@ export default function AddRoleModal({
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="code" className="text-sm font-medium">
+              <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                <Label htmlFor="code" className="text-xs sm:text-sm font-medium">
                   Role Code <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="code"
                   {...register("code")}
                   placeholder="e.g., manager"
-                  className={errors.code ? "border-red-500" : ""}
+                  className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.code ? "border-red-500" : ""}`}
                   disabled={isLoading || isEditMode}
                 />
                 {errors.code && (
@@ -181,23 +188,23 @@ export default function AddRoleModal({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="description" className="text-xs sm:text-sm font-medium">
                 Description
               </Label>
               <Textarea
                 id="description"
                 {...register("description")}
                 placeholder="Brief description of the role and its responsibilities..."
-                className="min-h-[80px] resize-none"
+                className="min-h-[70px] sm:min-h-[80px] resize-none text-xs sm:text-sm"
                 disabled={isLoading}
               />
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wide">
                 Privileges <span className="text-red-500">*</span>
               </h3>
               <span className="text-xs text-gray-500">
@@ -205,14 +212,14 @@ export default function AddRoleModal({
               </span>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {privilegeList.map((priv) => {
                   const isChecked = selectedPrivileges.includes(priv);
                   return (
                     <label
                       key={priv}
-                      className={`flex items-center gap-3 p-3 rounded-md border transition-all cursor-pointer ${
+                      className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-md border transition-all cursor-pointer min-w-0 ${
                         isChecked
                           ? "bg-blue-50 border-blue-200 shadow-sm"
                           : "bg-white border-gray-200 hover:bg-gray-50"
@@ -229,9 +236,10 @@ export default function AddRoleModal({
                           });
                         }}
                         disabled={isLoading}
+                        className="shrink-0"
                       />
                       <span
-                        className={`text-sm ${
+                        className={`text-xs sm:text-sm wrap-break-word min-w-0 ${
                           isChecked
                             ? "font-medium text-blue-700"
                             : "text-gray-700"
@@ -252,13 +260,13 @@ export default function AddRoleModal({
           </div>
         </form>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t mt-auto">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t mt-auto px-1">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
-            className="min-w-[100px] cursor-pointer"
+            className="w-full sm:w-auto min-w-[100px] cursor-pointer text-xs sm:text-sm"
           >
             Cancel
           </Button>
@@ -266,11 +274,11 @@ export default function AddRoleModal({
             type="submit"
             onClick={handleSubmit(onSubmit)}
             disabled={isLoading}
-            className={getRoleButtonClass(user?.data.roleCode)}
+            className={`w-full sm:w-auto cursor-pointer text-xs sm:text-sm ${getRoleButtonClass(user?.data.roleCode)}`}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                 {isEditMode ? "Updating..." : "Creating..."}
               </>
             ) : (

@@ -136,7 +136,7 @@ describe("ActivitiesCardManagement", () => {
 
     // Mock window.location
     delete (window as { location?: Location }).location;
-    window.location = { href: "" } as Location;
+    (window as any).location = { href: "" } as Location;
   });
 
   it("should render component with activities successfully", () => {
