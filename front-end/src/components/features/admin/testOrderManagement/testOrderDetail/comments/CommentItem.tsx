@@ -1,4 +1,4 @@
-import { Trash2, Edit2 } from "lucide-react";
+import { Trash2, Edit2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -20,6 +20,9 @@ interface CommentItemProps {
   onUpdate: (commentId: string, content: string) => Promise<void>;
   onCancelEdit: () => void;
   editingCommentId: string | null;
+  isAiDiagnosis: boolean;
+  displayAuthor: string;
+  displayContent: string;
 }
 
 const formatDate = (dateString: string) => {
@@ -34,6 +37,9 @@ export default function CommentItem({
   onUpdate,
   onCancelEdit,
   editingCommentId,
+  isAiDiagnosis,
+  displayAuthor,
+  displayContent,
 }: CommentItemProps) {
   const [editContent, setEditContent] = useState(comment.content);
 
@@ -49,11 +55,11 @@ export default function CommentItem({
   };
 
   return (
-    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-3 sm:space-y-4">
+    <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 space-y-3 sm:space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <p className="font-semibold text-gray-900 wrap-break-word">
-            {comment.createdBy}
+          <p className="font-semibold text-gray-900 wrap-break-word text-sm sm:text-base">
+            {isAiDiagnosis ? "AI Reviewed" : displayAuthor}
           </p>
           <p className="text-xs text-gray-500">
             {formatDate(comment.createdAt)}
@@ -113,8 +119,18 @@ export default function CommentItem({
             </Button>
           </div>
         </div>
+      ) : isAiDiagnosis ? (
+        <div className="rounded-lg border border-purple-200 bg-purple-50/70 p-4">
+          <div className="flex items-center gap-2 text-purple-700 font-semibold text-sm">
+            <Sparkles className="h-4 w-4" />
+            AI Diagnosis
+          </div>
+          <p className="text-gray-700 text-sm leading-relaxed mt-2">
+            {displayContent}
+          </p>
+        </div>
       ) : (
-        <p className="text-gray-700 leading-relaxed">{comment.content}</p>
+        <p className="text-gray-700 leading-relaxed">{displayContent}</p>
       )}
     </div>
   );

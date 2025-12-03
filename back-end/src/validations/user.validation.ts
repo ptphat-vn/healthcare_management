@@ -3,10 +3,73 @@ import { z } from 'zod'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 
+const ymdRegex = /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
+const mdyRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/(\d{4})$/
+
+const parseDate = (s: string): Date | null => {
+  if (typeof s !== 'string') return null
+
+  let year: number
+  let month: number
+  let day: number
+
+  if (ymdRegex.test(s)) {
+    const match = s.match(ymdRegex)
+    if (!match) return null
+    year = Number(match[1])
+    month = Number(match[2])
+    day = Number(match[3])
+  } else if (mdyRegex.test(s)) {
+    const match = s.match(mdyRegex)
+    if (!match) return null
+    month = Number(match[1])
+    day = Number(match[2])
+    year = Number(match[3])
+  } else {
+    return null
+  }
+
+  const d = new Date(year, month - 1, day)
+
+  if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) {
+    return null
+  }
+
+  return d
+}
+
 const isValidDate = (s: string): boolean => {
-  const ymd = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
-  const mdy = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/
-  return ymd.test(s) || mdy.test(s)
+  return parseDate(s) !== null
+}
+
+const isReasonableYear = (s: string): boolean => {
+  if (typeof s !== 'string') return false
+
+  let year: number | null = null
+
+  if (ymdRegex.test(s)) {
+    const match = s.match(ymdRegex)
+    year = match ? Number(match[1]) : null
+  } else if (mdyRegex.test(s)) {
+    const match = s.match(mdyRegex)
+    year = match ? Number(match[3]) : null
+  }
+
+  if (year === null) return false
+
+  const currentYear = new Date().getFullYear()
+  return year >= 1900 && year <= currentYear
+}
+
+const isNotFutureDate = (s: string): boolean => {
+  const d = parseDate(s)
+  if (!d) return false
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  d.setHours(0, 0, 0, 0)
+
+  return d <= today
 }
 
 const registerSchema = z.object({
@@ -16,18 +79,29 @@ const registerSchema = z.object({
   identifyNumber: z.string().regex(/^[0-9]{9,12}$/, 'Số CMND/CCCD phải có 9-12 chữ số'),
   gender: z.enum(['male', 'female'], { message: 'Giới tính phải là nam hoặc nữ' }),
   address: z.string().min(1).optional(),
-  dateOfBirth: z.string().refine(isValidDate, 'Ngày sinh phải đúng định dạng MM/DD/YYYY hoặc YYYY-MM-DD'),
+  dateOfBirth: z
+    .string()
+    .refine(isValidDate, 'Ngày sinh phải là ngày hợp lệ với định dạng MM/DD/YYYY hoặc YYYY-MM-DD')
+    .refine(isReasonableYear, 'Năm sinh phải từ 1900 đến năm hiện tại')
+    .refine(isNotFutureDate, 'Ngày sinh không được ở tương lai'),
   password: z.string().min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
 })
 
 export const updateUserSchema = z.object({
   fullName: z.string().min(1).optional(),
-  dateOfBirth: z.string().refine(isValidDate).optional(),
+  dateOfBirth: z
+    .string()
+    .refine(isValidDate, {
+      message: 'Ngày sinh phải là ngày hợp lệ với định dạng MM/DD/YYYY hoặc YYYY-MM-DD',
+    })
+    .refine(isReasonableYear, { message: 'Năm sinh phải từ 1900 đến năm hiện tại' })
+    .refine(isNotFutureDate, { message: 'Ngày sinh không được ở tương lai' })
+    .optional(),
   gender: z.enum(['male', 'female']).optional(),
   address: z.string().min(1).optional(),
   email: z.string().email().optional(),
   phoneNumber: z.string().regex(/^[0-9]{10,11}$/).optional(),
-  identifyNumber: z.string().regex(/^[0-9]{9,12}$/).optional(),  // Add this line
+  identifyNumber: z.string().regex(/^[0-9]{9,12}$/).optional(),  
   roleId: z.string().min(1, 'Role ID is required').optional(),
   status: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
 })

@@ -2,7 +2,10 @@ import { ObjectId } from 'mongodb'
 import { HttpError } from '~/models/error.model'
 import { MESSAGES } from '~/constants/message.constant'
 import { getTestOrdersCollection, TestOrderDocument, TestResult, Comment, CBCPanelTestName } from '~/models/test-order.model'
-import { getPatientMedicalRecordsCollection } from '~/models/patient-medical-record.model'
+import {
+  getPatientMedicalRecordsCollection,
+  type MedicalRecordTestResult
+} from '~/models/patient-medical-record.model'
 import { getUsersCollection } from '~/models/user.model'
 import { getEventLogsCollection } from '~/models/event-log.model'
 import { getRolesCollection } from '~/models/role.model'
@@ -31,6 +34,21 @@ export interface ListTestOrdersParams {
   limit?: number
   authUserId?: string
   authUserRole?: string
+}
+
+// Helper function to determine status based on AI review comments
+// Status is 'ai_reviewed' if there are active AI review comments, otherwise 'completed'
+function determineStatusFromAIComments(comments: Comment[] | undefined): 'ai_reviewed' | 'completed' {
+  if (!comments || comments.length === 0) {
+    return 'completed'
+  }
+  
+  // Check if there are any active (not deleted) AI review comments
+  const hasAIReviewComment = comments.some((c: any) => {
+    return !c.isDeleted && c.content?.startsWith('[AI Diagnosis]')
+  })
+  
+  return hasAIReviewComment ? 'ai_reviewed' : 'completed'
 }
 
 export async function createTestOrder(data: CreateTestOrderData, createdBy: string) {
@@ -468,12 +486,15 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
     createdAt: now
   }))
 
+  // Determine status based on AI review comments
+  const newStatus = determineStatusFromAIComments(existing.comments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $set: { 
         testResults: resultsWithTimestamp,
-        status: 'completed',
+        status: newStatus,
         runDate: now,
         runBy: new ObjectId(addedBy),
         updatedAt: now
@@ -508,8 +529,6 @@ export async function addTestResults(id: string, testResults: Omit<TestResult, '
       console.error('Failed to record reagent usage from test results:', error)
     })
   }
-
-  await syncMedicalRecordTestResultsSnapshot(updated)
 
   return updated
 }
@@ -622,6 +641,38 @@ export async function recordReagentUsageFromTestResults(
   }
 }
 
+export async function syncMedicalRecordTestResultsSnapshot(
+  testOrder: Pick<
+    TestOrderDocument,
+    '_id' | 'medicalRecordId' | 'status' | 'testResults' | 'runDate' | 'requestedTests'
+  >
+) {
+  if (!testOrder?.medicalRecordId) {
+    return
+  }
+
+  const medicalRecords = getPatientMedicalRecordsCollection()
+  const snapshot: MedicalRecordTestResult = {
+    testOrderId: testOrder._id as ObjectId,
+    testOrderStatus: testOrder.status,
+    runDate: testOrder.runDate,
+    requestedTests: testOrder.requestedTests,
+    testResults: (testOrder.testResults || []) as TestResult[],
+    syncedAt: new Date()
+  }
+
+  const filter = { _id: testOrder.medicalRecordId } as any
+
+  await medicalRecords.updateOne(filter, { $pull: { testResults: { testOrderId: snapshot.testOrderId } } } as any)
+  await medicalRecords.updateOne(
+    filter,
+    {
+      $push: { testResults: snapshot },
+      $set: { updatedAt: new Date() }
+    } as any
+  )
+}
+
 export async function addComment(id: string, content: string, addedBy: string) {
   let testOrderObjectId: ObjectId
   try {
@@ -633,6 +684,11 @@ export async function addComment(id: string, content: string, addedBy: string) {
   const testOrders = getTestOrdersCollection()
   const eventLogs = getEventLogsCollection()
 
+  const testOrder = await testOrders.findOne({ _id: testOrderObjectId })
+  if (!testOrder) {
+    throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
+  }
+
   const now = new Date()
   const commentId = new ObjectId()
   const comment: Comment = {
@@ -642,11 +698,20 @@ export async function addComment(id: string, content: string, addedBy: string) {
     createdAt: now
   }
 
+  // Get updated comments list (including new comment)
+  const updatedComments = [...(testOrder.comments || []), comment]
+  
+  // Determine status based on AI review comments
+  const newStatus = determineStatusFromAIComments(updatedComments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $push: { comments: comment },
-      $set: { updatedAt: now }
+      $set: { 
+        status: newStatus,
+        updatedAt: now 
+      }
     },
     { returnDocument: 'after' }
   )
@@ -716,11 +781,14 @@ export async function reviewTestOrderResults(id: string, reviewedBy: string, res
     })
   }
 
+  // Determine status based on AI review comments
+  const newStatus = determineStatusFromAIComments(testOrder.comments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $set: { 
-        status: 'reviewed',
+        status: newStatus,
         testResults: updatedTestResults,
         updatedAt: now
       } 
@@ -749,8 +817,6 @@ export async function reviewTestOrderResults(id: string, reviewedBy: string, res
     // swallow logging errors
   }
 
-  await syncMedicalRecordTestResultsSnapshot(updated)
-
   return attachCommentAuthorNames(updated)
 }
 
@@ -771,8 +837,10 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
   }
 
-  if (testOrder.status !== 'completed') {
-    throw new HttpError(400, 'Test order must be completed before AI review')
+  // Allow AI review if status is completed, reviewed, or ai_reviewed (to allow re-reviewing)
+  const allowedStatuses: Array<'completed' | 'reviewed' | 'ai_reviewed'> = ['completed', 'reviewed', 'ai_reviewed']
+  if (!allowedStatuses.includes(testOrder.status as any)) {
+    throw new HttpError(400, 'Test order must be completed, reviewed, or ai_reviewed before AI review')
   }
 
   const now = new Date()
@@ -837,11 +905,19 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     createdAt: now
   } : null
 
+  // Get updated comments list (including new AI review comment if exists)
+  const updatedComments = commentPayload 
+    ? [...(testOrder.comments || []), commentPayload]
+    : (testOrder.comments || [])
+
+  // Determine status based on AI review comments
+  const newStatus = determineStatusFromAIComments(updatedComments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $set: { 
-        status: 'ai_reviewed',
+        status: newStatus,
         testResults: updatedTestResults,
         updatedAt: now
       },
@@ -871,58 +947,8 @@ export async function aiReviewTestOrderResults(id: string, reviewedBy: string) {
     // swallow logging errors
   }
 
-  await syncMedicalRecordTestResultsSnapshot(updated)
-
   const responseOrder = await attachCommentAuthorNames(updated)
   return { testOrder: responseOrder, aiDiagnosis: aiSummary }
-}
-
-export async function syncMedicalRecordTestResultsSnapshot(
-  testOrder: Pick<
-    TestOrderDocument,
-    '_id' | 'medicalRecordId' | 'testResults' | 'status' | 'runDate' | 'requestedTests'
-  >
-) {
-  if (!testOrder?._id || !testOrder.medicalRecordId) return
-
-  const patientRecords = getPatientMedicalRecordsCollection()
-  const hasResults = Array.isArray(testOrder.testResults) && testOrder.testResults.length > 0
-  const now = new Date()
-
-  if (!hasResults) {
-    await patientRecords.updateOne(
-      { _id: testOrder.medicalRecordId } as any,
-      {
-        $pull: { testResults: { testOrderId: testOrder._id } },
-        $set: { updatedAt: now }
-      } as any
-    )
-    return
-  }
-
-  const entry = {
-    testOrderId: testOrder._id,
-    testOrderStatus: testOrder.status,
-    runDate: testOrder.runDate,
-    requestedTests: testOrder.requestedTests,
-    testResults: testOrder.testResults,
-    syncedAt: now
-  }
-
-  await patientRecords.updateOne(
-    { _id: testOrder.medicalRecordId } as any,
-    {
-      $pull: { testResults: { testOrderId: testOrder._id } }
-    } as any
-  )
-
-  await patientRecords.updateOne(
-    { _id: testOrder.medicalRecordId } as any,
-    {
-      $push: { testResults: entry },
-      $set: { updatedAt: now }
-    } as any
-  )
 }
 
 // Update comment
@@ -1030,6 +1056,7 @@ export async function deleteComment(testOrderId: string, commentId: string, dele
   }
 
   const now = new Date()
+  
   const updatedComments = testOrder.comments?.map((c: any) => {
     if (String(c._id) === commentId) {
       return {
@@ -1042,11 +1069,15 @@ export async function deleteComment(testOrderId: string, commentId: string, dele
     return c
   })
 
+  // Determine status based on AI review comments after deletion
+  const newStatus = determineStatusFromAIComments(updatedComments)
+
   const result = await testOrders.findOneAndUpdate(
     { _id: testOrderObjectId },
     { 
       $set: { 
         comments: updatedComments,
+        status: newStatus,
         updatedAt: now
       } 
     },

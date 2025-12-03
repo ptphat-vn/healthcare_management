@@ -106,14 +106,18 @@ export default function EditTestOrderModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            Edit Test Order
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-[96vw] sm:max-w-3xl p-0 overflow-hidden rounded-lg">
+        <div className="flex flex-col max-h-[90vh]">
+          <DialogHeader className="px-4 sm:px-6 pt-4 pb-2 border-b bg-white sticky top-0 z-10">
+            <DialogTitle className="text-lg sm:text-2xl font-bold">
+              Edit Test Order
+            </DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 px-4 sm:px-6 pb-4 overflow-y-auto flex-1"
+          >
           <Input
             label="Patient Name"
             {...register("patientName")}
@@ -122,7 +126,7 @@ export default function EditTestOrderModal({
             placeholder="Enter patient name"
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Date of Birth"
               type="date"
@@ -156,7 +160,7 @@ export default function EditTestOrderModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Phone Number"
               {...register("phoneNumber")}
@@ -180,7 +184,7 @@ export default function EditTestOrderModal({
           />
           <div className="flex justify-end gap-2 pt-4">
             <Button
-              className="cursor-pointer"
+              className="h-8 px-3 text-xs sm:text-sm sm:h-9"
               type="button"
               variant="outline"
               onClick={handleCancel}
@@ -189,7 +193,9 @@ export default function EditTestOrderModal({
               Cancel
             </Button>
             <Button
-              className={getRoleButtonClass(user?.data.roleCode)}
+              className={`${getRoleButtonClass(
+                user?.data.roleCode
+              )} h-8 px-3 text-xs sm:text-sm sm:h-9`}
               type="submit"
               disabled={isLoading}
             >
@@ -197,6 +203,7 @@ export default function EditTestOrderModal({
             </Button>
           </div>
         </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

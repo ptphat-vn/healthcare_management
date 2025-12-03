@@ -16,19 +16,19 @@ export default function InsuranceInfoCard({
   insuranceInfo,
 }: InsuranceInfoCardProps) {
   return (
-    <Card className="mb-4 sm:mb-6 shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-      <CardHeader className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 border-b border-green-100 px-4 py-3 sm:px-5 sm:py-4">
-        <CardTitle className="flex items-center gap-2 sm:gap-3 text-green-700">
-          <div className="p-1.5 sm:p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md">
+    <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 border-b border-green-100/50 px-3 py-2.5 sm:px-4 sm:py-3 md:px-5 md:py-4">
+        <CardTitle className="flex items-center gap-2.5 sm:gap-3 text-green-700 min-w-0">
+          <div className="p-1.5 sm:p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-sm shrink-0">
             <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
-          <span className="text-lg sm:text-xl font-bold">
+          <span className="text-base sm:text-lg md:text-xl font-bold">
             Insurance Information
           </span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-3 sm:p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+      <CardContent className="p-3 sm:p-4 md:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3 md:gap-5">
           <InfoField
             icon={Shield}
             label="Provider"

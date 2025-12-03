@@ -26,7 +26,7 @@ export function useChatPeers(searchTerm?: string) {
   return {
     users: isPatient ? labUsers?.data?.user : patients?.data?.user,
     isLoading: isPatient ? isLoadingLab : isLoadingPat,
-    targetLabel: isPatient ? "bác sĩ" : "bệnh nhân",
+    targetLabel: isPatient ? "doctor" : "patient",
     isPatient,
     isDoctor,
   };
