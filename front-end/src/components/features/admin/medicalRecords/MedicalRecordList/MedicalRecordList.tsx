@@ -32,12 +32,38 @@ import { toast } from "sonner";
 import PaginationUI from "@/components/ui/pagination/PaginationUI";
 import SearchAndFilter from "@/components/ui/searchAndFilter/SearchAndFilter";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useGetAllTestOrderQuery } from "@/services/testOrderApi";
+import { useMemo } from "react";
+import { formatDate } from "@/utils/formatDate";
 
 interface ApiError {
   data?: {
     message?: string;
   };
 }
+
+// Thêm các hàm helper giống như TestOrderList (thêm sau các imports, trước component)
+const getStatusColor = (status: string) => {
+  const statusStyles: Record<string, string> = {
+    completed: "bg-green-100 text-green-800 border-green-200",
+    pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    reviewed: "bg-blue-100 text-blue-800 border-blue-200",
+    ai_reviewed: "bg-purple-100 text-purple-800 border-purple-200",
+    cancelled: "bg-red-100 text-red-800 border-red-200",
+  };
+  return statusStyles[status] || "bg-gray-100 text-gray-800 border-gray-200";
+};
+
+const formatStatusText = (status: string) => {
+  const statusMap: Record<string, string> = {
+    pending: "Pending",
+    completed: "Completed",
+    reviewed: "Reviewed",
+    ai_reviewed: "AI Reviewed",
+    cancelled: "Cancelled",
+  };
+  return statusMap[status] || status;
+};
 
 export default function MedicalRecordList() {
   const navigate = useNavigate();
@@ -72,6 +98,61 @@ export default function MedicalRecordList() {
   const [deleteMedicalRecord] = useDeleteMedicalRecordMutation();
 
   const records = recordsData?.data?.patient || [];
+
+  // Fetch all test orders to get last test date and status
+  const { data: testOrdersData } = useGetAllTestOrderQuery({
+    sortBy: "createdDate",
+    sortOrder: -1,
+    limit: 1000, // Fetch enough to cover all records
+  });
+
+  // Create a map of medicalRecordId to last test order (most recent)
+  const lastTestByMedicalRecord = useMemo(() => {
+    const map = new Map<string, { createdDate: string; status: string }>();
+    
+    if (testOrdersData?.data?.testOrder) {
+      testOrdersData.data.testOrder.forEach((testOrder: any) => {
+        // Get medicalRecordId from test order (may be in different formats)
+        const medicalRecordId = 
+          testOrder.medicalRecordId || 
+          testOrder.medicalRecordId?._id || 
+          testOrder.medicalRecordId?.toString();
+        
+        if (medicalRecordId) {
+          const recordId = typeof medicalRecordId === 'object' 
+            ? medicalRecordId._id || medicalRecordId.toString() 
+            : medicalRecordId.toString();
+          
+          // Only keep the first (most recent) test order for each medical record
+          // Since we sorted by createdDate desc, first one is the latest
+          if (!map.has(recordId)) {
+            map.set(recordId, {
+              createdDate: testOrder.createdDate,
+              status: testOrder.status,
+            });
+          }
+        }
+      });
+    }
+    
+    return map;
+  }, [testOrdersData]);
+
+  // Enrich records with lastTestDate and lastTestStatus from test orders
+  const enrichedRecords = useMemo(() => {
+    return records.map((record) => {
+      const medicalRecordId = record._id || record.id;
+      const lastTest = medicalRecordId 
+        ? lastTestByMedicalRecord.get(medicalRecordId.toString())
+        : null;
+      
+      return {
+        ...record,
+        lastTestDate: record.lastTestDate || lastTest?.createdDate,
+        lastTestStatus: record.lastTestStatus || lastTest?.status,
+      };
+    });
+  }, [records, lastTestByMedicalRecord]);
 
   // const calcAge = (dob?: string) => {
   //   if (!dob) return "-";
@@ -264,7 +345,7 @@ export default function MedicalRecordList() {
                     </TableCell>
                   </TableRow>
                 ))
-              ) : records.length === 0 ? (
+              ) : enrichedRecords.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={12} className="text-center py-12">
                     <EmptyState
@@ -289,7 +370,7 @@ export default function MedicalRecordList() {
                   </TableCell>
                 </TableRow>
               ) : (
-                records.map((record, idx) => (
+                enrichedRecords.map((record, idx) => (
                   <TableRow
                     key={record._id || record.id}
                     className="hover:bg-blue-50/50 transition-colors"
@@ -326,16 +407,23 @@ export default function MedicalRecordList() {
                     <TableCell className="text-gray-600 px-4">
                       {record.email || "-"}
                     </TableCell>
-                    {/* <TableCell className="text-gray-600 px-4">
-                      {new Date(record.dateOfBirth).toLocaleDateString()}
-                    </TableCell> */}
                     <TableCell className="text-gray-600 px-4">
                       {record.lastTestDate
-                        ? new Date(record.lastTestDate).toLocaleDateString()
+                        ? formatDate(record.lastTestDate)
                         : "-"}
                     </TableCell>
-                    <TableCell className="text-gray-600 px-4">
-                      {record.lastTestStatus || "-"}
+                    <TableCell className="px-4">
+                      {record.lastTestStatus ? (
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                            record.lastTestStatus
+                          )}`}
+                        >
+                          {formatStatusText(record.lastTestStatus)}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
                     </TableCell>
                     <TableCell className="text-right px-3">
                       <DropdownMenu>
@@ -384,7 +472,7 @@ export default function MedicalRecordList() {
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div className="text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
-          {records.length > 0 ? (
+          {enrichedRecords.length > 0 ? (
             <>
               Showing{" "}
               <span className="font-semibold">{(currentPage - 1) * 8 + 1}</span>{" "}
