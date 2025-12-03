@@ -21,7 +21,7 @@ export function useAuth() {
       const result = await logoutApi();
       toast.success(result.data?.message);
     } catch (error) {
-      toast.error("Đăng xuất thất bại");
+      toast.error("Login failed");
       console.log(error);
     } finally {
       // Disconnect socket trước khi logout
@@ -47,15 +47,8 @@ export function useAuth() {
         localStorage.setItem(key, value);
       });
 
-      // Điều hướng về root, RootRedirect sẽ đưa về login khi chưa auth
-      navigate("/", { replace: true });
-      if (typeof window !== "undefined") {
-        setTimeout(() => {
-          if (window.location.pathname !== "/") {
-            window.location.replace("/");
-          }
-        }, 10);
-      }
+      // Điều hướng nội bộ SPA tới trang login, KHÔNG reload lại page
+      navigate("/auth/login", { replace: true });
     }
   };
   return { isAuthenticated, user, logout: handleLogout };
