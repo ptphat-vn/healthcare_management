@@ -76,7 +76,7 @@ describe("Modal thêm đơn xét nghiệm", () => {
     expect(lastFormProps).toBeDefined();
     expect(lastFormProps.isLoading).toBe(false);
     expect(typeof lastFormProps.onSubmit).toBe("function");
-    expect(typeof lastFormProps.onCancel).toBe("function");
+    expect(typeof lastFormProps.onClose).toBe("function");
   });
 
   it("báo lỗi khi thiếu hồ sơ y tế", async () => {
@@ -137,7 +137,7 @@ describe("Modal thêm đơn xét nghiệm", () => {
 
   it("không cho hủy khi đang tải nhưng đóng bình thường", async () => {
     renderModal();
-    await lastFormProps.onCancel();
+    await lastFormProps.onClose();
     expect(onOpenChange).toHaveBeenCalledWith(false);
 
     const loadingMutationSpy = vi.fn();
@@ -149,7 +149,7 @@ describe("Modal thêm đơn xét nghiệm", () => {
       <AddTestOrderModal open onOpenChange={onOpenChange} onSuccess={onSuccess} />,
     );
 
-    await lastFormProps.onCancel();
+    await lastFormProps.onClose();
     expect(onOpenChange).toHaveBeenCalledTimes(1);
   });
 });

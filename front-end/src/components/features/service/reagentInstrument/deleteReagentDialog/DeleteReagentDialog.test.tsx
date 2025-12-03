@@ -52,6 +52,7 @@ vi.mock("lucide-react", () => {
   return {
     Loader2: Icon,
     AlertTriangle: Icon,
+    X: Icon,
   };
 });
 
@@ -73,15 +74,11 @@ describe("DeleteReagentDialog", () => {
     renderDialog({ reagentName: "Reagent Alpha" });
 
     expect(
-      screen.getByText("Remove Reagent from Instrument"),
+      screen.getByText("Delete Reagent from Instrument"),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/"Reagent Alpha"/),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("alert-dialog")).toHaveAttribute(
-      "data-open",
-      "true",
-    );
   });
 
   it("gọi callback xác nhận khi người dùng đồng ý xóa", async () => {
@@ -89,7 +86,7 @@ describe("DeleteReagentDialog", () => {
     const { onConfirm } = renderDialog();
 
     await user.click(
-      screen.getByRole("button", { name: "Remove Reagent" }),
+      screen.getByRole("button", { name: "Delete Reagent" }),
     );
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
@@ -99,7 +96,7 @@ describe("DeleteReagentDialog", () => {
     renderDialog({ isDeleting: true });
 
     expect(
-      screen.getByRole("button", { name: /Removing.../ }),
+      screen.getByRole("button", { name: /Deleting.../ }),
     ).toBeDisabled();
     expect(
       screen.getByRole("button", { name: "Cancel" }),

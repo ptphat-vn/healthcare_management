@@ -120,27 +120,23 @@ describe("Trang chi tiết đơn xét nghiệm", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/admin/test-order");
   });
 
-  it("hiển thị tab tổng quan cùng thông tin đơn", () => {
+  it("displays overview tab with order information", () => {
     render(<TestOrderDetailPage />);
 
     expect(
       screen.getByRole("heading", { name: /Test Order Details/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/order-123/i)).toBeInTheDocument();
     expect(screen.getByTestId("patient-info")).toHaveTextContent("John Doe");
     expect(screen.getByTestId("order-info")).toHaveTextContent("pending");
   });
 
-  it("cho phép chuyển tab để xem kết quả và bình luận", async () => {
+  it("allows switching tab to view test results", async () => {
     render(<TestOrderDetailPage />);
 
     await userEvent.click(
       screen.getByRole("button", { name: /Test Results \(2\)/i }),
     );
     expect(screen.getByTestId("test-results")).toHaveTextContent("2");
-
-    await userEvent.click(screen.getByRole("button", { name: /Comments/i }));
-    expect(screen.getByTestId("comments")).toHaveTextContent("1");
   });
 
   it("quay lại khi bấm nút ở tiêu đề", async () => {

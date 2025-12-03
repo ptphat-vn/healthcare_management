@@ -69,13 +69,11 @@ export default function MonitoringDetail({
                     Operator
                   </h3>
                   <div className="text-sm sm:text-base font-medium text-gray-900 wrap-break-word">
-                    {log.operator?.name || "N/A"}
-                    {log.operator?.role && (
-                      <span className="text-gray-600">
-                        {" "}
-                        - {log.operator.role}
-                      </span>
-                    )}
+                    {log.operator?.name
+                      ? log.operator?.role
+                        ? `${log.operator.name} - ${log.operator.role}`
+                        : log.operator.name
+                      : log.operator?.role || "N/A"}
                   </div>
                 </div>
               </div>

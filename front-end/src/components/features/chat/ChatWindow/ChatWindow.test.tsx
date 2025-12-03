@@ -163,7 +163,7 @@ describe("ChatWindow", () => {
     mockUseSocketConnection.mockReturnValue({ isConnected: false });
 
     render(<ChatWindow {...baseProps} />);
-    expect(screen.getByText("Đang kết nối...")).toBeInTheDocument();
+    expect(screen.getByText("Connecting...")).toBeInTheDocument();
   });
 
   it("ERROR: hiển thị toast khi tải cuộc trò chuyện thất bại", () => {
@@ -174,7 +174,7 @@ describe("ChatWindow", () => {
     });
 
     render(<ChatWindow {...baseProps} />);
-    expect(toast.error).toHaveBeenCalledWith("Không thể tải cuộc trò chuyện");
+    expect(toast.error).toHaveBeenCalledWith("Unable to load conversation");
   });
 
   it("SEND: khôi phục input và báo lỗi khi gửi thất bại", async () => {

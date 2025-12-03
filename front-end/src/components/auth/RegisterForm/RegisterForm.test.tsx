@@ -95,10 +95,10 @@ describe('RegisterForm', () => {
     })
   })
 
-  it('hiển thị lỗi validate khi bỏ trống trường bắt buộc', async () => {
+  it('shows validation errors when required fields are empty', async () => {
     renderForm()
     await userEvent.click(screen.getByRole('button', { name: /register/i }))
-    expect(await screen.findByText(/email không đúng/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Invalid email format/i)).toBeInTheDocument()
     expect(mockRegisterMutation).not.toHaveBeenCalled()
   })
 

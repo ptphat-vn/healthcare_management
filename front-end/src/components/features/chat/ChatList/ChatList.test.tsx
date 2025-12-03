@@ -125,7 +125,7 @@ describe('ChatList', () => {
     await user.click(screen.getByTestId('send-button'))
 
     expect(saveSpy).not.toHaveBeenCalled()
-    expect(toast.error).toHaveBeenCalledWith('Không thể chat với chính mình')
+    expect(toast.error).toHaveBeenCalledWith('Cannot chat with yourself')
   })
 
   it('VALIDATION: yêu cầu chọn user hợp lệ (không nhận chuỗi trống)', async () => {
@@ -143,7 +143,7 @@ describe('ChatList', () => {
     await user.click(screen.getByTestId('send-button'))
 
     expect(saveSpy).not.toHaveBeenCalled()
-    expect(toast.error).toHaveBeenCalledWith('Vui lòng chọn bệnh nhân để chat')
+    expect(toast.error).toHaveBeenCalledWith('Please select bệnh nhân to chat')
   })
 
   it('UI: hiển thị danh sách hội thoại và cho phép chọn', async () => {

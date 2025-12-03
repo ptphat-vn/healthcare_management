@@ -1,4 +1,4 @@
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
@@ -71,12 +71,31 @@ export default function AddReagentModal({
   });
 
   const usagePerRun = watch("usagePerRun");
-  const {user} = useAuth();
+  const { user } = useAuth();
+  const handleFormError = (errors: FieldErrors<CreateReagentFormData>) => {
+    const dosageError =
+      errors.usagePerRun?.min?.message ||
+      errors.usagePerRun?.max?.message ||
+      errors.usagePerRun?.message;
+
+    if (typeof dosageError === "string" && dosageError.length > 0) {
+      const normalizedMessage = dosageError.includes(
+        "Min dosage cannot be greater than Max"
+      )
+        ? "Min dosage cannot be greater than Max"
+        : dosageError;
+      toast.error(normalizedMessage);
+      return;
+    }
+
+    toast.error("Please fill in all required fields");
+  };
   const adjustUsage = (field: "min" | "max", delta: 1 | -1) => {
     const current = usagePerRun?.[field] ?? 0;
     const next = current + delta;
 
     if (next < 0) {
+      toast.error("Dosage cannot be negative");
       return;
     }
 
@@ -93,6 +112,16 @@ export default function AddReagentModal({
   };
 
   const onSubmit = async (data: CreateReagentFormData) => {
+    if (data.usagePerRun.min < 0 || data.usagePerRun.max < 0) {
+      toast.error("Dosage cannot be negative");
+      return;
+    }
+
+    if (data.usagePerRun.min > data.usagePerRun.max) {
+      toast.error("Min dosage cannot be greater than Max");
+      return;
+    }
+
     try {
       // Transform data to match backend schema
       const { storageConditions, categories, ...restFormData } = data;
@@ -141,7 +170,7 @@ export default function AddReagentModal({
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onSubmit, handleFormError)}
           className="flex flex-col flex-1 overflow-hidden"
         >
           <div className="px-3 sm:px-5 py-2.5 sm:py-3 flex-1 overflow-y-auto overflow-x-hidden min-w-0">
@@ -286,104 +315,122 @@ export default function AddReagentModal({
                 <Controller
                   name="usagePerRun"
                   control={control}
-                  render={({ field }) => (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                      <div className="flex items-center">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
-                          onClick={() => adjustUsage("min", -1)}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <Input
-                          type="number"
-                          placeholder="Min"
-                          min="0"
-                          step="1"
-                          value={field.value?.min ?? 0}
-                          onChange={(e) => {
-                            const val =
-                              e.target.value === ""
-                                ? 0
-                                : Number(e.target.value);
+                  render={({ field }) => {
+                    const usageValue: CreateReagentFormData["usagePerRun"] =
+                      field.value ?? {
+                        min: 0,
+                        max: 0,
+                        unit: "ml",
+                      };
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                        <div className="flex items-center">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
+                            onClick={() => adjustUsage("min", -1)}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <Input
+                            type="number"
+                            placeholder="Min"
+                            min="0"
+                            step="1"
+                            value={usageValue.min}
+                            onChange={(e) => {
+                              const rawValue = e.target.value;
+                              const nextValue =
+                                rawValue === "" ? 0 : Number(rawValue);
+
+                              if (nextValue < 0) {
+                                toast.error("Dosage cannot be negative");
+                                return;
+                              }
+
+                              field.onChange({
+                                ...usageValue,
+                                min: nextValue,
+                              });
+                            }}
+                            className="h-8 rounded-none border-x-0 text-center text-sm w-full min-w-0"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
+                            onClick={() => adjustUsage("min", 1)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
+                            onClick={() => adjustUsage("max", -1)}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <Input
+                            type="number"
+                            placeholder="Max"
+                            min="0"
+                            step="1"
+                            value={usageValue.max}
+                            onChange={(e) => {
+                              const rawValue = e.target.value;
+                              const nextValue =
+                                rawValue === "" ? 0 : Number(rawValue);
+
+                              if (nextValue < 0) {
+                                toast.error("Dosage cannot be negative");
+                                return;
+                              }
+
+                              field.onChange({
+                                ...usageValue,
+                                max: nextValue,
+                              });
+                            }}
+                            className="h-8 rounded-none border-x-0 text-center text-sm w-full min-w-0"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
+                            onClick={() => adjustUsage("max", 1)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Select
+                          value={usageValue.unit || "ml"}
+                          onValueChange={(v) =>
                             field.onChange({
-                              ...field.value!,
-                              min: val,
-                            });
-                          }}
-                          className="h-8 rounded-none border-x-0 text-center text-sm w-full min-w-0"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
-                          onClick={() => adjustUsage("min", 1)}
+                              ...usageValue,
+                              unit: v as "ml" | "μl" | "L",
+                            })
+                          }
                         >
-                          <Plus className="h-4 w-4" />
-                        </Button>
+                          <SelectTrigger className="h-8 text-sm w-full min-w-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ml">ml</SelectItem>
+                            <SelectItem value="μl">μl</SelectItem>
+                            <SelectItem value="L">L</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="flex items-center">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 rounded-l-md rounded-r-none border-r-0"
-                          onClick={() => adjustUsage("max", -1)}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <Input
-                          type="number"
-                          placeholder="Max"
-                          min="0"
-                          step="1"
-                          value={field.value?.max ?? 0}
-                          onChange={(e) => {
-                            const val =
-                              e.target.value === ""
-                                ? 0
-                                : Number(e.target.value);
-                            field.onChange({
-                              ...field.value!,
-                              max: val,
-                            });
-                          }}
-                          className="h-8 rounded-none border-x-0 text-center text-sm w-full min-w-0"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 rounded-r-md rounded-l-none border-l-0"
-                          onClick={() => adjustUsage("max", 1)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <Select
-                        value={field.value?.unit || "ml"}
-                        onValueChange={(v) =>
-                          field.onChange({
-                            ...field.value!,
-                            unit: v as "ml" | "μl" | "L",
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-8 text-sm w-full min-w-0">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ml">ml</SelectItem>
-                          <SelectItem value="μl">μl</SelectItem>
-                          <SelectItem value="L">L</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                    );
+                  }}
                 />
                 {errors.usagePerRun && (
                   <p className="text-xs text-red-500">
@@ -462,7 +509,11 @@ export default function AddReagentModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading} className={`${getRoleButtonClass(user?.data.roleCode)}`}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className={`${getRoleButtonClass(user?.data.roleCode)}`}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

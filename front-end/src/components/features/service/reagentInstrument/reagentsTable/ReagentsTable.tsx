@@ -18,7 +18,6 @@ import {
 import { Eye, Trash2, MoreHorizontal } from "lucide-react";
 import DeleteReagentDialog from "../deleteReagentDialog/DeleteReagentDialog";
 
-
 interface Reagent {
   _id: string;
   reagentId: string;
@@ -51,9 +50,7 @@ export default function ReagentsTable({
   } | null>(null);
 
   const handleViewReagent = (assignmentId: string) => {
-    navigate(
-      `/service/instruments/${instrumentId}/reagents/${assignmentId}`
-    );
+    navigate(`/service/instruments/${instrumentId}/reagents/${assignmentId}`);
   };
 
   const handleDeleteClick = (assignmentId: string, reagentName: string) => {
@@ -160,7 +157,9 @@ export default function ReagentsTable({
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDeleteClick(reagent._id, reagent.reagentName)}
+                          onClick={() =>
+                            handleDeleteClick(reagent._id, reagent.reagentName)
+                          }
                           className="cursor-pointer text-red-600 focus:text-red-600"
                           disabled={isDeleting}
                         >

@@ -58,7 +58,7 @@ describe("DeleteInstrumentModal", () => {
     renderModal();
     expect(screen.getByText("Confirm Delete Instrument")).toBeInTheDocument();
     expect(screen.getByText("Analyzer X")).toBeInTheDocument();
-    expect(screen.getByText("AX-001")).toBeInTheDocument();
+    expect(screen.getByText("SN123")).toBeInTheDocument();
     expect(screen.getByText("Model A")).toBeInTheDocument();
   });
 

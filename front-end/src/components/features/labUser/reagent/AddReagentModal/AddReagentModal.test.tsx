@@ -19,19 +19,57 @@ vi.mock("@/components/ui/input", () => ({
 }));
 
 // Mock Select components
-vi.mock("@/components/ui/select", () => ({
-  Select: ({ children }: any) => <div>{children}</div>,
-  SelectTrigger: ({ children, ...props }: any) => (
-    <button {...props}>{children}</button>
-  ),
-  SelectValue: () => <span data-testid="select-value" />,
-  SelectContent: ({ children }: any) => <div>{children}</div>,
-  SelectItem: ({ value, children, onSelect }: any) => (
-    <div role="option" onClick={() => onSelect?.(value)}>
-      {children}
-    </div>
-  ),
-}));
+vi.mock("@/components/ui/select", async () => {
+  const React = await vi.importActual<typeof import("react")>("react");
+  const SelectContext = React.createContext<{
+    onValueChange?: (value: string) => void;
+    value?: string;
+  }>({});
+
+  const Select = ({
+    children,
+    onValueChange,
+    value,
+  }: {
+    children: React.ReactNode;
+    onValueChange?: (val: string) => void;
+    value?: string;
+  }) => (
+    <SelectContext.Provider value={{ onValueChange, value }}>
+      <div>{children}</div>
+    </SelectContext.Provider>
+  );
+
+  const SelectTrigger = ({ children, ...props }: any) => {
+    const ctx = React.useContext(SelectContext);
+    return (
+      <button type="button" {...props}>
+        {ctx.value || children}
+      </button>
+    );
+  };
+
+  const SelectValue = () => <span data-testid="select-value" />;
+
+  const SelectContent = ({ children }: any) => <div>{children}</div>;
+
+  const SelectItem = ({ value, children }: any) => {
+    const ctx = React.useContext(SelectContext);
+    return (
+      <div role="option" onClick={() => ctx.onValueChange?.(value)}>
+        {children}
+      </div>
+    );
+  };
+
+  return {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+  };
+});
 
 // Mock Label component
 vi.mock("@/components/ui/label", () => ({
@@ -100,16 +138,16 @@ describe("AddReagentModal", () => {
     setup();
 
     expect(screen.getByText("Add New Reagent")).toBeInTheDocument();
-    expect(
-      screen.getByRole("textbox", { name: /name/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: /name/i })).toBeInTheDocument();
     expect(
       screen.getByRole("textbox", { name: /catalognumber/i })
     ).toBeInTheDocument();
     expect(
       screen.getByRole("textbox", { name: /manufacturer/i })
     ).toBeInTheDocument();
-    expect(screen.getByText("Usage Per Run (Min-Max-Unit)")).toBeInTheDocument();
+    expect(
+      screen.getByText("Usage Per Run (Min-Max-Unit)")
+    ).toBeInTheDocument();
   });
 
   it("should submit form successfully", async () => {
@@ -130,6 +168,12 @@ describe("AddReagentModal", () => {
     await user.type(
       screen.getByRole("textbox", { name: /manufacturer/i }),
       "Acme Diagnostics"
+    );
+    await user.click(screen.getByRole("option", { name: /Hematology/i }));
+    await user.type(screen.getByRole("textbox", { name: /ratio/i }), "1:10");
+    await user.type(
+      screen.getByRole("textbox", { name: /storageconditions/i }),
+      "2-8"
     );
 
     await user.click(screen.getByRole("button", { name: /Add Reagent/i }));
@@ -224,6 +268,12 @@ describe("AddReagentModal", () => {
       screen.getByRole("textbox", { name: /manufacturer/i }),
       "Acme Diagnostics"
     );
+    await user.click(screen.getByRole("option", { name: /Hematology/i }));
+    await user.type(screen.getByRole("textbox", { name: /ratio/i }), "1:10");
+    await user.type(
+      screen.getByRole("textbox", { name: /storageconditions/i }),
+      "2-8"
+    );
 
     await user.click(screen.getByRole("button", { name: /Add Reagent/i }));
 
@@ -232,4 +282,3 @@ describe("AddReagentModal", () => {
     });
   });
 });
-

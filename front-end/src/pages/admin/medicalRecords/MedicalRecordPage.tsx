@@ -37,7 +37,7 @@ export default function MedicalRecordPage() {
       </div>
 
       {/* Medical Record List */}
-      <MedicalRecordList key={refreshKey} />
+      <MedicalRecordList key={refreshKey} roleCode={user?.data.roleCode} />
 
       {/* Add Medical Record Modal */}
       <AddMedicalRecordModal

@@ -160,13 +160,14 @@ const {user} = useAuth()
       </section>
 
       <div className="flex justify-end gap-2 pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white h-8 px-3 text-xs sm:text-sm sm:h-9 font-medium text-gray-900 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          >
-            Close
-          </button>
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isLoading}
+          className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white h-8 px-3 text-xs sm:text-sm sm:h-9 font-medium text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
+          Close
+        </button>
           <button
             type="submit"
             disabled={isLoading}

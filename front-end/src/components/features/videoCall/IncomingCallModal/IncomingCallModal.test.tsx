@@ -69,9 +69,9 @@ describe("IncomingCallModal", () => {
     render(<IncomingCallModal {...props} />);
 
     expect(
-      screen.getByRole("heading", { name: /Cuộc gọi video đến/i })
+      screen.getByRole("heading", { name: /Incoming Video Call/i })
     ).toBeInTheDocument();
-    expect(screen.getByText(/Từ:/)).toHaveTextContent("Dr. Strange");
+    expect(screen.getByText(/Dr. Strange/)).toBeInTheDocument();
     expect(props.call.on).toHaveBeenCalledWith(
       "addremotestream",
       expect.any(Function)
@@ -83,12 +83,12 @@ describe("IncomingCallModal", () => {
     const props = defaultProps();
 
     render(<IncomingCallModal {...props} />);
-    await user.click(screen.getByRole("button", { name: /Trả lời/i }));
+    await user.click(screen.getByRole("button", { name: /Accept/i }));
 
     expect(props.call.answer).toHaveBeenCalled();
     expect(props.onAccept).toHaveBeenCalled();
     expect(
-      screen.getByRole("button", { name: /Kết thúc/i })
+      screen.getByRole("button", { name: /Call End/i })
     ).toBeInTheDocument();
   });
 
@@ -101,7 +101,7 @@ describe("IncomingCallModal", () => {
 
     expect(screen.getByText(/Người dùng/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Từ chối/i }));
+    await user.click(screen.getByRole("button", { name: /Reject/i }));
 
     expect(props.call.reject).toHaveBeenCalled();
     expect(props.onReject).toHaveBeenCalled();
@@ -112,8 +112,8 @@ describe("IncomingCallModal", () => {
 
     render(<IncomingCallModal {...props} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Trả lời/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Kết thúc/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Accept/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Call End/i }));
 
     expect(props.call.hangup).toHaveBeenCalled();
     expect(props.onReject).toHaveBeenCalledTimes(1); // from hangup

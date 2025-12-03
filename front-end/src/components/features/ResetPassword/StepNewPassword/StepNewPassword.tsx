@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import Input from "@/components/ui/input/Input";
-import { Link } from "react-router-dom";
 
 export default function StepNewPassword({
   identifier,
@@ -66,13 +65,13 @@ export default function StepNewPassword({
       </div>
       
       <div className="flex items-center justify-between">
-        <Link
-          to="/auth/login"
+        <button
+          type="button"
           onClick={onBack}
           className="text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700"
         >
           ← Back
-        </Link>
+        </button>
         <button
           type="submit"
           disabled={loading}
