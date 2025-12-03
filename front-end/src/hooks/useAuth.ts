@@ -47,8 +47,15 @@ export function useAuth() {
         localStorage.setItem(key, value);
       });
 
-      // Sử dụng navigate thay vì window.location.reload()
+      // Điều hướng về trang đăng nhập và fallback nếu router chưa kịp xử lý
       navigate("/auth/login", { replace: true });
+      if (typeof window !== "undefined") {
+        setTimeout(() => {
+          if (window.location.pathname !== "/auth/login") {
+            window.location.replace("/auth/login");
+          }
+        }, 10);
+      }
     }
   };
   return { isAuthenticated, user, logout: handleLogout };
