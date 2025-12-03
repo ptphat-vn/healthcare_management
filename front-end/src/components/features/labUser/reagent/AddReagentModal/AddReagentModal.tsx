@@ -26,6 +26,8 @@ import {
   createReagentSchema,
   type CreateReagentFormData,
 } from "@/schemas/reagentSchema";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleButtonClass } from "@/utils/getRoleButtonClass";
 
 interface AddReagentModalProps {
   open: boolean;
@@ -69,7 +71,7 @@ export default function AddReagentModal({
   });
 
   const usagePerRun = watch("usagePerRun");
-
+  const {user} = useAuth();
   const adjustUsage = (field: "min" | "max", delta: 1 | -1) => {
     const current = usagePerRun?.[field] ?? 0;
     const next = current + delta;
@@ -460,7 +462,7 @@ export default function AddReagentModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading} className="btn-lab-user">
+            <Button type="submit" disabled={isLoading} className={`${getRoleButtonClass(user?.data.roleCode)}`}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

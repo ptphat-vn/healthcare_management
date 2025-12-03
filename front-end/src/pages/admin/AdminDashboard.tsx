@@ -122,7 +122,7 @@ export default function AdminDashboard() {
 
       newUsers.forEach((user) => {
         allActivities.push({
-          action: "Đăng ký tài khoản mới",
+          action: "New account registration",
           user: user.fullName || user.email,
           time: getTimeAgo(new Date(user.createdAt)),
           type: "create" as const,
@@ -144,7 +144,7 @@ export default function AdminDashboard() {
 
       updatedUsers.forEach((user) => {
         allActivities.push({
-          action: "Cập nhật thông tin tài khoản",
+          action: "Account information updated",
           user: user.fullName || user.email,
           time: getTimeAgo(new Date(user.updatedAt)),
           type: "update" as const,
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
 
       recentBlockedUsers.forEach((user) => {
         allActivities.push({
-          action: "Khóa tài khoản",
+          action: "Account blocked",
           user: user.fullName || user.email,
           time: getTimeAgo(new Date(user.updatedAt)),
           type: "delete" as const,
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (isError) {
-      toast.error("Không thể tải dữ liệu người dùng");
+      toast.error("Failed to load user data");
       console.error("Error fetching users:", error);
     }
   }, [isError, error]);
@@ -193,11 +193,11 @@ export default function AdminDashboard() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    return date.toLocaleDateString("vi-VN");
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString("en-US");
   };
 
   const roleDistribution: RoleDistribution[] = (() => {

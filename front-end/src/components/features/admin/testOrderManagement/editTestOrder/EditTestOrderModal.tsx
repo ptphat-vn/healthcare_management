@@ -106,17 +106,17 @@ export default function EditTestOrderModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[96vw] sm:max-w-3xl p-0 overflow-hidden rounded-lg">
-        <div className="flex flex-col max-h-[90vh]">
-          <DialogHeader className="px-4 sm:px-6 pt-4 pb-2 border-b bg-white sticky top-0 z-10">
-            <DialogTitle className="text-lg sm:text-2xl font-bold">
-              Edit Test Order
-            </DialogTitle>
-          </DialogHeader>
+      <DialogContent className="max-w-[95vw] sm:max-w-3xl p-0 gap-0 overflow-hidden max-h-[95vh] rounded-lg">
+        <DialogHeader className="px-4 sm:px-6 pt-4 pb-2 border-b bg-white shrink-0">
+          <DialogTitle className="text-lg sm:text-2xl font-bold">
+            Edit Test Order
+          </DialogTitle>
+        </DialogHeader>
 
+        <div className="px-4 sm:px-6 py-4 overflow-y-auto">
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4 px-4 sm:px-6 pb-4 overflow-y-auto flex-1"
+            className="space-y-4"
           >
           <Input
             label="Patient Name"

@@ -83,7 +83,6 @@ export default function DeleteReagentDialog({
               {isDeleting ? "Deleting..." : "Delete Reagent"}
             </Button>
           </DialogFooter>
-
         </div>
       </DialogContent>
     </Dialog>

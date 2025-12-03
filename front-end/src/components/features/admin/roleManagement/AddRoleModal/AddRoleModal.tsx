@@ -126,7 +126,7 @@ export default function AddRoleModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col rounded-lg">
+      <DialogContent className="w-[95vw] rounded-xl sm:w-2xl max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="space-y-2 pb-3 sm:pb-4 border-b px-1">
           <div className="flex items-start sm:items-center gap-2 sm:gap-3">
             <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg shrink-0">
@@ -260,13 +260,14 @@ export default function AddRoleModal({
           </div>
         </form>
 
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t mt-auto px-1">
+        <div className="flex flex-row items-center justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t mt-auto px-1">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
-            className="w-full sm:w-auto min-w-[100px] cursor-pointer text-xs sm:text-sm"
+            className="cursor-pointer text-xs sm:text-sm"
+            size="sm"
           >
             Cancel
           </Button>
@@ -274,7 +275,8 @@ export default function AddRoleModal({
             type="submit"
             onClick={handleSubmit(onSubmit)}
             disabled={isLoading}
-            className={`w-full sm:w-auto cursor-pointer text-xs sm:text-sm ${getRoleButtonClass(user?.data.roleCode)}`}
+            className={`cursor-pointer text-xs sm:text-sm ${getRoleButtonClass(user?.data.roleCode)}`}
+            size="sm"
           >
             {isLoading ? (
               <>
