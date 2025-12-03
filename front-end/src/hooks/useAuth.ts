@@ -5,9 +5,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { persistStore } from "redux-persist";
 import { toast } from "sonner";
 import { socketService } from "@/services/socketService";
+import { useNavigate } from "react-router-dom";
 
 export function useAuth() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { isAuthenticated, accessToken } = useSelector(
     (state: RootState) => state.auth
   );
@@ -24,7 +26,7 @@ export function useAuth() {
     } finally {
       // Disconnect socket trước khi logout
       socketService.disconnect();
-      
+
       // Backup chat conversations trước khi clear localStorage
       const chatKeys: string[] = [];
       const chatData: Record<string, string> = {};
@@ -45,7 +47,8 @@ export function useAuth() {
         localStorage.setItem(key, value);
       });
 
-      window.location.reload();
+      // Sử dụng navigate thay vì window.location.reload()
+      navigate("/auth/login", { replace: true });
     }
   };
   return { isAuthenticated, user, logout: handleLogout };
