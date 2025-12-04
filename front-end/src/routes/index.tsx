@@ -4,6 +4,7 @@ import MainLayout from "@/components/layouts/MainLayout";
 import PublicRouter from "./PublicRouter";
 import ProtectedRoute from "./ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
+import NotFound from "@/pages/NotFound";
 
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
@@ -191,5 +192,11 @@ export const router = createBrowserRouter([
       { path: "reagent-management/:id", element: <ReagentDetailPage /> },
       { path: "inventory-management", element: <InventoryPage /> },
     ],
+  },
+
+  // Catch-all route for 404 and redirect to appropriate page
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);

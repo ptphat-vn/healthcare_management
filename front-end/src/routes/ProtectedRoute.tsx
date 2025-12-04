@@ -15,17 +15,33 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { isAuthenticated, user } = useAuth();
   const dispatch = useDispatch();
+
   useEffect(() => {
     if (user) {
       dispatch(setUserProfile(user));
     }
   }, [user, dispatch]);
 
-  if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
+  // Show loading while checking authentication
+  if (isAuthenticated === undefined) {
+    return <div>Loading...</div>;
+  }
 
-  const role = user?.data?.roleCode;
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  // Check if user data is loaded
+  if (!user?.data) {
+    return <div>Loading user data...</div>;
+  }
+
+  const role = user.data.roleCode;
+
+  // Check role permissions
   if (allowedRoles && role && !allowedRoles.includes(role)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/auth/login" replace />;
   }
 
   return <>{children}</>;

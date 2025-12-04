@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 
 export function useAuth() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { isAuthenticated, accessToken } = useSelector(
     (state: RootState) => state.auth
   );
@@ -21,7 +20,7 @@ export function useAuth() {
       const result = await logoutApi();
       toast.success(result.data?.message);
     } catch (error) {
-      toast.error("Login failed");
+      toast.error("Đăng xuất thất bại");
       console.log(error);
     } finally {
       // Disconnect socket trước khi logout
@@ -47,8 +46,8 @@ export function useAuth() {
         localStorage.setItem(key, value);
       });
 
-      // Điều hướng nội bộ SPA tới trang login, KHÔNG reload lại page
-      navigate("/auth/login", { replace: true });
+      // Force navigation to login page and update URL properly
+      window.location.href = "/auth/login";
     }
   };
   return { isAuthenticated, user, logout: handleLogout };
