@@ -53,9 +53,9 @@ export default function StepOTP({
         className="space-y-6"
       >
         <div className="text-center space-y-2">
-          <h3 className="text-lg font-semibold">Nhập mã xác thực</h3>
+          <h3 className="text-lg font-semibold">Enter OTP</h3>
           <p className="text-sm text-muted-foreground">
-            Chúng tôi đã gửi mã xác thực 6 chữ số đến email của bạn
+            We have sent you a 6-digit authentication code to your email
           </p>
         </div>
 

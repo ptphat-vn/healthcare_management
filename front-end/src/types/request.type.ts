@@ -71,10 +71,11 @@ export interface CreateTestOrderRequest {
 export interface UpdateTestOrderRequest {
   patientName: string;
   dateOfBirth: string;
-  gender: "male" | "female";
+  gender: "male" | "female" | "other";
   address: string;
   phoneNumber: string;
   email: string;
+  requestedTests?: RequestedTestName[];
 }
 
 export interface ForgotPasswordRequest {

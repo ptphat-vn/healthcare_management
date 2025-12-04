@@ -10,12 +10,17 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { useDeleteTestOrderMutation } from "@/services/testOrderApi";
 import { toast } from "sonner";
-import type { TestOrder } from "@/types/testOrder.type";
+import type { TestOrder as ApiTestOrder } from "@/types/testOrder.type";
+
+export type TestOrderSummary = Pick<
+  ApiTestOrder,
+  "_id" | "patientName" | "email" | "phoneNumber" | "status"
+>;
 
 interface DeleteConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  order: TestOrder | null;
+  order: TestOrderSummary | null;
   onSuccess?: () => void;
 }
 

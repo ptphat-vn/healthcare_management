@@ -32,8 +32,8 @@ export default function StepNewPassword({
       }}
       className="space-y-4 w-full"
     >
-      <h3 className="text-lg font-semibold">Đặt mật khẩu mới</h3>
-      
+      <h3 className="text-lg font-semibold">Set New Password</h3>
+
       <div className="w-full">
         <Input
           value={identifier}
@@ -41,7 +41,7 @@ export default function StepNewPassword({
           className="bg-gray-50 h-10 sm:h-11 text-sm sm:text-base w-full"
         />
       </div>
-      
+
       <div className="w-full">
         <Input
           type="password"
@@ -52,7 +52,7 @@ export default function StepNewPassword({
           className="h-10 sm:h-11 text-sm sm:text-base w-full"
         />
       </div>
-      
+
       <div className="w-full">
         <Input
           type="password"
@@ -63,7 +63,7 @@ export default function StepNewPassword({
           className="h-10 sm:h-11 text-sm sm:text-base w-full"
         />
       </div>
-      
+
       <div className="flex items-center justify-between">
         <button
           type="button"
@@ -79,7 +79,6 @@ export default function StepNewPassword({
         >
           {loading ? "Submitting..." : "Submit"}
         </button>
-
       </div>
     </motion.form>
   );

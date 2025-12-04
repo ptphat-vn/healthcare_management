@@ -48,7 +48,7 @@ export default function AddUserModal({
       console.error("Error creating user:", error);
       const err = error as { data?: { message?: string } };
       toast.error(
-        err.data?.message || "Tạo người dùng thất bại, vui lòng thử lại"
+        `Create User Failed: ${err.data?.message || "Unknown error"}`
       );
     } finally {
       setIsLoading(false);
@@ -71,13 +71,13 @@ export default function AddUserModal({
         </DialogHeader>
 
         <div className="px-4 sm:px-6 py-4 overflow-y-auto">
-            {open && (
-              <NewUserForm
-                onSubmit={onSubmit}
-                onClose={handleClose}
-                isLoading={isLoading}
-              />
-            )}
+          {open && (
+            <NewUserForm
+              onSubmit={onSubmit}
+              onClose={handleClose}
+              isLoading={isLoading}
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>

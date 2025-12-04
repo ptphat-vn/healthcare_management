@@ -25,10 +25,68 @@ import {
   useGetReagentInventoryFIFOQuery,
 } from "@/services/reagentApi";
 import LoadingSpinner from "@/components/ui/loading/LoadingSpinner";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { formatDate } from "@/utils/formatDate";
+import { useNavigate } from "react-router-dom";
 
 export default function ServiceDashboard() {
+  const navigate = useNavigate();
+
+  const buildNavigationHandler = useCallback(
+    (path: string) => () => {
+      navigate(path);
+    },
+    [navigate]
+  );
+
+  const quickActions = useMemo(
+    () => [
+      {
+        title: "Add Instrument",
+        description: "Register new equipment and assign responsibility",
+        icon: Wrench,
+        gradient: "from-blue-500 via-blue-600 to-blue-700",
+        path: "/service/instruments",
+      },
+      {
+        title: "Add Reagent",
+        description: "Update reagent catalog and usage data",
+        icon: FlaskConical,
+        gradient: "from-purple-500 via-purple-600 to-indigo-600",
+        path: "/service/reagent-management",
+      },
+      {
+        title: "Inventory Board",
+        description: "Review stock levels and FIFO batches",
+        icon: Package,
+        gradient: "from-emerald-500 via-emerald-600 to-lime-600",
+        path: "/service/inventory-management",
+      },
+      {
+        title: "Maintenance Log",
+        description: "Track upcoming and in-progress services",
+        icon: Clock,
+        gradient: "from-amber-500 via-orange-600 to-red-600",
+        path: "/service/instruments",
+      },
+      {
+        title: "Calibration Planner",
+        description: "Schedule calibration windows with labs",
+        icon: TrendingUp,
+        gradient: "from-sky-500 via-cyan-600 to-blue-700",
+        path: "/service/instruments",
+      },
+      {
+        title: "Profile & Alerts",
+        description: "Edit contact info and notification rules",
+        icon: CheckCircle2,
+        gradient: "from-gray-600 via-slate-700 to-gray-900",
+        path: "/service/profile",
+      },
+    ],
+    []
+  );
+
   // API Queries
   const {
     data: instrumentsData,
@@ -136,7 +194,6 @@ export default function ServiceDashboard() {
     const instruments = instrumentsData?.data?.instruments || [];
     return instruments
       .filter((inst) => {
-        // Include instruments in maintenance or with recent maintenance dates
         return (
           inst.status === "Maintenance" ||
           inst.lastMaintenanceDate ||
@@ -187,8 +244,6 @@ export default function ServiceDashboard() {
     const inventory = inventoryData?.data?.inventory || [];
     const reagents = reagentsData?.data?.reagents || [];
 
-    // Find reagents with low stock (quantityAvailable < threshold)
-    // We'll use a simple threshold of 20 units or less
     const lowStockItems = inventory
       .filter((item) => {
         // Find the reagent to get min stock info
@@ -310,6 +365,7 @@ export default function ServiceDashboard() {
               <Button
                 variant="link"
                 className="text-xs sm:text-sm text-blue-600"
+                onClick={buildNavigationHandler("/service/instruments")}
               >
                 View All
               </Button>
@@ -368,6 +424,7 @@ export default function ServiceDashboard() {
               <Button
                 variant="link"
                 className="text-xs sm:text-sm text-blue-600"
+                onClick={buildNavigationHandler("/service/reagent-management")}
               >
                 Reorder
               </Button>
@@ -400,7 +457,11 @@ export default function ServiceDashboard() {
                     <Calendar className="w-3 h-3" />
                     <span>Expires: {reagent.expiryDate}</span>
                   </div>
-                  <Button size="sm" className="btn-service w-full mt-3 text-xs">
+                  <Button
+                    size="sm"
+                    className="btn-service w-full mt-3 text-xs"
+                    onClick={() => navigate(`/service/inventory-management`)}
+                  >
                     Order Now
                   </Button>
                 </div>
@@ -418,49 +479,37 @@ export default function ServiceDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-20 sm:h-24 gap-2"
-            >
-              <Wrench className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-xs">Add Instrument</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-20 sm:h-24 gap-2"
-            >
-              <FlaskConical className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-xs">Add Reagent</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-20 sm:h-24 gap-2"
-            >
-              <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-xs">Schedule</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-20 sm:h-24 gap-2"
-            >
-              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-xs">Calibrate</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-20 sm:h-24 gap-2"
-            >
-              <Package className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-xs">Inventory</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-20 sm:h-24 gap-2"
-            >
-              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-xs">Reports</span>
-            </Button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={action.title}
+                  onClick={buildNavigationHandler(action.path)}
+                  className="relative overflow-hidden rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                >
+                  <div
+                    className={`absolute inset-0 bg-linear-to-br ${action.gradient} opacity-90 transition-opacity duration-200 hover:opacity-100`}
+                  />
+                  <div className="relative flex h-full flex-col gap-3 rounded-2xl p-4 sm:p-5 text-left text-white">
+                    <div className="flex items-center justify-between">
+                      <div className="h-11 w-11 rounded-xl bg-white/20 flex items-center justify-center">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-xs font-semibold uppercase tracking-wide text-white/80">
+                        Go
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{action.title}</p>
+                      <p className="text-xs text-white/80 mt-1 leading-snug">
+                        {action.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

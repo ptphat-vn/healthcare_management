@@ -133,6 +133,7 @@ export function NewUserForm({
           <Input
             {...register("address")}
             label="Address"
+            required
             error={errors.address?.message}
             placeholder="Enter full address (street, city, district, etc.)"
             autoComplete="off"

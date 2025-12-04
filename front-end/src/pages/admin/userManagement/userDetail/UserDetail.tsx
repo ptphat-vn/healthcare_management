@@ -39,19 +39,10 @@ export default function UserDetail() {
       <div className="flex flex-col items-center justify-center py-16 px-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mb-4"></div>
         <div className="text-sm md:text-lg text-gray-600 text-center">
-          Đang tải thông tin người dùng...
+          User Details Loading...
         </div>
       </div>
     );
-
-  if (!id) {
-    return (
-      <div className="p-4 md:p-6 text-sm md:text-base text-red-600">
-        User ID is missing. Please provide a valid user ID.
-      </div>
-    );
-  }
-
   if (isError) {
     const err = error as { data?: { message?: string }; message?: string };
     const errMsg = err?.data?.message || err?.message || "Unknown error";

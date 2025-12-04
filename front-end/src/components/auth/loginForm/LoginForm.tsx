@@ -34,15 +34,28 @@ export default function LoginForm() {
         })
       );
 
-      toast.success(result?.message || "Đăng nhập thành công");
+      toast.success(result?.message || "Login success");
       navigate("/");
     } catch (error: any) {
       console.log("error login", error);
 
-      toast.error(
-        error.data?.message || "Đăng nhập thất bại, vui lòng thử lại",
-        { duration: 4000 }
-      );
+      const anyErr = error as {
+        data?: { message?: string; errors?: Record<string, string> };
+      };
+      const baseMessage =
+        anyErr.data?.message || "Login failed, please try again";
+      const fieldErrors = anyErr.data?.errors;
+      const detailMessage = fieldErrors
+        ? Object.entries(fieldErrors)
+            .map(([field, message]) => `${field}: ${message}`)
+            .join("; ")
+        : "";
+
+      const finalMessage = detailMessage
+        ? `${baseMessage}. Chi tiết: ${detailMessage}`
+        : baseMessage;
+
+      toast.error(finalMessage, { duration: 4000 });
     }
   };
 
@@ -63,10 +76,22 @@ export default function LoginForm() {
     } catch (error: any) {
       console.log("error login", error);
 
-      toast.error(
-        error.data?.message || "Đăng nhập thất bại, vui lòng thử lại",
-        { duration: 4000 }
-      );
+      const anyErr = error as {
+        data?: { message?: string; errors?: Record<string, string> };
+      };
+      const baseMessage =
+        anyErr.data?.message || "Đăng nhập thất bại, vui lòng thử lại";
+      const fieldErrors = anyErr.data?.errors;
+
+      const detailMessage = fieldErrors
+        ? Object.entries(fieldErrors)
+            .map(([field, message]) => `${field}: ${message}`)
+            .join("; ")
+        : "";
+
+      toast.error(`Login failed: ${baseMessage}. Details: ${detailMessage}`, {
+        duration: 4000,
+      });
     }
   };
 
