@@ -49,7 +49,7 @@ export const sendMessageController = async (req: Request, res: Response, next: N
         userId: userId,
         actorId: String(authUserId),
         type: 'message',
-        title: `Tin nhắn mới từ ${senderInfo?.fullName || 'người dùng'}`,
+        title: `New message from ${senderInfo?.fullName || 'User'}`,
         body: content.length > 100 ? content.substring(0, 100) + '...' : content,
         data: {
           conversationId,
