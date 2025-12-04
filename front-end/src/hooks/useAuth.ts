@@ -1,8 +1,7 @@
 import { useGetProfileQuery, useLogoutMutation } from "@/services/baseApi";
 import { logout } from "@/stores/authSlice";
-import { store, type RootState } from "@/stores/store";
+import { type RootState } from "@/stores/store";
 import { useDispatch, useSelector } from "react-redux";
-import { persistStore } from "redux-persist";
 import { toast } from "sonner";
 import { socketService } from "@/services/socketService";
 
@@ -36,8 +35,10 @@ export function useAuth() {
         }
       }
 
+      // Dispatch logout action trước (listener middleware sẽ tự động purge persist và reset API state)
       dispatch(logout());
-      persistStore(store).purge();
+
+      // Clear localStorage (trừ chat conversations đã backup)
       localStorage.clear();
 
       // Restore chat conversations sau khi clear
@@ -45,12 +46,10 @@ export function useAuth() {
         localStorage.setItem(key, value);
       });
 
-      // Force navigation to login page using window.location
-      // This works regardless of Router context and clears the old URL
-      // Use setTimeout to ensure state updates are processed first
-      setTimeout(() => {
-        window.location.href = "/auth/login";
-      }, 0);
+      // Force redirect ngay lập tức - window.location.replace sẽ reload trang
+      // và state mới sẽ được load từ localStorage (đã được clear)
+      // Không cần đợi purge vì listener middleware đã xử lý
+      window.location.replace("/auth/login");
     }
   };
   return { isAuthenticated, user, logout: handleLogout };
