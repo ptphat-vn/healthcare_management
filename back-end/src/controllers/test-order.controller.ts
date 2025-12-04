@@ -23,7 +23,15 @@ export const updateTestOrderController = async (req: Request, res: Response, nex
     const authUserId = (req as any).authUserId
     if (!authUserId) throw new HttpError(401, MESSAGES.UNAUTHORIZED)
 
-    const allowedFields = ['patientName', 'dateOfBirth', 'gender', 'address', 'phoneNumber', 'email'] as const
+    const allowedFields = [
+      'patientName',
+      'dateOfBirth',
+      'gender',
+      'address',
+      'phoneNumber',
+      'email',
+      'requestedTests'
+    ] as const
     const updatePayload: Record<string, unknown> = {}
     for (const key of allowedFields) {
       if (key in req.body) updatePayload[key] = (req.body as any)[key]

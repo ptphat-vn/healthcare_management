@@ -1735,7 +1735,11 @@ paths:
       tags:
         - Test Orders
       summary: Update test order
-      description: Update patient information in a test order
+      description: |
+        Update patient information in a test order.
+
+        You can also update the `requestedTests` field **only when the test order status is still `pending`**.
+        If the status is not `pending` and you try to change `requestedTests`, the API will return a 409 error.
       security:
         - bearerAuth: []
       parameters:
@@ -1755,7 +1759,7 @@ paths:
               properties:
                 patientName:
                   type: string
-                  example: 'Nguyễn Văn A'
+                  example: 'John Doe'
                 dateOfBirth:
                   type: string
                   format: date
@@ -1766,7 +1770,7 @@ paths:
                   example: 'male'
                 address:
                   type: string
-                  example: '123 Đường ABC, Quận 1, TP.HCM'
+                  example: '123 Example Street, City, Country'
                 phoneNumber:
                   type: string
                   pattern: '^[0-9]{10,11}$'
@@ -1775,6 +1779,23 @@ paths:
                   type: string
                   format: email
                   example: 'patient@email.com'
+                requestedTests:
+                  type: array
+                  description: |
+                    Optional. List of requested tests (CBC panel). 
+                    Can only be changed while the test order status is `pending`.
+                  items:
+                    type: string
+                    enum:
+                      - 'White Blood Cell Count'
+                      - 'Red Blood Cell Count'
+                      - 'Hemoglobin'
+                      - 'Hematocrit'
+                      - 'Platelet Count'
+                      - 'Mean Corpuscular Volume'
+                      - 'Mean Corpuscular Haemoglobin'
+                      - 'Mean Corpuscular Haemoglobin Concentration'
+                  example: ['Hemoglobin', 'Hematocrit']
       responses:
         '200':
           description: Test order updated successfully

@@ -36,7 +36,11 @@ const updateTestOrderSchema = z.object({
   gender: z.enum(['male', 'female']).optional(),
   address: z.string().min(1).optional(),
   phoneNumber: z.string().regex(/^[0-9]{10,11}$/).optional(),
-  email: z.string().email().optional()
+  email: z.string().email().optional(),
+  requestedTests: z
+    .array(z.enum(CBC_TESTS as [CBCPanelTestName, ...CBCPanelTestName[]]))
+    .min(1, 'At least one test type must be selected')
+    .optional()
 })
 
 const testResultSchema = z.object({

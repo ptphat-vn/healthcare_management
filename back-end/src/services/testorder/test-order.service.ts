@@ -23,6 +23,7 @@ export interface UpdateTestOrderData {
   address?: string
   phoneNumber?: string
   email?: string
+  requestedTests?: CBCPanelTestName[]
 }
 
 export interface ListTestOrdersParams {
@@ -136,9 +137,22 @@ export async function updateTestOrder(id: string, data: UpdateTestOrderData, upd
   const testOrders = getTestOrdersCollection()
   const eventLogs = getEventLogsCollection()
 
+  const existing = await testOrders.findOne({ _id: testOrderObjectId } as any)
+  if (!existing) {
+    throw new HttpError(404, MESSAGES.TEST_ORDER_NOT_FOUND)
+  }
+
+  // Only allow changing requestedTests when status is still pending
+  if (data.requestedTests && existing.status !== 'pending') {
+    throw new HttpError(
+      409,
+      'Cannot update requested tests when test order is no longer pending'
+    )
+  }
+
   const now = new Date()
   const result = await testOrders.findOneAndUpdate(
-    { _id: testOrderObjectId },
+    { _id: testOrderObjectId } as any,
     { $set: { ...data, updatedAt: now } },
     { returnDocument: 'after' }
   )
