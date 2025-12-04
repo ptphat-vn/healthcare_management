@@ -1,9 +1,9 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import AuthLayout from "@/components/layouts/AuthLayout";
 import MainLayout from "@/components/layouts/MainLayout";
 import PublicRouter from "./PublicRouter";
 import ProtectedRoute from "./ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
+
 import NotFound from "@/pages/NotFound";
 
 import LoginPage from "@/pages/auth/LoginPage";
@@ -17,7 +17,6 @@ import TestOrderDetailPage from "@/pages/admin/testOrderManagement/testOrderDeta
 import MedicalRecordPage from "@/pages/admin/medicalRecords/MedicalRecordPage";
 import MedicalRecordDetail from "@/pages/admin/medicalRecords/medicalRecordDetail/MedicalRecordDetail";
 import TestDetail from "@/pages/admin/medicalRecords/testDetail/TestDetail";
-import { useMemo } from "react";
 
 import MonitoringServicePage from "@/pages/admin/monitoringService/MonitoringServicePage";
 import UserDetail from "@/pages/admin/userManagement/userDetail/UserDetail";
@@ -41,20 +40,7 @@ import InstrumentReagentDetailPage from "@/pages/service/instrumentManager/Instr
 import InventoryPage from "@/pages/service/inventoryManagement/InventoryPage";
 
 import ChatPage from "@/pages/chat/ChatPage";
-
-function RootRedirect() {
-  const { isAuthenticated, user } = useAuth();
-  // const role = user?.data.roleCode;
-
-  const redirectTo = useMemo(() => {
-    if (isAuthenticated && user?.data?.roleCode) {
-      return `/${user.data.roleCode}/dashboard`;
-    }
-    return "/auth/login";
-  }, [isAuthenticated, user?.data?.roleCode]);
-
-  return <Navigate to={redirectTo} replace />;
-}
+import RootRedirect from "./RootRedirect";
 
 export const router = createBrowserRouter([
   { path: "/", element: <RootRedirect /> },
