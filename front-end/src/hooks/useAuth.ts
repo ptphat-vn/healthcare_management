@@ -5,12 +5,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { persistStore } from "redux-persist";
 import { toast } from "sonner";
 import { socketService } from "@/services/socketService";
+import { useNavigate } from "react-router-dom";
 
 export function useAuth() {
   const dispatch = useDispatch();
   const { isAuthenticated, accessToken } = useSelector(
     (state: RootState) => state.auth
   );
+  const navigate = useNavigate();
   const { data: user } = useGetProfileQuery(undefined, { skip: !accessToken });
   //nếu không có token thì bỏ qua api nay
   const [logoutApi] = useLogoutMutation();
@@ -46,7 +48,7 @@ export function useAuth() {
       });
 
       // Force navigation to login page and update URL properly
-      window.location.href = "/auth/login";
+      navigate("/auth/login");
     }
   };
   return { isAuthenticated, user, logout: handleLogout };
