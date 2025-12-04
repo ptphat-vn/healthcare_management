@@ -180,10 +180,6 @@ export default function Notification() {
     }
   };
 
-  const handleViewAll = () => {
-    navigate(`/${roleCode}/chat`);
-  };
-
   const handleNotificationClick = (notification: NotificationType) => {
     // Mark as read when clicked
     if (!notification.read) {
@@ -340,20 +336,6 @@ export default function Notification() {
             ))
           )}
         </ScrollArea>
-        {notifications.length > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <div className="p-2">
-              <Button
-                variant="ghost"
-                className="w-full text-sm text-blue-600 hover:text-blue-700"
-                onClick={handleViewAll}
-              >
-                View all notifications
-              </Button>
-            </div>
-          </>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
