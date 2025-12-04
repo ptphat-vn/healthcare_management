@@ -9,7 +9,9 @@ const transporter = nodemailer.createTransport({
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,
   },
+  
 })
+
 
 export async function sendMail({ to, subject, text, html }: { to: string, subject: string, text?: string, html?: string }) {
   try {
