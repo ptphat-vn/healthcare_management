@@ -21,6 +21,9 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
   STRINGEE_API_KEY_SID: z.string().optional(),
   STRINGEE_API_KEY_SECRET: z.string().optional(),
+  SENDGRID_API_KEY: z.string().optional(),
+  SENDGRID_FROM_EMAIL: z.string().optional(),
+  SENDGRID_FROM_NAME: z.string().optional(),
 })
 
 const parsed = EnvSchema.safeParse(process.env)
