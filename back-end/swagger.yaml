@@ -2884,7 +2884,7 @@ paths:
         '404':
           description: Patient record not found
         '409':
-          description: Cannot delete record with active test orders
+          description: 'Cannot delete medical record: It has associated test orders or test results. Please delete or cancel all related test orders first.'
 
   # /patient-records/{id}/clinical-notes:
   #   post:

@@ -322,13 +322,19 @@ export const deletePatientRecord = async (
     deletedByUserDoc = authUser
   }
 
-  const hasActiveTestOrders = await testOrders.findOne({
-    patientId: existingRecord.patientId,
-    status: { $in: ['pending', 'completed', 'reviewed'] }
+  // Check if medical record has any test orders linked to it
+  const hasTestOrders = await testOrders.findOne({
+    medicalRecordId: patientObjectId
   } as any)
 
-  if (hasActiveTestOrders) {
-    throw new HttpError(409, 'Cannot delete patient record with active test orders')
+  // Check if medical record has any test results
+  const hasTestResults = existingRecord.testResults && existingRecord.testResults.length > 0
+
+  if (hasTestOrders || hasTestResults) {
+    throw new HttpError(
+      409,
+      'Cannot delete medical record: It has associated test orders or test results. Please delete or cancel all related test orders first.'
+    )
   }
 
   const now = new Date()
