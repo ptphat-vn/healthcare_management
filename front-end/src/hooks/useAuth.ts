@@ -46,9 +46,7 @@ export function useAuth() {
         localStorage.setItem(key, value);
       });
 
-      // Force redirect ngay lập tức - window.location.replace sẽ reload trang
-      // và state mới sẽ được load từ localStorage (đã được clear)
-      // Không cần đợi purge vì listener middleware đã xử lý
+     
       window.location.replace("/auth/login");
     }
   };

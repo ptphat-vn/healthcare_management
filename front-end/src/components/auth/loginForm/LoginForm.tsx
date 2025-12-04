@@ -159,9 +159,9 @@ export default function LoginForm() {
       </div>
 
       {/* Google Login */}
-      <div className="flex justify-center w-full">
-        <div className="w-full max-w-full overflow-hidden">
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GG_CLIENT_ID}>
+      <div className="w-full flex justify-center">
+        <GoogleOAuthProvider clientId={import.meta.env.VITE_GG_CLIENT_ID}>
+          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md flex justify-center">
             <GoogleLogin
               onSuccess={handleSuccess}
               onError={() => {
@@ -169,12 +169,12 @@ export default function LoginForm() {
               }}
               size="large"
               width="100%"
-              text="signin_with"
-              shape="rectangular"
+              text="continue_with"
+              shape="pill"
               theme="outline"
             />
-          </GoogleOAuthProvider>
-        </div>
+          </div>
+        </GoogleOAuthProvider>
       </div>
     </form>
   );
