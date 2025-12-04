@@ -27,13 +27,13 @@ export default function StepEmail({
       className="space-y-4 w-full"
     >
       <Input
-          id="email-input"
-          type="email"
-          label="Email"
-          placeholder="example123@gmail.com"
-          value={identifier}
-          onChange={(e) => setIdentifier(e.target.value)}
-        />
+        id="email-input"
+        type="email"
+        label="Email"
+        placeholder="example123@gmail.com"
+        value={identifier}
+        onChange={(e) => setIdentifier(e.target.value)}
+      />
 
       <div className="flex items-center justify-between">
         <button
@@ -48,7 +48,7 @@ export default function StepEmail({
           disabled={loading}
           className="cursor-pointer btn-primary"
         >
-          {loading ? "Đang gửi..." : "Send Code"}
+          {loading ? "Sending..." : "Send Code"}
         </button>
       </div>
     </motion.form>

@@ -34,6 +34,7 @@ export function NewMedicalRecordForm({
   hideButtons = false,
   formId,
 }: NewMedicalRecordFormProps) {
+  const today = new Date().toISOString().split("T")[0];
   // Fetch all users
   const { data: usersData, isLoading: isLoadingUsers } = useGetAllUserQuery({
     limit: 1000,
@@ -306,6 +307,7 @@ export function NewMedicalRecordForm({
             {...register("insuranceExpiryDate")}
             type="date"
             label="Expiry Date"
+            min={today}
             error={errors.insuranceExpiryDate?.message}
           />
         </div>

@@ -3,7 +3,9 @@ import type { ComponentProps, ReactNode } from "react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import DeleteConfirmDialog from "./DeleteConfirmDialog";
+import DeleteConfirmDialog, {
+  type TestOrderSummary,
+} from "./DeleteConfirmDialog";
 
 const { mockUseDeleteTestOrderMutation, mockToast } = vi.hoisted(() => ({
   mockUseDeleteTestOrderMutation: vi.fn(),
@@ -51,16 +53,12 @@ vi.mock("lucide-react", () => ({
   AlertTriangle: () => <svg data-testid="alert-icon" />,
 }));
 
-const baseOrder = {
+const baseOrder: TestOrderSummary = {
   _id: "order-1",
   patientName: "John Doe",
   email: "john@example.com",
   phoneNumber: "0123456789",
   status: "pending" as const,
-  createdDate: "2024-01-01T00:00:00.000Z",
-  dateOfBirth: "1990-01-01",
-  gender: "male" as const,
-  address: "123 Street",
 };
 
 const renderDialog = (
@@ -71,7 +69,7 @@ const renderDialog = (
   const result = render(
     <DeleteConfirmDialog
       open
-      order={baseOrder as any}
+      order={baseOrder}
       onOpenChange={onOpenChange}
       onSuccess={onSuccess}
       {...props}

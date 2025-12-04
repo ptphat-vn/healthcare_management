@@ -29,13 +29,14 @@ export interface TestOrder {
   _id: string;
   patientName: string;
   dateOfBirth: string;
-  gender: "male" | "female";
+  gender: "male" | "female" | "other";
   address: string;
   phoneNumber: string;
   email: string;
   status: "pending" | "cancelled" | "completed" | "reviewed" | "ai_reviewed";
   createdDate: string | Date;
   runDate?: string | Date;
+  requestedTests?: string[];
   createdByUser?: {
     fullName: string;
     email: string;
@@ -272,93 +273,100 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                testOrders.map((order: TestOrder, idx: number) => (
-                  <TableRow
-                    key={order._id}
-                    className="hover:bg-blue-50/50 transition-colors"
-                  >
-                    <TableCell className="text-start font-medium text-gray-600">
-                      {(currentPage - 1) * itemsPerPage + idx + 1}
-                    </TableCell>
-                    <TableCell className="font-medium text-gray-900 sticky left-0 z-20 bg-background">
-                      {order.patientName}
-                    </TableCell>
-                    <TableCell className="text-gray-600">
-                      <div>
-                        <div className="text-sm text-gray-900">
-                          {order.phoneNumber}
+                testOrders.map((order: TestOrder, idx: number) => {
+                  const isLocked =
+                    order.status === "completed" ||
+                    order.status === "ai_reviewed";
+                  return (
+                    <TableRow
+                      key={order._id}
+                      className="hover:bg-blue-50/50 transition-colors"
+                    >
+                      <TableCell className="text-start font-medium text-gray-600">
+                        {(currentPage - 1) * itemsPerPage + idx + 1}
+                      </TableCell>
+                      <TableCell className="font-medium text-gray-900 sticky left-0 z-20 bg-background">
+                        {order.patientName}
+                      </TableCell>
+                      <TableCell className="text-gray-600">
+                        <div>
+                          <div className="text-sm text-gray-900">
+                            {order.phoneNumber}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {order.email}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {order.email}
+                      </TableCell>
+                      <TableCell className="text-gray-600">
+                        {formatDate(
+                          typeof order.createdDate === "string"
+                            ? order.createdDate
+                            : order.createdDate.toString()
+                        )}
+                      </TableCell>
+                      <TableCell className="text-gray-600">
+                        <div>
+                          <div className="text-sm text-gray-900">
+                            {order.createdByUser?.fullName || "N/A"}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {order.createdByUser?.email || ""}
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-gray-600">
-                      {formatDate(
-                        typeof order.createdDate === "string"
-                          ? order.createdDate
-                          : order.createdDate.toString()
-                      )}
-                    </TableCell>
-                    <TableCell className="text-gray-600">
-                      <div>
-                        <div className="text-sm text-gray-900">
-                          {order.createdByUser?.fullName || "N/A"}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {order.createdByUser?.email || ""}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                          order.status
-                        )}`}
-                      >
-                        {formatStatusText(order.status)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 hover:bg-blue-100 transition-colors"
-                            aria-label="Actions"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44">
-                          <DropdownMenuItem
-                            onClick={() => handleView(order)}
-                            className="cursor-pointer hover:bg-blue-50"
-                          >
-                            <Eye className="mr-2 h-4 w-4 text-blue-600" />
-                            <span className="text-gray-700">View detail</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleEdit(order)}
-                            className="cursor-pointer hover:bg-blue-50"
-                          >
-                            <Edit className="mr-2 h-4 w-4 text-green-600" />
-                            <span className="text-gray-700">Edit</span>
-                          </DropdownMenuItem>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                            order.status
+                          )}`}
+                        >
+                          {formatStatusText(order.status)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-blue-100 transition-colors"
+                              aria-label="Actions"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuItem
+                              onClick={() => handleView(order)}
+                              className="cursor-pointer hover:bg-blue-50"
+                            >
+                              <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                              <span className="text-gray-700">View detail</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(order)}
+                              disabled={isLocked}
+                              className="cursor-pointer hover:bg-blue-50"
+                            >
+                              <Edit className="mr-2 h-4 w-4 text-green-600" />
+                              <span className="text-gray-700">Edit</span>
+                            </DropdownMenuItem>
 
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(order)}
-                            className="cursor-pointer hover:bg-red-50 text-red-600 focus:text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(order)}
+                              disabled={isLocked}
+                              className="cursor-pointer hover:bg-red-50 text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -422,7 +430,7 @@ export default function TestOrderList({ onOrderDeleted }: TestOrderListProps) {
             setIsDeleteDialogOpen(open);
             if (!open) setDeletingOrder(null);
           }}
-          order={deletingOrder as any}
+          order={deletingOrder}
           onSuccess={() => {
             if (onOrderDeleted) {
               onOrderDeleted();

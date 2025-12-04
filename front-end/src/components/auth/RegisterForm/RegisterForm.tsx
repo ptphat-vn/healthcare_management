@@ -32,11 +32,11 @@ export default function RegisterForm() {
           refreshToken: result.data.refreshToken,
         })
       );
-      toast.success(result?.message || "Đăng ký thành công");
+      toast.success(result?.message || "Register success");
       navigate("/");
     } catch (error) {
       const err = error as { data?: { message?: string } };
-      toast.error(err.data?.message || "Đăng ký thất bại, vui lòng thử lại");
+      toast.error(err.data?.message || "Register failed, please try again");
     }
   };
 
@@ -58,7 +58,7 @@ export default function RegisterForm() {
           error={errors.email?.message}
           placeholder="example123@gmail.com"
         />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <Input
             {...register("phoneNumber")}
             label="Phone number"
@@ -80,7 +80,7 @@ export default function RegisterForm() {
           error={errors.address?.message}
           placeholder="123 Test Street"
         />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <Input
             {...register("dateOfBirth")}
             type="date"

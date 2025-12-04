@@ -47,16 +47,16 @@ export default function ResetPasswordFlow() {
       setStep(2);
     } catch (e: unknown) {
       const err = e as ApiError;
-      toast.error(err.data?.message || "Gửi mã thất bại");
+      toast.error(`Send Code Failed: ${err.data?.message || "Unknown error"}`);
     }
   };
 
   const handleVerifyOTP = async () => {
     if (!otp || otp.length < 6) {
-      toast.error("OTP phải có 6 chữ số");
+      toast.error("OTP must be 6 digits");
       return;
     }
-    toast.success("Xác thực OTP thành công");
+    toast.success("OTP verified successfully");
     setStep(3);
   };
 
@@ -64,30 +64,32 @@ export default function ResetPasswordFlow() {
     if (!identifier) return;
     try {
       await forgotPassword({ email: identifier }).unwrap();
-      toast.success("Đã gửi lại mã");
+      toast.success("Code resent successfully");
     } catch (e: unknown) {
       const err = e as ApiError;
-      toast.error(err.data?.message || "Gửi lại thất bại");
+      toast.error(
+        `Resend Code Failed: ${err.data?.message || "Unknown error"}`
+      );
     }
   };
 
   const handleSubmitNewPassword = async () => {
     if (!identifier) {
-      toast.error("Thiếu email. Vui lòng nhập email ở bước 1.");
+      toast.error("Missing email. Please enter email at step 1.");
       setStep(1);
       return;
     }
     if (!otp || otp.length < 6) {
-      toast.error("Thiếu/OTP không hợp lệ. Vui lòng nhập lại ở bước 2.");
+      toast.error("Missing/Invalid OTP. Please enter again at step 2.");
       setStep(2);
       return;
     }
     if (!password || password.length < 8) {
-      toast.error("Mật khẩu phải có ít nhất 8 ký tự");
+      toast.error("Password must be at least 8 characters");
       return;
     }
     if (password !== confirm) {
-      toast.error("Mật khẩu xác nhận không khớp");
+      toast.error("Confirm password does not match");
       return;
     }
 
@@ -98,11 +100,13 @@ export default function ResetPasswordFlow() {
         newPassword: password,
       };
       const res = await resetPassword(body).unwrap();
-      toast.success(res?.message || "Đặt lại mật khẩu thành công");
+      toast.success(res?.message || "Reset password successfully");
       navigate("/auth/login");
     } catch (e: unknown) {
       const err = e as ApiError;
-      toast.error(err.data?.message || "Đặt lại mật khẩu thất bại");
+      toast.error(
+        `Reset Password Failed: ${err.data?.message || "Unknown error"}`
+      );
     }
   };
 

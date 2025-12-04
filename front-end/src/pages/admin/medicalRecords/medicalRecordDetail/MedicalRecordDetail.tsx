@@ -79,7 +79,7 @@ export default function MedicalRecordDetail() {
       <div className="flex items-center justify-center py-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mb-4"></div>
         <div className="ml-4 text-lg text-gray-600">
-          Đang tải thông tin hồ sơ bệnh án...
+          Loading medical record details...
         </div>
       </div>
     );
