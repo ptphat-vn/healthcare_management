@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { persistStore } from "redux-persist";
 import { toast } from "sonner";
 import { socketService } from "@/services/socketService";
-import { useNavigate } from "react-router-dom";
 
 export function useAuth() {
   const dispatch = useDispatch();
