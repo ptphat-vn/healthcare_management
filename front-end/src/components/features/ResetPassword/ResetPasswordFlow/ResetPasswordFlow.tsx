@@ -8,10 +8,12 @@ import StepNewPassword from "../StepNewPassword/StepNewPassword";
 
 import {
   useForgotPasswordMutation,
+  useVerifyResetTokenMutation,
   useResetPasswordMutation,
 } from "@/services/baseApi";
 import type {
   ForgotPasswordRequest,
+  VerifyResetTokenRequest,
   ResetPasswordRequest,
 } from "@/types/request.type";
 import { forgotPasswordSchema } from "@/schemas/authSchema";
@@ -29,6 +31,7 @@ export default function ResetPasswordFlow() {
   const [confirm, setConfirm] = useState("");
 
   const [forgotPassword, { isLoading: sending }] = useForgotPasswordMutation();
+  const [verifyResetToken, { isLoading: verifying }] = useVerifyResetTokenMutation();
   const [resetPassword, { isLoading: resetting }] = useResetPasswordMutation();
 
   type ApiError = { data?: { message?: string } };
@@ -56,8 +59,25 @@ export default function ResetPasswordFlow() {
       toast.error("OTP must be 6 digits");
       return;
     }
-    toast.success("OTP verified successfully");
-    setStep(3);
+    if (!identifier) {
+      toast.error("Missing email. Please enter email at step 1.");
+      setStep(1);
+      return;
+    }
+    try {
+      const body: VerifyResetTokenRequest = {
+        email: identifier,
+        otp,
+      };
+      await verifyResetToken(body).unwrap();
+      toast.success("OTP verified successfully");
+      setStep(3);
+    } catch (e: unknown) {
+      const err = e as ApiError;
+      toast.error(
+        `OTP Verification Failed: ${err.data?.message || "Invalid or expired OTP"}`
+      );
+    }
   };
 
   const handleResend = async () => {
@@ -133,7 +153,7 @@ export default function ResetPasswordFlow() {
               onVerify={handleVerifyOTP}
               onResend={handleResend}
               onBack={() => setStep(1)}
-              loading={sending}
+              loading={verifying || sending}
             />
           </div>
         )}

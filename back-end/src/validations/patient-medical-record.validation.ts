@@ -10,7 +10,7 @@ const isValidDate = (s: string): boolean => {
 }
 
 const createPatientRecordSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
+  userId: z.string().min(1, 'Patient is required'),
   bloodType: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']).optional(),
   emergencyContact: z.object({
     name: z.string().min(1),

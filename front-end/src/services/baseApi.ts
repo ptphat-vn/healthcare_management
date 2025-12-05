@@ -22,6 +22,7 @@ import type {
 import type { User } from "@/types/user.type";
 import type {
   ForgotPasswordRequest,
+  VerifyResetTokenRequest,
   ResetPasswordRequest,
 } from "@/types/request.type";
 
@@ -175,6 +176,16 @@ export const baseApi = createApi({
         body,
       }),
     }),
+    verifyResetToken: builder.mutation<
+      APIResponse<{ email: string; valid: boolean }>,
+      VerifyResetTokenRequest
+    >({
+      query: (body) => ({
+        url: "/auth/verify-reset-token",
+        method: "POST",
+        body,
+      }),
+    }),
     resetPassword: builder.mutation<
       APIResponse<{ email: string }>,
       ResetPasswordRequest
@@ -227,6 +238,7 @@ export const {
   useLoginGoogleMutation,
   useLogoutMutation,
   useForgotPasswordMutation,
+  useVerifyResetTokenMutation,
   useResetPasswordMutation,
   useVerifyOTPMutation,
   useGetConversationQuery,

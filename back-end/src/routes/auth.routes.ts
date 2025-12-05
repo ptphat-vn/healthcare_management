@@ -3,6 +3,7 @@ import {
   validateLogin,
   validateRegister,
   validateForgotPassword,
+  validateVerifyResetToken,
   validateResetPassword,
   validateChangePassword,
   validateRefreshToken
@@ -12,6 +13,7 @@ import {
   logoutController,
   registerController,
   forgotPasswordController,
+  verifyResetTokenController,
   resetPasswordController,
   changePasswordController,
   createUserController,
@@ -35,6 +37,7 @@ authRouter.post(
   createUserController
 )
 authRouter.post('/auth/forgot-password', validateForgotPassword, forgotPasswordController)
+authRouter.post('/auth/verify-reset-token', validateVerifyResetToken, verifyResetTokenController)
 authRouter.post('/auth/reset-password', validateResetPassword, resetPasswordController)
 authRouter.post('/auth/change-password', authMiddleware, validateChangePassword, changePasswordController)
 authRouter.post('/auth/refresh-token', validateRefreshToken, refreshTokenController)

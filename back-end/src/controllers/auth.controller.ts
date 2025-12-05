@@ -57,6 +57,15 @@ export const forgotPasswordController = async (req: Request, res: Response, next
   }
 }
 
+export const verifyResetTokenController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = await authService.verifyResetToken(req.body)
+    return res.status(200).json({ message: 'Token verified successfully', data })
+  } catch (err) {
+    next(err)
+  }
+}
+
 export const resetPasswordController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await authService.resetPassword(req.body)

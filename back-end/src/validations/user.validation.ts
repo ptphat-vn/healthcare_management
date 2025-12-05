@@ -128,6 +128,11 @@ const forgotPasswordSchema = z.object({
   email: z.string().email(),
 })
 
+const verifyResetTokenSchema = z.object({
+  email: z.string().email(),
+  otp: z.string().min(1),
+})
+
 const resetPasswordSchema = z.object({
   email: z.string().email(),
   otp: z.string().min(1),
@@ -162,6 +167,14 @@ export const validateLogin = (req: Request, _res: Response, next: NextFunction) 
 
 export const validateForgotPassword = (req: Request, _res: Response, next: NextFunction) => {
   const parse = forgotPasswordSchema.safeParse(req.body)
+  if (!parse.success) {
+    return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
+  }
+  next()
+}
+
+export const validateVerifyResetToken = (req: Request, _res: Response, next: NextFunction) => {
+  const parse = verifyResetTokenSchema.safeParse(req.body)
   if (!parse.success) {
     return next(new HttpError(422, MESSAGES.VALIDATION_ERROR))
   }

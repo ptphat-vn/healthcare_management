@@ -180,14 +180,46 @@ export async function forgotPassword(email: string) {
   return { email }
 }
 
-export async function resetPassword(payload: { otp: string; email: string; newPassword: string }) {
+export async function verifyResetToken(payload: { otp: string; email: string }) {
   const users = getUsersCollection()
   const user = await users.findOne({ email: payload.email })
   if (!user) throw new HttpError(404, MESSAGES.EMAIL_NOT_FOUND)
+  
   const resetTokens = getPasswordResetCollection()
   const resetRecord = await resetTokens.findOne({ userId: user._id, token: payload.otp, used: false })
-  if (!resetRecord || resetRecord.expiresAt < new Date()) throw new HttpError(400, MESSAGES.INVALID_RESET_TOKEN)
+  
+  // Kiểm tra token có tồn tại không
+  if (!resetRecord) {
+    throw new HttpError(400, MESSAGES.INVALID_RESET_TOKEN)
+  }
+  
+  // Kiểm tra token đã hết hạn chưa
+  if (resetRecord.expiresAt < new Date()) {
+    throw new HttpError(400, MESSAGES.INVALID_RESET_TOKEN)
+  }
+  
+  // Token hợp lệ
+  return { email: payload.email, valid: true }
+}
 
+export async function resetPassword(payload: { otp: string; email: string; newPassword: string }) {
+  // Bước 1: Verify token trước - kiểm tra token đúng hay sai
+  await verifyResetToken({ otp: payload.otp, email: payload.email })
+  
+  // Bước 2: Nếu token hợp lệ (đã pass bước verify), mới cho phép đổi mật khẩu
+  const users = getUsersCollection()
+  const user = await users.findOne({ email: payload.email })
+  if (!user) throw new HttpError(404, MESSAGES.EMAIL_NOT_FOUND)
+  
+  const resetTokens = getPasswordResetCollection()
+  const resetRecord = await resetTokens.findOne({ userId: user._id, token: payload.otp, used: false })
+  
+  // Kiểm tra lại để đảm bảo token vẫn hợp lệ (tránh race condition)
+  if (!resetRecord || resetRecord.expiresAt < new Date()) {
+    throw new HttpError(400, MESSAGES.INVALID_RESET_TOKEN)
+  }
+  
+  // Token đã được verify đúng, tiến hành đổi mật khẩu
   const newPasswordHash = await bcrypt.hash(payload.newPassword, 10)
   await users.updateOne({ _id: user._id }, { $set: { passwordHash: newPasswordHash, updatedAt: new Date() } })
   await resetTokens.updateOne({ _id: resetRecord._id }, { $set: { used: true } })
