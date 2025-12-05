@@ -34,7 +34,7 @@ export const createMedicalRecordSchema = z
     insurancePolicyNumber: z.string().optional().or(z.literal("")),
     insuranceExpiryDate: z
       .string()
-      .regex(/^\d{2}-\d{2}-\d{4}$/, "Expiry date must be in MM-DD-YYYY format")
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date must be in YYYY-MM-DD format")
       .refine(
         (value) => {
           if (!value) return true;
