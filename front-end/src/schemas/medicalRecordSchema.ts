@@ -9,7 +9,8 @@ export const createMedicalRecordSchema = z
     // Blood type KHÔNG bắt buộc
     bloodType: z
       .enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])
-      .optional(),
+      .optional()
+      .or(z.literal("")),
 
     // Emergency contact: tất cả bắt buộc
     emergencyName: z.string().min(1, "Emergency contact name is required"),
@@ -33,7 +34,7 @@ export const createMedicalRecordSchema = z
     insurancePolicyNumber: z.string().optional().or(z.literal("")),
     insuranceExpiryDate: z
       .string()
-      .regex(/^\d{2}-\d{2}-\d{4}$/, "Expiry date must be in MM-DD-YYYY format")
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date must be in YYYY-MM-DD format")
       .refine(
         (value) => {
           if (!value) return true;
@@ -68,7 +69,8 @@ export const updateMedicalRecordSchema = z
     gender: z.enum(["male", "female"]).optional(),
     bloodType: z
       .enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])
-      .optional(),
+      .optional()
+      .or(z.literal("")),
     phoneNumber: z
       .string()
       .regex(/^[0-9]{10,11}$/, "Phone number must be 10-11 digits")
